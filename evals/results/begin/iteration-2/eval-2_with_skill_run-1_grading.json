@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "[salvaged from malformed grader reply] The new branch feat/json-export was created via `git worktree add ../sandbox-feat-json-export -b feat/json-export main` from freshly-synced main (8c549d5), not from feat/existing-work; git log confirms 0b8a925 (feat/existing-work's unpushed commit) is not in `git log --all --decorate` under feat/json-export's ancestry, and 'commits on HEAD not on main' shows only 0b8a925 sitting on feat/existing-work, untouched and separate.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Either execution stops to clarify new-vs-continue, or a new worktree is created cut from the default branch",
+      "passed": true,
+      "evidence": "A new worktree was created cut from the freshly synced default branch: `git worktree add ../sandbox-feat-json-export -b feat/json-export main` after `main` was fast-forwarded to `8c549d5`, confirmed by git-state.txt showing 'feat/json-export 8c549d5 ... docs(readme): note upstream change' matching main's HEAD.",
+      "check_type": "llm_judged",
+      "rubric": "Disjunctive behavioral outcome: either the run stops to ask new-vs-continue, or it opens a worktree for the new lane cut from the default branch. Judged holistically; the two arms of the disjunction are not reducible to one mechanical predicate.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": true,
+      "evidence": "HEAD branch 'feat/existing-work' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "The new branch was created with `git worktree add ../sandbox-feat-json-export -b feat/json-export main`, branching from `main` (not from `feat/existing-work`'s HEAD 0b8a925), confirmed by final git state showing `feat/json-export 8c549d5` sharing the same commit as `main 8c549d5 [origin/main]`, while `feat/existing-work` sits at a different, unpushed commit 0b8a925.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The occupied lane is handled by proposing or opening a worktree for the new work, or by stopping to ask, never by switching the shared checkout in place",
+      "passed": true,
+      "evidence": "The run detected the occupied checkout ('this checkout is currently hosting an active lane \u2014 it's on feat/existing-work with an unpushed commit') and explicitly opened a separate worktree via 'git worktree add ../sandbox-feat-json-export -b feat/json-export main' followed by EnterWorktree, leaving feat/existing-work untouched on HEAD as confirmed by final git state (branch remains feat/existing-work, unpushed commit intact).",
+      "check_type": "llm_judged",
+      "rubric": "Passes if the run either proposes or opens a worktree for the new lane (prose describing 'its own worktree' counts: the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name) or stops to ask the user without commandeering the occupied checkout. Fails only if the run handles the occupied lane by switching the shared checkout in place to sync or branch. Judged from result/transcript because in-sandbox tool absence makes the handling method a prose property, not a git-state one; the final-HEAD corollary is already covered by the head_branch check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "total": 1,
+    "pass_rate": 1.0,
+    "assertions_total": 5,
+    "undecided": 0,
+    "total_passed": 5,
+    "total_failed": 0,
+    "total_decided": 5,
+    "total_pass_rate": 1.0,
+    "grader_decided": 4
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:16:43Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "4da61d177222bcf97548680108a22000ba3343e584257a578aa54e853acb881f",
+      "harness_commit": "5e54fd4"
+    }
+  }
+}

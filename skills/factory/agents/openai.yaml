@@ -1,0 +1,5 @@
+interface:
+  display_name: "Factory"
+  short_description: "Drive the active OpenSpec change end to end, one section per round, gating and verifying"
+policy:
+  allow_implicit_invocation: false

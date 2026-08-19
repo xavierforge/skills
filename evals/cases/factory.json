@@ -1,0 +1,130 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "factory",
+  "evals": [
+    {
+      "eval_id": "factory-full-loop-three-sections",
+      "prompt": "/factory Run the whole active openspec change to completion, section by section, and report each round.",
+      "fixture": "factory/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "On a repo with exactly one active change whose three sections are loop-ready, the plan gate passes without a rewrite, each section runs as its own round in a fresh subagent (each section's dispatch annotation selects its starting role, the sai-hu-annotated section going to sai-hu on the first round per annotation, or, in a rosterless harness where the role types are not installed, to a general subagent carrying that role's one-line contract with the round noted in fallback form such as `sai-hu (fallback: general)`, in every case with no model or effort parameter passed and no nested delegation), each round lands exactly one Conventional Commit that also ticks that section's checkboxes, a one-line report closes every round, /opsx:verify is recorded as unavailable rather than simulated, and a final ledger whose per-round lines name each section's role and marker, with per-round durations and total wall time, closes the run.",
+      "expectations": [
+        {
+          "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
+          "check": {"type": "llm_judged", "rubric": "Before any round runs, the plan gate must be evaluated against all three loop-readiness properties (named sections, ticked-checkbox contract, section-scoped checks). This is a process assertion read from the transcript."}
+        },
+        {
+          "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
+          "check": {"type": "git_log_count", "range": [3, 3]}
+        },
+        {
+          "text": "Each section's checkboxes are ticked in that section's own commit",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-helpers/tasks.md", "needles": ["[x] 1.1", "[x] 1.2", "[x] 2.1", "[x] 2.2", "[x] 3.1", "[x] 3.2"]}
+        },
+        {
+          "text": "Each round dispatches a fresh subagent to the role its annotation selects, the sai-hu-annotated section going to sai-hu on the first round noted as per annotation, and no dispatch passes a model or effort parameter",
+          "check": {"type": "llm_judged", "rubric": "Each round must run in a fresh subagent dispatched to the role the section's annotation selects: the sai-hu-annotated section goes to sai-hu on the first round (noted per annotation), the default-annotated sections to too-te, and no dispatch may pass a model or effort parameter. In a rosterless harness where the role types are not installed and a dispatch to them would fail, dispatching a fresh general subagent that carries the intended role's one-line contract and recording the role in the ledger in fallback form (for example `sai-hu (fallback: general)`) counts as honoring the annotation; a bare without_skill arm does not invent these fallback annotations on its own, so the assertion still discriminates. Reading which role each round used (or its fallback form), whether the sai-hu section was honored on the first round, and whether any model or effort parameter was passed is a judgment over the round reports."}
+        },
+        {
+          "text": "Dispatch is exactly one subagent deep: rounds dispatch, and no dispatched subagent spawns another",
+          "check": {"type": "llm_judged", "rubric": "Dispatch annotations select a starting role, never a nested delegation: no round's subagent may spawn a further subagent. Requires reasoning over the dispatch structure in the transcript. The property is dispatched-but-flat, so this row is NOT vacuously satisfied by the mere absence of nesting: if the run dispatched no subagent at all (it executed the sections inline in the main session), mark it failed, not passed. Pass only when at least one round dispatched a subagent AND no dispatched subagent spawned another."}
+        },
+        {
+          "text": "A one-line round report is emitted for every round, and a final ledger whose per-round lines name each section's role and any marker (per annotation, escalated, or turn budget) appears with per-round durations and total wall time",
+          "check": {"type": "llm_judged", "rubric": "Every round emits a one-line report, and the run closes with a ledger where each round's line names the section's role and any marker (per annotation, escalated, or turn budget) alongside per-round durations and a total wall time. Presence and completeness of the ledger, including the per-round role and marker, is a structural judgment on the reply."}
+        },
+        {
+          "text": "/opsx:verify is recorded as unavailable, not simulated as passing",
+          "check": {"type": "llm_judged", "rubric": "/opsx:verify must be recorded as unavailable rather than simulated as passing. Distinguishing an honest 'unavailable' note from a fabricated pass requires reading intent, not one string match."}
+        },
+        {
+          "text": "No git push or gh command is attempted",
+          "check": {"type": "text_contains", "source": "transcript", "regex": "(?m)^\\s*(git push|gh )", "present": false}
+        }
+      ]
+    },
+    {
+      "eval_id": "factory-no-active-change-refusal",
+      "prompt": "/factory Run the whole active openspec change to completion.",
+      "fixture": "factory/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With no openspec directory at all, the run refuses to start, explains that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/, points at proposing a change as the way in, and leaves the repo untouched.",
+      "expectations": [
+        {
+          "text": "Execution stops with a refusal instead of inventing work from the repo",
+          "check": {"type": "git_log_count", "range": [0, 0]}
+        },
+        {
+          "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+          "check": {"type": "llm_judged", "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply."}
+        },
+        {
+          "text": "The refusal points at proposing a change first as the way in",
+          "check": {"type": "llm_judged", "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string."}
+        },
+        {
+          "text": "No commits, branch changes, or file modifications are made",
+          "check": {"type": "git_clean", "expect": true}
+        }
+      ]
+    },
+    {
+      "eval_id": "factory-plan-gate-rewrite",
+      "prompt": "/factory Run the whole active openspec change to completion, section by section.",
+      "fixture": "factory/3",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With one active change whose tasks.md is a single mega-section with no named checks, the plan gate rejects it, a loop-ready rewrite of tasks.md is produced and its diff shown, and execution stops for the user's approval before any round runs; no section work is committed.",
+      "expectations": [
+        {
+          "text": "The plan gate rejects the original tasks.md, citing at least one of the three loop-readiness properties",
+          "check": {"type": "llm_judged", "rubric": "The plan gate must reject the single mega-section tasks.md, citing at least one loop-readiness property it violates. A judgment on the reply's stated reason."}
+        },
+        {
+          "text": "A rewritten tasks.md is produced and its diff is shown to the user",
+          "check": {"type": "llm_judged", "rubric": "A loop-ready rewrite of tasks.md must be produced and its diff shown to the user for approval. Whether a genuine rewrite+diff is presented (vs vague advice) is judged from the reply; the rewrite may live only in the message, not on disk."}
+        },
+        {
+          "text": "Execution stops waiting for approval, with no round run and no section work committed",
+          "check": {"type": "git_log_count", "range": [0, 0]}
+        }
+      ]
+    },
+    {
+      "eval_id": "factory-parallel-group-lane-plan",
+      "prompt": "/factory Run the whole active openspec change to completion, section by section, and report each round.",
+      "fixture": "factory/4",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "The active change opens with two adjacent [parallel: yes] sections that are mutually independent. The foreman does not fan out concurrent dispatch on its own: it stops at the group and hands back a lane plan, one pasteable dispatch prompt per lane (worktree, branch, /section N, acceptance command), recording the shared base commit both lanes branch from, and states the two exits (open the lanes, or reply continue to run them sequentially). No section is executed or committed by the foreman: the parallel sections stay unchecked and the tree is clean.",
+      "expectations": [
+        {
+          "text": "The foreman commits no section work: it stops at the parallel group and hands the split back",
+          "check": {"type": "git_log_count", "range": [0, 0]}
+        },
+        {
+          "text": "The working tree is left clean: the foreman reads and plans, it does not implement either section",
+          "check": {"type": "git_clean", "expect": true}
+        },
+        {
+          "text": "Both parallel sections remain unchecked in tasks.md (no section landed)",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-helpers/tasks.md", "needles": ["[ ] 1.1", "[ ] 2.1"]}
+        },
+        {
+          "text": "The reply is a lane plan: it hands each section back as a user-run /section lane rather than executing it",
+          "check": {"type": "text_contains", "source": "any", "regex": "(?i)/section\\b"}
+        },
+        {
+          "text": "The continue fallback (run the group sequentially) is offered as an exit",
+          "check": {"type": "text_contains", "source": "any", "regex": "(?i)\\bcontinue\\b"}
+        },
+        {
+          "text": "Each lane is a complete pasteable dispatch prompt (worktree and branch, /section N, acceptance command) and the plan records the shared base commit both lanes branch from",
+          "check": {"type": "llm_judged", "rubric": "The lane plan must emit one self-contained dispatch prompt per section that the user can paste into a fresh session: each carries a worktree and branch name, the commands to create the worktree off the recorded base, the /section N run for its section, and an acceptance command. The plan must record the shared base commit (the feature branch's current HEAD) that both lanes branch from. Judged from the reply: a genuine two-lane plan with a recorded base passes; vague advice to 'do them in parallel' fails."}
+        },
+        {
+          "text": "The foreman does not self-fan-out concurrent dispatch: opening lanes is handed to the user, and no section is run by the foreman",
+          "check": {"type": "llm_judged", "rubric": "The foreman must not spawn concurrent subagent dispatch for the parallel group on its own. It stops and hands the lanes to the user to open as dispatcher, and executes none of the group's sections itself. Judged from the transcript: any attempt to run the two sections concurrently (or to just start implementing them) is the failure this case discriminates against a bare arm that would do the work directly or section by section."}
+        }
+      ]
+    }
+  ]
+}

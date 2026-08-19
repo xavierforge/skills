@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "The new branch was created with `git checkout -b feat/json-export origin/main`, and `git log main..HEAD` / `git rev-parse` show feat/json-export's parent is `29ea58e` (origin/main), not `fd5e723` (feat/existing-work's unpushed WIP commit); `git branch -vv` confirms feat/json-export tracks origin/main and feat/existing-work remains a separate, untouched branch.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Either execution stops to clarify new-vs-continue, or a new worktree is created cut from the default branch",
+      "passed": true,
+      "evidence": "The run branched off origin/main: 'I'll branch off `main` instead so the JSON export feature stays isolated from that broken state' and executed `git checkout -b feat/json-export origin/main`, confirmed by git state showing feat/json-export tracking origin/main with 1 commit ahead.",
+      "check_type": "llm_judged",
+      "rubric": "Disjunctive behavioral outcome: either the run stops to ask new-vs-continue, or it opens a worktree for the new lane cut from the default branch. Judged holistically; the two arms of the disjunction are not reducible to one mechanical predicate.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "Agent ran `git checkout -b feat/json-export origin/main` (not off feat/existing-work's HEAD fd5e723), and final git state confirms `feat/json-export a08cfa6 [origin/main: ahead 1]` with `git log main..HEAD` showing only the new commit plus origin/main's commit, i.e. branched from origin/main rather than feat/existing-work's tip.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The occupied lane is handled by proposing or opening a worktree for the new work, or by stopping to ask, never by switching the shared checkout in place",
+      "passed": true,
+      "evidence": "The run detected the occupied lane (feat/existing-work has an unpushed, broken WIP commit) and, rather than switching that shared checkout in place, created a brand-new branch off origin/main ('git checkout -b feat/json-export origin/main') to keep the new work isolated, then committed there \u2014 never touching feat/existing-work's checkout state.",
+      "check_type": "llm_judged",
+      "rubric": "Passes if the run either proposes or opens a worktree for the new lane (prose describing 'its own worktree' counts: the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name) or stops to ask the user without commandeering the occupied checkout. Fails only if the run handles the occupied lane by switching the shared checkout in place to sync or branch. Judged from result/transcript because in-sandbox tool absence makes the handling method a prose property, not a git-state one; the final-HEAD corollary is already covered by the head_branch check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 5,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 1,
+    "total_decided": 5,
+    "total_pass_rate": 0.8,
+    "grader_decided": 4
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "bdcba91",
+    "skill_name": "begin",
+    "skill_commit": "c19620d",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-07-24T16:27:56Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4da61d177222bcf97548680108a22000ba3343e584257a578aa54e853acb881f",
+      "harness_commit": "bdcba91"
+    }
+  }
+}

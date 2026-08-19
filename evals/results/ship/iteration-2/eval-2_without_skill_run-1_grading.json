@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "diff-scan.sh is run with an explicit base ref argument",
+      "passed": false,
+      "evidence": "[transcript] missing regex 'diff-scan\\\\.sh[^\\\\n]*\\\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The derived quality gate command is run, not a bare compile",
+      "passed": true,
+      "evidence": "[transcript] all present: 'make check'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A fresh-context adversarial review subagent is dispatched",
+      "passed": null,
+      "evidence": "pending: llm_judged -> skill-creator grader",
+      "check_type": "llm_judged",
+      "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record."
+    },
+    {
+      "text": "The model used for the review subagent is reported to the user",
+      "passed": false,
+      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+      "passed": false,
+      "evidence": "[pr_body] missing needle 'Motivation'; needle 'Design decisions'; needle 'Testing'; needle 'Reviewing'; needle 'Notes'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "Execution stops before git push or gh pr create",
+      "passed": null,
+      "evidence": "pending: llm_judged -> skill-creator grader",
+      "check_type": "llm_judged",
+      "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25,
+    "assertions_total": 6,
+    "undecided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "ship",
+    "skill_commit": "a912518",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:33:02Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    }
+  }
+}

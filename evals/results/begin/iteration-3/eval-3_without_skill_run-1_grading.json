@@ -1,0 +1,63 @@
+{
+  "expectations": [
+    {
+      "text": "The default branch is fast-forwarded to its remote before branching",
+      "passed": true,
+      "evidence": "trunk=041abd02 == origin/trunk=041abd02",
+      "check_type": "ref_equals"
+    },
+    {
+      "text": "A new branch named feat/farewell is created",
+      "passed": true,
+      "evidence": "branch 'feat/farewell' exists=True (expect True)",
+      "check_type": "branch_exists"
+    },
+    {
+      "text": "The new branch is cut from the default branch with an explicit start point",
+      "passed": true,
+      "evidence": "trunk is ancestor of feat/farewell",
+      "check_type": "is_ancestor"
+    },
+    {
+      "text": "The default branch name is derived, not assumed to be 'main'",
+      "passed": true,
+      "evidence": "branch 'main' exists=False (expect False)",
+      "check_type": "branch_exists"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "5c92277",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 3,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T12:06:37Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "5c92277"
+    }
+  }
+}

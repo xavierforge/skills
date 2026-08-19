@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "No new branch was created (current branch remains feat/existing-work per git-state.txt); the assistant explicitly stopped to confirm before proceeding: 'I need to confirm before proceeding: you want to start this as genuinely new, separate work... correct?' and stated it would not cut the new branch off feat/existing-work but sync main and open a new worktree instead, satisfying the conditional 'may legitimately stop without branching' rubric.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": true,
+      "evidence": "HEAD branch 'feat/existing-work' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "No new branch was created (agent stopped at Step A1 to confirm intent), so the conditional expectation is vacuously satisfied; moreover the reply explicitly states 'I won't cut the new branch off this one \u2014 I'll sync the default branch in place and open a new worktree,' correctly committing to the default branch as the start point rather than feat/existing-work's HEAD.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "total": 1,
+    "pass_rate": 1.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 0,
+    "total_decided": 3,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "feb6d27",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 6,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T12:21:53Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "650f967292f4fa50ac64a71a4ce942f1e9de44c1353aae1acf6117287bb73397",
+      "harness_commit": "feb6d27"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Preflight"
+  short_description: "Pre-ship acceptance gate: run the review layers and triage each finding to one exit"
+policy:
+  allow_implicit_invocation: false

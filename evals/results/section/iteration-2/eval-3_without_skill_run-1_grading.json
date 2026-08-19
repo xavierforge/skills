@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "The dispatch annotation on the section is read and honored",
+      "passed": true,
+      "evidence": "[transcript] all present: 'sai-hu'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The section is handed to the named agent role as a complete spec",
+      "passed": false,
+      "evidence": "The tasks.md dispatches Section 1 to 'sai-hu', but the transcript shows the main agent itself performing all Section 1 work inline (Read, Edit, pytest, make check) with no Agent tool invocation, no fallback annotation like 'sai-hu (fallback: general)', and no spec handoff of any kind.",
+      "check_type": "llm_judged",
+      "rubric": "The section must be handed off as a self-contained spec (goal, scope, done-criteria), not reasoned out inline: to the sai-hu role when it is installed, or, in a rosterless harness where that role type is not installed and the dispatch would fail, to a fresh general subagent carrying the sai-hu one-line contract with the report noting the role in fallback form (`sai-hu (fallback: general)`). Either way the handoff must be a complete spec rather than inline reasoning, and a bare without_skill arm produces neither a role dispatch nor a fallback annotation, so the assertion still discriminates. Completeness of the handed-off spec is a quality judgment on the dispatch prompt.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The result is still one Conventional Commits commit with checkboxes ticked",
+      "passed": false,
+      "evidence": "0 commits on HEAD beyond main (want [1,1])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Execution stops after the one section",
+      "passed": true,
+      "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+      "check_type": "file_contains"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "section",
+    "skill_commit": "a9bae7d",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:24:40Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "0cf8a68b7fe6facab74adf9b699ed87305561a05a21a5182803a3b2697381ae9",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

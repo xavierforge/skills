@@ -1,0 +1,79 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Rules are keyed by artifact ID (proposal, specs, design, tasks); openspec
+# warns on and ignores any other key, so keep the shared rules below on their
+# artifact hosts (verification evidence and the decision ledger on `tasks`,
+# decision reconciliation on `design`) rather than on a phase name.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - |
+      **tasks.md contract**
+      When you write the `tasks.md` artifact, it MUST satisfy every condition below:
+      - [ ] Every section is a vertical slice: it contains its own failing tests AND the implementation that turns them green. Horizontal layers ("all tests", "all types", "all plumbing") are forbidden as sections.
+      - [ ] One section = one TDD cycle = one working session = exactly one commit. A section a reviewer cannot describe in a single Conventional Commit subject line without "and" is too big and MUST be split.
+      - [ ] Sections are independently verifiable and ordered so each depends only on earlier sections.
+      - [ ] Each section header carries an inline dispatch annotation in this exact format: `[dispatch: too-te|sai-hu|main, parallel: yes|no, reason: <one-line grading rationale>]`. Grade the dispatch by the section's spec completeness, not by its size, and write the reason for a reader who does not know the agent roster, since the names alone carry no meaning:
+        - `too-te` marks a section whose spec is already complete and carries no design judgment: it can be typed straight from the spec (a template-shaped change, tests or docs added by an established convention, anything where the spec already states file paths, verification steps, and expected tests).
+        - `sai-hu` marks a section that carries real design judgment: the spec leaves a choice open (an implementation approach, a naming or structural decision, an error-handling shape) that must be settled, not just transcribed.
+        - `main` marks a section that must stay in the main session: it needs live interaction with the user, or a judgment call that integrates across sections rather than resolving inside this one.
+        - The `parallel: yes|no` flag is a separate axis from the tier above: it records whether the section may run in its own lane beside its adjacent `parallel: yes` neighbors. `parallel: yes` carries a stronger promise than ordinary section independence: the members of an adjacent `parallel: yes` group MUST be mutually independent, needing none of each other's output at all, not merely avoiding a dependence on a sibling's half-done state. Parallel lanes branch from one shared base commit and never see each other's uncommitted work, so a section that needs a group-mate's product (even its fully finished product) MUST be marked `parallel: no`.
+        Every annotation ends with a one-line `reason:` grading rationale beside the dispatch tag, e.g. `[dispatch: too-te, parallel: no, reason: tests-only backfill, spec carries paths and assertions]`. (A later /section tool parses this line, so keep the format exact.)
+      - [ ] Every `too-te` section fits a turn budget of about 40 tool calls. The role's hard cap is about 100 turns, not tool calls (one turn can batch several calls), so 40 tool calls sits comfortably inside it; the target holds not because room is scarce but because a section you cannot honestly estimate under 40 is usually too large for a reviewer to take in as one commit anyway. Estimate the section's tool calls as you write it: reads, edits, test runs, greps. A section you cannot honestly estimate under 40 (end-to-end work, standing a test harness up from scratch, anything whose step count is unknowable until it starts) MUST be either annotated `sai-hu`, which carries no cap, or split until each part fits.
+      - [ ] Target 3-7 tasks per section.
+    - |
+      **Plan lint (mandatory final step, before presenting the change to the user)**
+      Run this checklist before showing the change to the user:
+      - [ ] (a) Every requirement in `specs/` maps to at least one test task.
+      - [ ] (b) `proposal.md` states non-goals.
+      - [ ] (c) Every section satisfies the tasks.md contract above (vertical, one-commit-sized, dispatch-annotated).
+      - [ ] (d) No section exists whose only content is tests, or whose only content is verification.
+      - [ ] (e) Every dispatch annotation carries a `reason:` grading rationale; a `sai-hu` annotation with no reason line is a lint failure.
+      - [ ] (f) Every `too-te` section carries a tool-call estimate under 40; a section that does not is split or re-annotated `sai-hu` before the plan is presented.
+      - [ ] (g) Every adjacent `parallel: yes` group is mutually independent: no member needs another member's output. A member that does is re-marked `parallel: no` before the plan is presented.
+
+      If any check fails, fix `tasks.md` and re-lint. Present nothing to the user until all checks pass.
+    # Background (2026-07-17): opsx:verify reported 0 CRITICAL and let a diff through; a later spec-comparison review caught task 4.4 whose verification was only half-done. This entry demands execution evidence, not checkmarks, so that gap closes at tasks-authoring time.
+    - |
+      **Verification evidence (per task)**
+      Every task's verification step MUST call for actual execution evidence (test output, command result, or observed behavior), not a bare checkbox. When you write `tasks.md`, phrase each task so its "done" can only be claimed by citing that evidence. A task whose completion rests on a ticked box with no execution evidence is NOT complete, and a later verify pass reading it MUST raise a WARNING rather than pass it silently.
+    # Background (2026-07-24): rulings made after execution started (a caveat found mid-implementation, a review finding refused because design.md already ruled it out, a scope call) lived only in the session log. The next reviewer re-proposed what had already been settled, and a settled Non-Goal was re-opened silently. This entry gives those rulings a file, hosted on `tasks` because execution is the phase that produces them.
+    - |
+      **Decision ledger (`decisions.md`, one per change directory)**
+      Every change directory carries a `decisions.md` beside `tasks.md`, recording the rulings made AFTER execution started. It is written in English, like every other artifact in the change.
+      - Scope: only post-start rulings. `design.md`'s Non-Goals and its decision reconciliation list are the pre-start record and stay authoritative; never copy them here, and never retro-edit `design.md` to absorb a later ruling.
+      - Format: one decision per line, `- <MM-DD> [<tag>] <the ruling, in one sentence> (source: <where it came from>)`. The source is concrete: a tasks.md section number, a review finding number, a commit hash, or the person who called it.
+      - Tags, four of them:
+        - `[caveat]` a limitation discovered while implementing, plus how the change lives with it.
+        - `[reversal→pending]` / `[reversal→denied]` / `[reversal→accepted]` a later proposal to overturn a settled decision, and its outcome: `pending` while it sits with the user, the other two once they have ruled. A reversal is a user's call, never an implementer's or a reviewer's. Write the line when the request is raised and update that same line in place when the ruling lands, so one ruling stays one line.
+        - `[included]` work not in the original scope, judged a necessary extension of it, and folded into this change.
+        - `[tracked]` work judged out of scope and registered somewhere durable (roadmap, issue) instead of being done here.
+      - Examples:
+        - `- 07-24 [caveat] compare cannot tell deliberate from accidental pack drift (no build identity yet); ruling: always warn, matrix owns the controlled-variable call (source: section 9)`
+        - `- 07-24 [reversal→denied] review flagged loop-history as CONFIRMED, but design.md lists it as a Non-Goal; stays out (source: finding #4)`
+        - `- 07-25 [reversal→pending] review asks for a to_json helper, which design.md rules out as a Non-Goal; put to the user, awaiting their ruling (source: finding #2)`
+        - `- 07-24 [included] stream-error hardening judged a necessary extension of history replay; folded into this change (source: commit 96f3a09)`
+        - `- 07-24 [tracked] fingerprint NUL collision is out of scope; logged to ROADMAP (source: finding #2)`
+      - Discipline: write each line when the ruling happens, never in a batch at the end. A ruling reconstructed from memory at close of change is the failure this file exists to prevent.
+      - Filing: the file lives in the change directory and is archived with it, so it needs no separate handling. In a repo whose `openspec/` is untracked via `.git/info/exclude`, it inherits that and stays local, which is the intended behavior and requires no special case.
+  design:
+    - |
+      **Decision reconciliation list (close of design)**
+      When you finish `design.md`, end it with a decision reconciliation list so the user can audit the checklist alone instead of re-reading the whole document: one line per decision locked in during discussion, each naming its landing spot in `design.md` (the section title where the decision is recorded). Any locked decision with no landing section MUST be flagged explicitly (for example, append `-> NOT IN DESIGN`).

@@ -1,0 +1,89 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "section",
+  "evals": [
+    {
+      "eval_id": "section-happy-one-section-inline",
+      "prompt": "Execute section 1 of the active change",
+      "fixture": "section/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "The single tasks.md section is done test-first, wrapped in exactly one Conventional Commits commit with its checkboxes ticked, and execution stops without touching other sections.",
+      "expectations": [
+        {
+          "text": "A failing test is written before the implementation for each task in the section",
+          "check": {"type": "llm_judged", "rubric": "Red-before-green ordering per task: a failing test must be authored and observed to fail before its implementation. Ordering is a process property read from the transcript, not decidable from final state."}
+        },
+        {
+          "text": "Exactly one commit is created for the whole section",
+          "check": {"type": "git_log_count", "range": [1, 1]}
+        },
+        {
+          "text": "The commit subject follows Conventional Commits (type(scope): imperative)",
+          "check": {"type": "commit_subject", "which": "head", "regex": "^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\\([^)]+\\))?: .+"}
+        },
+        {
+          "text": "The tasks.md checkboxes for this section are ticked and included in that same commit",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-farewell/tasks.md", "needles": ["[x] 1.1", "[x] 1.2"]}
+        },
+        {
+          "text": "No task from any other numbered section is implemented",
+          "check": {"type": "file_contains", "path": "src/greetings.py", "needle": "greet_all", "present": false}
+        },
+        {
+          "text": "The full quality gate (`make check`, which covers tests beyond this section's own) is run once after all the section's tasks, not per task; the Red phase is confirmed with only the section-relevant test rather than the whole-suite gate",
+          "check": {"type": "llm_judged", "rubric": "The whole-suite gate (`make check`) must run once after the section's tasks, while the per-task Red confirmation uses only the section-relevant test. This is an ordering/granularity property of the run, read from the transcript."}
+        }
+      ]
+    },
+    {
+      "eval_id": "section-two-active-changes-ambiguous",
+      "prompt": "Execute section 1 of the active change",
+      "fixture": "section/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With two active change directories present, execution stops and asks which change to operate on, modifying nothing.",
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user which change to operate on",
+          "check": {"type": "llm_judged", "rubric": "With two active changes present the run must stop and ask which one to operate on. 'Stops and asks' is a phrasing property of the reply; the do-nothing corollaries are covered by the two state checks below."}
+        },
+        {
+          "text": "No source or spec files are modified",
+          "check": {"type": "git_clean", "expect": true}
+        },
+        {
+          "text": "No commit is created",
+          "check": {"type": "git_log_count", "range": [0, 0]}
+        },
+        {
+          "text": "Change directories under archive/ are excluded from the ambiguity",
+          "check": {"type": "llm_judged", "rubric": "The ask must name the two active changes and not treat the archived change under archive/ as a candidate. Requires reading which changes the reply enumerates."}
+        }
+      ]
+    },
+    {
+      "eval_id": "section-dispatch-annotation",
+      "prompt": "Execute section 1 of the active change",
+      "fixture": "section/3",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "A section annotated for delegation is dispatched as a complete spec rather than being reasoned out inline: to the named leaf agent when its role is installed, or, in a rosterless harness where that role is not installed, to a general subagent carrying the role's one-line contract with the report noting the role in fallback form (such as `sai-hu (fallback: general)`).",
+      "expectations": [
+        {
+          "text": "The dispatch annotation on the section is read and honored",
+          "check": {"type": "text_contains", "source": "transcript", "needle": "sai-hu"}
+        },
+        {
+          "text": "The section is handed to the named agent role as a complete spec",
+          "check": {"type": "llm_judged", "rubric": "The section must be handed off as a self-contained spec (goal, scope, done-criteria), not reasoned out inline: to the sai-hu role when it is installed, or, in a rosterless harness where that role type is not installed and the dispatch would fail, to a fresh general subagent carrying the sai-hu one-line contract with the report noting the role in fallback form (`sai-hu (fallback: general)`). Either way the handoff must be a complete spec rather than inline reasoning, and a bare without_skill arm produces neither a role dispatch nor a fallback annotation, so the assertion still discriminates. Completeness of the handed-off spec is a quality judgment on the dispatch prompt."}
+        },
+        {
+          "text": "The result is still one Conventional Commits commit with checkboxes ticked",
+          "check": {"type": "git_log_count", "range": [1, 1]}
+        },
+        {
+          "text": "Execution stops after the one section",
+          "check": {"type": "file_contains", "path": "src/greetings.py", "needle": "greet_all", "present": false}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Spec Viewer"
+  short_description: "Render one OpenSpec change into a single self-contained HTML review page"
+policy:
+  allow_implicit_invocation: false

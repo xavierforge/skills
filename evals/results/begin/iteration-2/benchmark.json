@@ -1,0 +1,370 @@
+{
+  "metadata": {
+    "skill_name": "begin",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-06T09:47:52Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user to commit or stash before switching branches",
+          "passed": true,
+          "evidence": "Final reply states: 'The working tree is dirty (README.md has unstaged changes)... I need to stop and ask before proceeding \u2014 no auto-stash. You have uncommitted changes to README.md. Before I can switch/sync branches, could you either commit or stash them?' and git state confirms main is unchanged (still at 0db10f6, no new branch created), showing execution actually halted rather than proceeding.",
+          "check_type": "llm_judged",
+          "rubric": "The run must halt and ask the user to commit or stash the dirty tree before doing anything else, rather than proceeding to sync or branch. Judged from the reply/transcript because 'stops and asks' is a phrasing property, not decidable from git state alone (the git-state corollaries are covered by the other three checks).",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No git stash is run on the user's behalf",
+          "passed": true,
+          "evidence": "no stash entries",
+          "check_type": "git_no_stash"
+        },
+        {
+          "text": "The uncommitted changes remain in the working tree unchanged",
+          "passed": true,
+          "evidence": "README.md (exists=True): all present: 'scratch note'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No new branch is cut while the tree is dirty",
+          "passed": true,
+          "evidence": "1 local branches ['main'] (want [1,1])",
+          "check_type": "branch_count"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new branch is not based on the current feature branch's unmerged commits",
+          "passed": true,
+          "evidence": "[salvaged from malformed grader reply] The new branch feat/json-export was created via `git worktree add ../sandbox-feat-json-export -b feat/json-export main` from freshly-synced main (8c549d5), not from feat/existing-work; git log confirms 0b8a925 (feat/existing-work's unpushed commit) is not in `git log --all --decorate` under feat/json-export's ancestry, and 'commits on HEAD not on main' shows only 0b8a925 sitting on feat/existing-work, untouched and separate.",
+          "check_type": "llm_judged",
+          "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Either execution stops to clarify new-vs-continue, or a new worktree is created cut from the default branch",
+          "passed": true,
+          "evidence": "A new worktree was created cut from the freshly synced default branch: `git worktree add ../sandbox-feat-json-export -b feat/json-export main` after `main` was fast-forwarded to `8c549d5`, confirmed by git-state.txt showing 'feat/json-export 8c549d5 ... docs(readme): note upstream change' matching main's HEAD.",
+          "check_type": "llm_judged",
+          "rubric": "Disjunctive behavioral outcome: either the run stops to ask new-vs-continue, or it opens a worktree for the new lane cut from the default branch. Judged holistically; the two arms of the disjunction are not reducible to one mechanical predicate.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The current checkout is not silently switched to a new branch in place",
+          "passed": true,
+          "evidence": "HEAD branch 'feat/existing-work' vs 'feat/existing-work'",
+          "check_type": "head_branch"
+        },
+        {
+          "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+          "passed": true,
+          "evidence": "The new branch was created with `git worktree add ../sandbox-feat-json-export -b feat/json-export main`, branching from `main` (not from `feat/existing-work`'s HEAD 0b8a925), confirmed by final git state showing `feat/json-export 8c549d5` sharing the same commit as `main 8c549d5 [origin/main]`, while `feat/existing-work` sits at a different, unpushed commit 0b8a925.",
+          "check_type": "llm_judged",
+          "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The occupied lane is handled by proposing or opening a worktree for the new work, or by stopping to ask, never by switching the shared checkout in place",
+          "passed": true,
+          "evidence": "The run detected the occupied checkout ('this checkout is currently hosting an active lane \u2014 it's on feat/existing-work with an unpushed commit') and explicitly opened a separate worktree via 'git worktree add ../sandbox-feat-json-export -b feat/json-export main' followed by EnterWorktree, leaving feat/existing-work untouched on HEAD as confirmed by final git state (branch remains feat/existing-work, unpushed commit intact).",
+          "check_type": "llm_judged",
+          "rubric": "Passes if the run either proposes or opens a worktree for the new lane (prose describing 'its own worktree' counts: the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name) or stops to ask the user without commandeering the occupied checkout. Fails only if the run handles the occupied lane by switching the shared checkout in place to sync or branch. Judged from result/transcript because in-sandbox tool absence makes the handling method a prose property, not a git-state one; the final-HEAD corollary is already covered by the head_branch check.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The default branch is fast-forwarded to its remote before branching",
+          "passed": true,
+          "evidence": "trunk=e8102588 == origin/trunk=e8102588",
+          "check_type": "ref_equals"
+        },
+        {
+          "text": "A new branch named feat/farewell is created",
+          "passed": true,
+          "evidence": "branch 'feat/farewell' exists=True (expect True)",
+          "check_type": "branch_exists"
+        },
+        {
+          "text": "The new branch is cut from the default branch with an explicit start point",
+          "passed": true,
+          "evidence": "trunk is ancestor of feat/farewell",
+          "check_type": "is_ancestor"
+        },
+        {
+          "text": "The default branch name is derived, not assumed to be 'main'",
+          "passed": true,
+          "evidence": "branch 'main' exists=False (expect False)",
+          "check_type": "branch_exists"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user to commit or stash before switching branches",
+          "passed": false,
+          "evidence": "The transcript shows the agent found 'modified: README.md' in git status, then autonomously ran 'git stash push -m ...' and 'git checkout -b feature/cli-json-export' without ever pausing to ask the user; the final reply only reports after the fact that it 'Stashed a pre-existing unrelated README.md edit... so it wouldn't bleed into the new branch' with no question posed to the user beforehand.",
+          "check_type": "llm_judged",
+          "rubric": "The run must halt and ask the user to commit or stash the dirty tree before doing anything else, rather than proceeding to sync or branch. Judged from the reply/transcript because 'stops and asks' is a phrasing property, not decidable from git state alone (the git-state corollaries are covered by the other three checks).",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No git stash is run on the user's behalf",
+          "passed": false,
+          "evidence": "stash present: ['stash@{0}: On main: pre-existing scratch note in README (unrelated to JSON export work)']",
+          "check_type": "git_no_stash"
+        },
+        {
+          "text": "The uncommitted changes remain in the working tree unchanged",
+          "passed": false,
+          "evidence": "README.md (exists=True): missing needle 'scratch note'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No new branch is cut while the tree is dirty",
+          "passed": false,
+          "evidence": "2 local branches ['feature/cli-json-export', 'main'] (want [1,1])",
+          "check_type": "branch_count"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new branch is not based on the current feature branch's unmerged commits",
+          "passed": true,
+          "evidence": "[salvaged from malformed grader reply] git-state.txt shows feat/json-export was created from origin/main (fdaac42), sharing no commits with feat/existing-work's unpushed WIP commit 53fc837; the log --oneline --all --decorate confirms 53fc837 sits on a separate branch line, and 'commits on HEAD not on main' lists only fdaac42, not the WIP commit.",
+          "check_type": "llm_judged",
+          "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Either execution stops to clarify new-vs-continue, or a new worktree is created cut from the default branch",
+          "passed": true,
+          "evidence": "The transcript shows `git checkout -b feat/json-export origin/main` and the final git state confirms branch `feat/json-export` was created off `origin/main` (fdaac42), separate from the pre-existing `feat/existing-work` branch with unpushed WIP \u2014 satisfying the second arm of the disjunction (new branch cut from the default branch, without needing to stop and ask).",
+          "check_type": "llm_judged",
+          "rubric": "Disjunctive behavioral outcome: either the run stops to ask new-vs-continue, or it opens a worktree for the new lane cut from the default branch. Judged holistically; the two arms of the disjunction are not reducible to one mechanical predicate.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The current checkout is not silently switched to a new branch in place",
+          "passed": false,
+          "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+          "check_type": "head_branch"
+        },
+        {
+          "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+          "passed": true,
+          "evidence": "Transcript shows `git checkout -b feat/json-export origin/main`, and the final git state confirms `feat/json-export` is at fdaac42 [origin/main] with `git log main..HEAD` showing only origin/main's extra commit, not any of feat/existing-work's commit (53fc837) \u2014 the new branch's start point is origin/main, not feat/existing-work's HEAD.",
+          "check_type": "llm_judged",
+          "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The occupied lane is handled by proposing or opening a worktree for the new work, or by stopping to ask, never by switching the shared checkout in place",
+          "passed": true,
+          "evidence": "[salvaged from malformed grader reply] The run detected the occupied checkout (branch feat/existing-work with unpushed WIP commit) and explicitly avoided switching it in place: 'Since your new work is independent, I'll branch fresh off origin/main rather than build on top of that WIP,' then ran `git checkout -b feat/json-export origin/main`, creating a new branch rather than commandeering the existing checkout's branch.",
+          "check_type": "llm_judged",
+          "rubric": "Passes if the run either proposes or opens a worktree for the new lane (prose describing 'its own worktree' counts: the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name) or stops to ask the user without commandeering the occupied checkout. Fails only if the run handles the occupied lane by switching the shared checkout in place to sync or branch. Judged from result/transcript because in-sandbox tool absence makes the handling method a prose property, not a git-state one; the final-HEAD corollary is already covered by the head_branch check.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The default branch is fast-forwarded to its remote before branching",
+          "passed": false,
+          "evidence": "trunk=414f9866 != origin/trunk=8661a42c",
+          "check_type": "ref_equals"
+        },
+        {
+          "text": "A new branch named feat/farewell is created",
+          "passed": true,
+          "evidence": "branch 'feat/farewell' exists=True (expect True)",
+          "check_type": "branch_exists"
+        },
+        {
+          "text": "The new branch is cut from the default branch with an explicit start point",
+          "passed": true,
+          "evidence": "trunk is ancestor of feat/farewell",
+          "check_type": "is_ancestor"
+        },
+        {
+          "text": "The default branch name is derived, not assumed to be 'main'",
+          "passed": true,
+          "evidence": "branch 'main' exists=False (expect False)",
+          "check_type": "branch_exists"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.25,
+        "stddev": 0.433,
+        "min": 0.0,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.75",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5167,
+        "stddev": 0.4481,
+        "min": 0.0,
+        "max": 0.8
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.48"
+    }
+  }
+}

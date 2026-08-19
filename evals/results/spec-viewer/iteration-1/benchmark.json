@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "skill_name": "spec-viewer",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-24T16:19:18Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "review.html is written next to the change at openspec/changes/add-farewell/review.html",
+          "passed": true,
+          "evidence": "expect=True; openspec/changes/add-farewell/review.html:yes",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The rendered page is a real page, not an empty stub (size floor)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/review.html: 12755 bytes (>= 4000)",
+          "check_type": "file_size"
+        },
+        {
+          "text": "The page is self-contained: no external HTTP resource is loaded (script/link/img src|href)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=True): (present:false) missing regex '(?i)<(?:script|link|img)[^>]+(?:src|href)\\\\s*=\\\\s*[\"\\']https?://'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The page renders the change's actual content (the proposal title)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=True): all present: 'Add a farewell helper'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "gloss.zh-TW.json is written next to the change",
+          "passed": true,
+          "evidence": "expect=True; openspec/changes/add-farewell/gloss.zh-TW.json:yes",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The gloss is a JSON object with at least two entries, keyed by a real section id (proposal--why)",
+          "passed": true,
+          "evidence": "ok",
+          "check_type": "json_check"
+        },
+        {
+          "text": "The gloss values are zh-TW (contain CJK characters)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json (exists=True): all present: /[\u4e00-\u9fff]/",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "review.html was re-run and embeds the gloss (has-gloss slot present)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=True): all present: 'has-gloss'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "review.html is written next to the change at openspec/changes/add-farewell/review.html",
+          "passed": false,
+          "evidence": "expect=True; openspec/changes/add-farewell/review.html:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The rendered page is a real page, not an empty stub (size floor)",
+          "passed": false,
+          "evidence": "openspec/changes/add-farewell/review.html: file missing",
+          "check_type": "file_size"
+        },
+        {
+          "text": "The page is self-contained: no external HTTP resource is loaded (script/link/img src|href)",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=False): (present:false) missing regex '(?i)<(?:script|link|img)[^>]+(?:src|href)\\\\s*=\\\\s*[\"\\']https?://'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The page renders the change's actual content (the proposal title)",
+          "passed": false,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=False): missing needle 'Add a farewell helper'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "gloss.zh-TW.json is written next to the change",
+          "passed": false,
+          "evidence": "expect=True; openspec/changes/add-farewell/gloss.zh-TW.json:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The gloss is a JSON object with at least two entries, keyed by a real section id (proposal--why)",
+          "passed": false,
+          "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json: file missing",
+          "check_type": "json_check"
+        },
+        {
+          "text": "The gloss values are zh-TW (contain CJK characters)",
+          "passed": false,
+          "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json (exists=False): missing regex '[\u4e00-\u9fff]'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "review.html was re-run and embeds the gloss (has-gloss slot present)",
+          "passed": false,
+          "evidence": "openspec/changes/add-farewell/review.html (exists=False): missing needle 'has-gloss'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.125,
+        "stddev": 0.1768,
+        "min": 0.0,
+        "max": 0.25
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.88",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

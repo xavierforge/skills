@@ -1,0 +1,5 @@
+interface:
+  display_name: "Vibe Diff"
+  short_description: "Render a branch's diff into one self-contained diff-review.html, read against its spec"
+policy:
+  allow_implicit_invocation: false

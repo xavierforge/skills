@@ -1,0 +1,21 @@
+{
+  "name": "xavierforge",
+  "owner": {
+    "name": "Xavier Yen"
+  },
+  "description": "Xavier's agent delivery pipeline, from spec to merged PR, as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "xavierforge-skills",
+      "source": "./",
+      "description": "A disciplined agent delivery pipeline from spec to merged PR, best on an OpenSpec project, most skills also run standalone.",
+      "category": "workflow",
+      "keywords": [
+        "openspec",
+        "skills",
+        "workflow",
+        "code-review"
+      ]
+    }
+  ]
+}

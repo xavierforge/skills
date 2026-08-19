@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops with a refusal instead of inventing work from the repo",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+      "passed": true,
+      "evidence": "Reply states: 'Per the skill's Step 0 precondition, this skill only serves OpenSpec projects: there's no openspec/ directory at all (let alone an active change under openspec/changes/)' \u2014 explicitly naming OpenSpec-only scope and the absence of an active change, corroborated by git-state.txt showing 'active change dirs (excluding archive): (none)'.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The refusal points at proposing a change first as the way in",
+      "passed": true,
+      "evidence": "The reply states: '... the way in is to propose a change first (e.g. via OpenSpec's init/proposal flow) \u2014 or work in ordinary sessions without the factory,' explicitly pointing the user to proposing a change first as the path to using the skill.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No commits, branch changes, or file modifications are made",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:44:24Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "3bbdab51dec7894a8f73d8363bb9c9249da6f2d18be3ce7ad8c9aed1cf651940",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

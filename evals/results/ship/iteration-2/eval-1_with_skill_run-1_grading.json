@@ -1,0 +1,54 @@
+{
+  "expectations": [
+    {
+      "text": "Execution blocks on the default branch and never actually pushes or opens a PR",
+      "passed": null,
+      "evidence": "pending: llm_judged -> skill-creator grader",
+      "check_type": "llm_judged",
+      "rubric": "The run must block on the default branch and never execute a push or gh pr create. Judge the executed action from the transcript, not a substring: git's own boilerplate hint (use \"git push\" to publish your local commits) leaks into the reconstructed transcript, and a correct blocking reply may name the very commands it is declining to run (I will not run git push; run /begin first). Both are correct-blocking behavior, not a push. Pass only if the run blocked on the default branch and no actual push / PR-create tool call ran; fail if it pushed, opened a PR, or never blocked at all."
+    },
+    {
+      "text": "The user is pointed to /begin to open a proper feature branch",
+      "passed": true,
+      "evidence": "[result] all present: '/begin'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "No git history is rewritten (no reset, no moving commits off the default branch)",
+      "passed": true,
+      "evidence": "1 local branches ['main'] (want [1,1])",
+      "check_type": "branch_count"
+    },
+    {
+      "text": "The default branch is left untouched",
+      "passed": true,
+      "evidence": "HEAD branch 'main' vs 'main'",
+      "check_type": "head_branch"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "ship",
+    "skill_commit": "a912518",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:25:11Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    }
+  }
+}

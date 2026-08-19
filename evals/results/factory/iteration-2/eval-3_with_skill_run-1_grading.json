@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The plan gate rejects the original tasks.md, citing at least one of the three loop-readiness properties",
+      "passed": true,
+      "evidence": "Transcript states: 'Now judging tasks.md against the three loop-readiness properties: session-sized (yes, tiny) and independent (only one section, trivially true) both pass, but verifiable fails \u2014 neither task line names a check to run,' and the final reply confirms 'Its tasks.md was missing named checks, so I rewrote it in place' \u2014 this cites the verifiable loop-readiness property as the reason for rejecting/rewriting the original tasks.md.",
+      "check_type": "llm_judged",
+      "rubric": "The plan gate must reject the single mega-section tasks.md, citing at least one loop-readiness property it violates. A judgment on the reply's stated reason.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "A rewritten tasks.md is produced and its diff is shown to the user",
+      "passed": true,
+      "evidence": "The reply and transcript show a full unified diff of tasks.md (git diff -- openspec/changes/add-helpers/tasks.md) rewriting both task lines to add explicit 'check:' clauses, displayed to the user, with the reply stating 'Please review and approve this diff before I commit it and start the loop,' and the final git state confirms the rewritten tasks.md content with named checks (`check: `make check` passes` and `check: every helper name appears in a code sample in README.md`).",
+      "check_type": "llm_judged",
+      "rubric": "A loop-ready rewrite of tasks.md must be produced and its diff shown to the user for approval. Whether a genuine rewrite+diff is presented (vs vague advice) is judged from the reply; the rewrite may live only in the message, not on disk.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Execution stops waiting for approval, with no round run and no section work committed",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "total": 1,
+    "pass_rate": 1.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 0,
+    "total_decided": 3,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:46:10Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "bf9c90a9a948d1073d2566e7641577f2afb41f53ee5cb669aa3de4f810499c6e",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

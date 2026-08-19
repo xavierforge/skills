@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "A failing test is written before the implementation for each task in the section",
+      "passed": true,
+      "evidence": "Transcript shows the test was written first via Edit adding test_farewell, then `pytest tests/test_greetings.py -v` was run and failed with ImportError ('Red confirmed for the expected reason: farewell doesn't exist yet (ImportError...)'), and only after that was farewell implemented in src/greetings.py, followed by a re-run showing both tests PASSED.",
+      "check_type": "llm_judged",
+      "rubric": "Red-before-green ordering per task: a failing test must be authored and observed to fail before its implementation. Ordering is a process property read from the transcript, not decidable from final state.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Exactly one commit is created for the whole section",
+      "passed": true,
+      "evidence": "1 commits on HEAD beyond main (want [1,1])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The commit subject follows Conventional Commits (type(scope): imperative)",
+      "passed": true,
+      "evidence": "head subject 'feat(greetings): add farewell helper' vs /^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\\([^)]+\\))?: .+/",
+      "check_type": "commit_subject"
+    },
+    {
+      "text": "The tasks.md checkboxes for this section are ticked and included in that same commit",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "No task from any other numbered section is implemented",
+      "passed": true,
+      "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The full quality gate (`make check`, which covers tests beyond this section's own) is run once after all the section's tasks, not per task; the Red phase is confirmed with only the section-relevant test rather than the whole-suite gate",
+      "passed": true,
+      "evidence": "Per-task Red confirmation used only the section-relevant test file (`pytest tests/test_greetings.py -v` showing the ImportError), and the whole-suite gate `make check` was run exactly once, after both tasks 1.1/1.2 were done and before committing ('Green. Now closing the section: run the full gate (`make check`).' \u2192 '3 passed'), matching the required ordering/granularity.",
+      "check_type": "llm_judged",
+      "rubric": "The whole-suite gate (`make check`) must run once after the section's tasks, while the per-task Red confirmation uses only the section-relevant test. This is an ordering/granularity property of the run, read from the transcript.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "assertions_total": 6,
+    "undecided": 0,
+    "total_passed": 6,
+    "total_failed": 0,
+    "total_decided": 6,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "section",
+    "skill_commit": "a9bae7d",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:20:11Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "c073463ecc9093bc638d05adb1ac161d3edff5d673cbda483e2f745f790d5f8b",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

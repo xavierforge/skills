@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "New branch feat/json-export was created from fast-forwarded main (971d9e7) via `git checkout main && git merge --ff-only origin/main && git checkout -b feat/json-export`, not from feat/existing-work's unpushed commit 53cb498; the final branch graph confirms feat/json-export sits at 971d9e7 while feat/existing-work's unmerged commit 53cb498 is a separate, untouched branch.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "Run explicitly fetched origin/main, fast-forwarded local main to it (971d9e7), then created feat/json-export from that main via `git checkout main && git merge --ff-only origin/main && git checkout -b feat/json-export`; final git state confirms feat/json-export points to 971d9e7, matching main and origin/main, not feat/existing-work's HEAD (53cb498), and reflog/log show feat/existing-work was left untouched.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 1,
+    "total_decided": 3,
+    "total_pass_rate": 0.6667,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "feb6d27",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 6,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T12:22:40Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "650f967292f4fa50ac64a71a4ce942f1e9de44c1353aae1acf6117287bb73397",
+      "harness_commit": "feb6d27"
+    }
+  }
+}

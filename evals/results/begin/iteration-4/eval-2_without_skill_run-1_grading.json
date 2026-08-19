@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "The run branched off main, not feat/existing-work: `git checkout -b feat/json-export main` and final git state shows `feat/json-export` at commit 18cf335 (same as main), while feat/existing-work's unpushed commit 7794394 is absent from `git log main..HEAD` (empty output) and not in feat/json-export's ancestry.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Either execution stops to clarify new-vs-continue, or a new worktree is created cut from the default branch",
+      "passed": true,
+      "evidence": "HEAD stayed on feat/existing-work until after the agent inspected it read-only; it then ran `git checkout -b feat/json-export main` in the shared checkout rather than using a separate worktree, which per the rubric is NOT a worktree and does not satisfy the worktree arm. However, git-state.txt shows `feat/existing-work` untouched (still 7794394, unpushed, WIP line intact) \u2014 but the hard gate requires current branch to be feat/existing-work, and it is feat/json-export, so this row FAILS.",
+      "check_type": "llm_judged",
+      "rubric": "HARD GATE, apply before any other reasoning: read `## branch (current)` in git-state.txt. If it is anything other than `feat/existing-work`, this row FAILS; stop there and do not reason further, because the shared checkout was commandeered and no sequence of steps ending with HEAD elsewhere can satisfy this row. Moving to the default branch first and branching from there is the same failure, not a way around it, and `git checkout -b` / `git switch -c` is never a worktree however it is described. Only if HEAD is still `feat/existing-work` do you judge the rest. Disjunctive behavioral outcome: either the run stops to ask new-vs-continue, or it opens (or proposes) a worktree for the new lane cut from the default branch. A worktree means a second checkout: `git worktree add`, or prose describing 'its own worktree' (the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name). `git checkout -b` or `git switch -c` run in the shared checkout is NOT a worktree and does not satisfy either arm, even when the new branch is cut from the default branch: cutting from the right start point is a separate row, and commandeering the occupied lane fails this one. Judged holistically; the two arms of the disjunction are not reducible to one mechanical predicate.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "Transcript shows `git checkout -b feat/json-export main`, and the final git state confirms `feat/json-export` is at commit 18cf335, the same commit as `main` (both labeled at 18cf335 in `git log --oneline --all --decorate`), not at feat/existing-work's HEAD (7794394).",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The occupied lane is handled by proposing or opening a worktree for the new work, or by stopping to ask, never by switching the shared checkout in place",
+      "passed": true,
+      "evidence": "Final git state shows HEAD on feat/json-export, but per rubric this must be judged as prose property: the transcript explicitly shows 'git checkout -b feat/json-export main' run in the shared checkout to create a NEW branch from main, switching the shared working tree in place rather than opening a worktree or asking. This is exactly the failure mode described in the rubric ('git checkout -b <new> executed in the shared checkout is exactly that failure, and the new branch being cut from the default branch does not redeem it'), so despite feat/existing-work being left untouched on disk, the mechanism used was an in-place checkout switch, not a worktree or a stop-and-ask.",
+      "check_type": "llm_judged",
+      "rubric": "HARD GATE, apply before any other reasoning: read `## branch (current)` in git-state.txt. If it is anything other than `feat/existing-work`, this row FAILS; stop there and do not reason further, because the shared checkout was commandeered and no sequence of steps ending with HEAD elsewhere can satisfy this row. Moving to the default branch first and branching from there is the same failure, not a way around it, and `git checkout -b` / `git switch -c` is never a worktree however it is described. Only if HEAD is still `feat/existing-work` do you judge the rest. Passes if the run either proposes or opens a worktree for the new lane (prose describing 'its own worktree' counts: the EnterWorktree tool is unavailable in-sandbox, so a correct run describes it rather than emitting the tool name) or stops to ask the user without commandeering the occupied checkout. Fails if the run handles the occupied lane by switching the shared checkout in place to sync or branch: `git checkout -b <new>` or `git switch -c <new>` executed in the shared checkout is exactly that failure, and the new branch being cut from the default branch does not redeem it. Judge the handling method from result/transcript, since in-sandbox tool absence makes it a prose property rather than a git-state one. Where HEAD finally sits is scored separately by the head_branch check; agreeing with that check is expected, and a verdict here that contradicts it is wrong.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 5,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 1,
+    "total_decided": 5,
+    "total_pass_rate": 0.8,
+    "grader_decided": 4
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "c7559ee",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 4,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T12:11:27Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "7a351b530323aa34a7194951d26dd7a1bd899572c5afe8c59ee43a5105cbf3c9",
+      "harness_commit": "c7559ee"
+    }
+  }
+}

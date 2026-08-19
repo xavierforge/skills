@@ -1,0 +1,103 @@
+---
+name: cross-check
+description: Two-axis review of the diff since a fixed point, one axis for Standards (repo conventions, structure, style) and one for Spec (does the change do what the issue or PRD asked). Use when /preflight or /ship needs its review layer, or the user asks to cross-check a change; a bare 'review this' request stays with /code-review.
+---
+
+Review the diff between a fixed point and `HEAD` along two axes that stay separate on purpose:
+
+- **Standards**: does the code respect this repo's conventions, structure, and style?
+- **Spec**: does the change faithfully do what the originating issue, PRD, or spec asked?
+
+Each axis runs in its own clean-context subagent, so neither colours the other's reading, and this skill then aggregates their findings.
+
+## Process
+
+### 1. Pin the fixed point
+
+The fixed point is whatever reference the user names: a commit SHA, a branch, a tag, `main`, `HEAD~5`. If they name none, ask for one.
+
+Confirm it resolves (`git rev-parse <fixed-point>`) and that the diff is non-empty before spawning anything; catch a bad ref or an empty diff at this point, before either subagent starts. The comparison reads against the merge-base, so use the three-dot form: `git diff <fixed-point>...HEAD`, with the commit list from `git log <fixed-point>..HEAD --oneline`. Capture both once and hand them to each subagent.
+
+### 2. Find the spec source
+
+Locate the originating spec in this order:
+
+1. An issue that the commits reference (`#123`, `Closes #45`, GitLab `!67`). Fetch its contents when the repo exposes a way to reach the tracker; otherwise treat the reference as a pointer and read whatever it links to.
+2. A file path the user supplied when calling the skill.
+3. A PRD or spec file under `docs/`, `specs/`, or `.scratch/` whose name matches the branch or the feature.
+4. Nothing turned up: ask the user to point at the spec. If there truly is none, the Spec axis skips and reports "no spec available".
+
+### 3. Find the standards sources
+
+The Standards axis draws on two things:
+
+1. Whatever the repo writes down about its own coding style, in files like `CODING_STANDARDS.md` or `CONTRIBUTING.md`. Collect those paths.
+2. The **smell baseline**: the classic code smells from Fowler's _Refactoring_ catalog (mysterious names, duplicated logic, feature envy, data clumps, primitive obsession, message chains, and the rest of that vocabulary). Draw them from that shared knowledge rather than a copied checklist; it applies even when the repo documents nothing.
+
+Two rules bind the baseline:
+
+- **A documented repo standard wins.** Where the repo endorses something the baseline would flag, follow the repo and drop the smell.
+- **Baseline smells stay judgement calls,** labelled as possibilities ("possible feature envy"), not hard violations. Skip anything tooling already enforces.
+
+### 4. Spawn both subagents in parallel
+
+Dispatch two fresh general subagents, one per axis, in a single message so they run in parallel (on Claude Code that is two `Agent` tool calls with `subagent_type: general-purpose` in one message). The clean context per axis is the point: neither subagent sees the other's reasoning.
+
+**Standards subagent** gets:
+
+- The diff command and commit list.
+- The standards-source paths from step 3, and the smell baseline pasted in full, since the subagent has no other access to it.
+- This brief: "Report, per file or hunk where it helps, (a) every place the diff breaks a documented standard, citing the standard's file and rule; and (b) every smell baseline hit, named with the hunk quoted. Mark a clear documented-standard breach as hard and every baseline smell as a judgement call; where the written repo standard and the baseline disagree, the written standard governs. Leave out whatever a linter or formatter already catches. Keep the report under 400 words."
+
+**Spec subagent** gets:
+
+- The diff command and commit list.
+- The spec path, or its fetched contents.
+- This brief: "Report (a) anything the spec called for that the diff leaves unbuilt or only half-built, (b) behaviour in the diff nobody requested (scope creep), and (c) requirements that appear done but were implemented wrongly. Cite the spec line each finding rests on. Hold the report under 400 words."
+
+When no spec exists, skip the Spec subagent and say so in the aggregate.
+
+### 5. Aggregate
+
+Lay out each subagent's report under its own `## Standards` and `## Spec` heading, quoted as-is or with only light cleanup. Keep them apart: do not merge, rerank, or crown one finding across axes, because that cross-axis reranking is exactly what the separation exists to prevent (see _Why two axes_).
+
+Finish with a single line giving each axis its finding count and its most serious item. Do not crown one overall winner across the two.
+
+### 6. Write the verdict artifact
+
+Persist the outcome so later tooling (notably `/ship`'s reconciliation step) reads the verdict from disk instead of trusting a verbal claim. Resolve where it lands with the **landing rule** the neighbor skills share (vibe-diff writes its artifacts by the same resolution): the active openspec change directory (`openspec/changes/<name>/`, excluding `archive/`) when exactly one exists, otherwise `.review/<slug>/` at the repo root, where `<slug>` is the branch name with `/` turned into `-` (`feat/hook-system` becomes `.review/feat-hook-system/`). Create the directory when it is missing. Write `review-verdict.json` there:
+
+```json
+{
+  "layer": "cross-check",
+  "fixed_point": "<the ref pinned in step 1, verbatim>",
+  "findings": [
+    {"axis": "standards", "title": "possible feature envy in loader.rs", "severity": "judgement", "actioned": false},
+    {"axis": "spec", "title": "missing requirement: retry on 429 (spec line 12)", "severity": "hard", "actioned": false}
+  ]
+}
+```
+
+- `layer` is this skill's name as invoked (`cross-check`).
+- `fixed_point` is the ref pinned in step 1, verbatim.
+- `axis` is `standards` or `spec`, matching the two report headings.
+- `severity` is `hard` (a documented-standard breach, or a spec requirement missing or built wrong) or `judgement` (a smell baseline hit or other judgement call), the same distinction the reports already draw.
+- `actioned` records whether the finding was fixed by the time the file is written: `false` at review time. A later session that fixes a finding flips the flag in place rather than deleting the entry, since the artifact is the record `/ship` reconciles against.
+- An empty `findings` array is a valid verdict: it says the review ran and found nothing, which is exactly the fact worth having on disk.
+
+The step is done when `review-verdict.json` sits at the resolved landing spot and its `findings` match the two reports one to one: every reported finding has an entry, and no entry lacks a reported finding.
+
+## Why two axes
+
+One axis can come back clean while the other fails:
+
+- Code that honours every documented standard but ships the wrong behaviour: Standards pass, Spec fail.
+- Code that delivers precisely the behaviour the issue requested yet tramples the repo's conventions: Spec pass, Standards fail.
+
+Reporting the axes separately keeps either one from masking the other.
+
+## Why this skill stays user-invoked
+
+`disable-model-invocation: true` keeps `cross-check` user-invoked only. The model once fired this skill on its own inside a goal loop and ran an invisible review pass nobody asked for; this flag closes that path mechanically.
+
+The two-axis split was inspired by Matt Pocock's `code-review` skill; this repo's version is its own and maintained here.

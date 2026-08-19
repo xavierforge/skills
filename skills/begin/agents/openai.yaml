@@ -1,0 +1,5 @@
+interface:
+  display_name: "Begin"
+  short_description: "Start-of-contribution ritual: sync the base, guard the tree, open the feature branch"
+policy:
+  allow_implicit_invocation: false

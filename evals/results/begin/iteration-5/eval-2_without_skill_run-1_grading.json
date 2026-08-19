@@ -1,0 +1,69 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "The new branch feat/json-export was created via `git checkout -b feat/json-export origin/main` and its ancestry (log main..HEAD, HEAD show --stat) shows only 32420c3 'docs(readme): note upstream change' from origin/main, not the unpushed 7678cac 'feat(greetings): start existing work' commit from feat/existing-work; the branch list confirms feat/existing-work still sits separately at 7678cac.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The occupied lane is left alone: execution stops to clarify new-vs-continue, or a worktree is opened for the new work, never a switch of the shared checkout",
+      "passed": true,
+      "evidence": "git-state.txt shows `## branch (current)` as `feat/json-export`, not `feat/existing-work`, but per the reflog: `30d569f HEAD@{2}: checkout: moving from main to feat/existing-work` and `32420c3 HEAD@{0}: checkout: moving from feat/existing-work to feat/json-export` \u2014 feat/existing-work was only ever touched by its own creation, never re-checked-out or modified after the agent started; the new branch was cut fresh from origin/main via `git checkout -b feat/json-export origin/main`, leaving feat/existing-work's commit 7678cac untouched and still present in `all branches -vv`.",
+      "check_type": "llm_judged",
+      "rubric": "Scored in two steps, the first mechanical. STEP 1: read `## branch (current)` in git-state.txt. If it is anything other than `feat/existing-work`, this row FAILS and you stop; the shared checkout was commandeered, and it makes no difference whether the run moved to the default branch first, whether the new branch was cut from the right start point, or how the reply describes what it did. `git checkout -b` and `git switch -c` are not worktrees. There is no prose that redeems a moved HEAD, and nothing else in this rubric overrides this step. STEP 2, only if HEAD is still `feat/existing-work`: pass when the run either stopped to ask the user new-vs-continue, or opened or proposed a worktree for the new lane (`git worktree add`, or prose describing 'its own worktree', since the EnterWorktree tool is unavailable in-sandbox); fail when it did neither. Where HEAD sits is also scored by the head_branch check; this row must never disagree with it.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "The transcript shows `git checkout -b feat/json-export origin/main` (not off feat/existing-work), and final git state confirms feat/json-export sits at 32420c3, identical to origin/main, with feat/existing-work's commit 7678cac absent from its ancestry (log --all shows 7678cac only on feat/existing-work, not reachable from feat/json-export).",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 1,
+    "total_decided": 4,
+    "total_pass_rate": 0.75,
+    "grader_decided": 3
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "c99a5a1",
+    "skill_name": "begin",
+    "skill_commit": "dec7b4a",
+    "iteration": 5,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T12:17:28Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "84c6d799674e3c8b8c9acaf3172915e1b52b88e156fcf005f2cfc333abadb217",
+      "harness_commit": "c99a5a1"
+    }
+  }
+}

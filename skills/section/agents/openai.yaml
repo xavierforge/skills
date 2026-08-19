@@ -1,0 +1,3 @@
+interface:
+  display_name: "Section"
+  short_description: "Execute one already-planned section of the active OpenSpec change's tasks.md"

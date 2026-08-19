@@ -1,0 +1,14 @@
+.DS_Store
+.claude/
+
+# Behavioral-eval run workspaces: regenerable sandboxes/transcripts/grading.
+# Rebuild with evals/harness/run_eval.sh. Only the small JSON harvested into
+# evals/results/<suite>/iteration-N/ (grading.json + benchmark.json) is kept.
+skills/*/*-workspace/
+
+# Python bytecode caches (the harness runs check.py / calibrate.py).
+__pycache__/
+*.pyc
+
+# Session-local review/audit artifacts (reports, scratch verdicts): never versioned.
+.review/

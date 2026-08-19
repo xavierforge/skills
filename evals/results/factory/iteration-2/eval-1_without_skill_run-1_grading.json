@@ -1,0 +1,97 @@
+{
+  "expectations": [
+    {
+      "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
+      "passed": true,
+      "evidence": "[salvaged from malformed grader reply] The transcript shows a single Read of AGENTS.md (defining the section-scoped `make check` gate contract) and tasks.md (revealing 3 named, checkbox-based sections) before the model states its plan \u2014 'I found the active OpenSpec change `add-helpers` with 3 sections in `tasks.md`. I'll work through each section as a TDD round' \u2014 and only then begins Round 1, so all three properties (named sections, ticked-checkbox contract, section-scoped gate) were established before any round ran.",
+      "check_type": "llm_judged",
+      "rubric": "Before any round runs, the plan gate must be evaluated against all three loop-readiness properties (named sections, ticked-checkbox contract, section-scoped checks). This is a process assertion read from the transcript.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
+      "passed": false,
+      "evidence": "0 commits on HEAD beyond main (want [3,3])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Each section's checkboxes are ticked in that section's own commit",
+      "passed": true,
+      "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2', '[x] 2.1', '[x] 2.2', '[x] 3.1', '[x] 3.2'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "Each round dispatches a fresh subagent to the role its annotation selects, the sai-hu-annotated section going to sai-hu on the first round noted as per annotation, and no dispatch passes a model or effort parameter",
+      "passed": false,
+      "evidence": "The transcript shows the main agent performing all three rounds itself via direct Read/Edit/Bash tool calls (e.g. 'Round 1: farewell helper' followed by direct Edit/Bash calls) \u2014 no Agent/subagent dispatch tool was ever invoked, so no round was dispatched to too-te or sai-hu (or a fallback), despite tasks.md containing '[dispatch: too-te]', '[dispatch: main]', and '[dispatch: sai-hu]' annotations that were simply checked off without any dispatch occurring.",
+      "check_type": "llm_judged",
+      "rubric": "Each round must run in a fresh subagent dispatched to the role the section's annotation selects: the sai-hu-annotated section goes to sai-hu on the first round (noted per annotation), the default-annotated sections to too-te, and no dispatch may pass a model or effort parameter. In a rosterless harness where the role types are not installed and a dispatch to them would fail, dispatching a fresh general subagent that carries the intended role's one-line contract and recording the role in the ledger in fallback form (for example `sai-hu (fallback: general)`) counts as honoring the annotation; a bare without_skill arm does not invent these fallback annotations on its own, so the assertion still discriminates. Reading which role each round used (or its fallback form), whether the sai-hu section was honored on the first round, and whether any model or effort parameter was passed is a judgment over the round reports.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No subagent spawns a further subagent",
+      "passed": true,
+      "evidence": "The transcript shows only direct Read/Edit/Bash tool calls by the main assistant for all three rounds (farewell, greet_all, shout) despite tasks.md having [dispatch: too-te], [dispatch: main], [dispatch: sai-hu] annotations; no Agent/Task tool invocation appears anywhere, so no subagent was ever spawned, and consequently no subagent spawned a further subagent.",
+      "check_type": "llm_judged",
+      "rubric": "Dispatch annotations select a starting role, never a nested delegation: no round's subagent may spawn a further subagent. Requires reasoning over the dispatch structure in the transcript.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "A one-line round report is emitted for every round, and a final ledger whose per-round lines name each section's role and any marker (per annotation, escalated, or turn budget) appears with per-round durations and total wall time",
+      "passed": false,
+      "evidence": "The reply contains only per-round one-line reports ('Round 1 done: ...', 'Round 2 done: ...', 'Round 3 done: ...') but no final ledger listing each round's section role/marker with per-round durations or total wall time anywhere in the transcript or final reply.",
+      "check_type": "llm_judged",
+      "rubric": "Every round emits a one-line report, and the run closes with a ledger where each round's line names the section's role and any marker (per annotation, escalated, or turn budget) alongside per-round durations and a total wall time. Presence and completeness of the ledger, including the per-round role and marker, is a structural judgment on the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "/opsx:verify is recorded as unavailable, not simulated as passing",
+      "passed": false,
+      "evidence": "The transcript and final reply contain no mention of /opsx:verify at all \u2014 the agent never attempted to invoke it, never noted it as unavailable, and never reported its status in any form, so the expectation that unavailability be recorded is unmet.",
+      "check_type": "llm_judged",
+      "rubric": "/opsx:verify must be recorded as unavailable rather than simulated as passing. Distinguishing an honest 'unavailable' note from a fabricated pass requires reading intent, not one string match.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No git push or gh command is attempted",
+      "passed": true,
+      "evidence": "[transcript] (present:false) missing regex '(?m)^\\\\s*(git push|gh )'",
+      "check_type": "text_contains"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667,
+    "assertions_total": 8,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 4,
+    "total_decided": 8,
+    "total_pass_rate": 0.5,
+    "grader_decided": 5
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:43:45Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "2c23eef522a910c07e4bfa0e9e2c36de7bee2b5f8be8f846bb35e3023d6f9609",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

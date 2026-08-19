@@ -1,0 +1,85 @@
+{
+  "expectations": [
+    {
+      "text": "The foreman commits no section work: it stops at the parallel group and hands the split back",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The working tree is left clean: the foreman reads and plans, it does not implement either section",
+      "passed": false,
+      "evidence": "tree dirty (expect clean); 7 entries",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "Both parallel sections remain unchecked in tasks.md (no section landed)",
+      "passed": false,
+      "evidence": "openspec/changes/add-helpers/tasks.md (exists=False): missing needle '[ ] 1.1'; needle '[ ] 2.1'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The reply is a lane plan: it hands each section back as a user-run /section lane rather than executing it",
+      "passed": false,
+      "evidence": "[any] missing regex '(?i)/section\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The continue fallback (run the group sequentially) is offered as an exit",
+      "passed": false,
+      "evidence": "[any] missing regex '(?i)\\\\bcontinue\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "Each lane is a complete pasteable dispatch prompt (worktree and branch, /section N, acceptance command) and the plan records the shared base commit both lanes branch from",
+      "passed": false,
+      "evidence": "The transcript shows the agent executing both sections itself sequentially in the same working tree ('Round 1: farewell', 'Round 2: shout', 'Round 3: finalize') via direct Write/Edit/Bash calls and TaskCreate/TaskUpdate tracking \u2014 there is no lane plan, no worktree or branch creation, no pasteable dispatch prompts, no '/section N' invocations, and no recorded shared base commit for two lanes anywhere in the reply or transcript.",
+      "check_type": "llm_judged",
+      "rubric": "The lane plan must emit one self-contained dispatch prompt per section that the user can paste into a fresh session: each carries a worktree and branch name, the commands to create the worktree off the recorded base, the /section N run for its section, and an acceptance command. The plan must record the shared base commit (the feature branch's current HEAD) that both lanes branch from. Judged from the reply: a genuine two-lane plan with a recorded base passes; vague advice to 'do them in parallel' fails.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The foreman does not self-fan-out concurrent dispatch: opening lanes is handed to the user, and no section is run by the foreman",
+      "passed": false,
+      "evidence": "The transcript shows the foreman stating \"I'll work through the add-helpers change section by section (tasks.md has two independent sections). Starting with Round 1: the farewell helper\" and then directly using Write/Edit/Bash tools itself to implement both farewell and shout sections sequentially, rather than stopping and handing the parallel lanes to the user to dispatch.",
+      "check_type": "llm_judged",
+      "rubric": "The foreman must not spawn concurrent subagent dispatch for the parallel group on its own. It stops and hands the lanes to the user to open as dispatcher, and executes none of the group's sections itself. Judged from the transcript: any attempt to run the two sections concurrently (or to just start implementing them) is the failure this case discriminates against a bare arm that would do the work directly or section by section.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 4,
+    "total": 5,
+    "pass_rate": 0.2,
+    "assertions_total": 7,
+    "undecided": 0,
+    "total_passed": 1,
+    "total_failed": 6,
+    "total_decided": 7,
+    "total_pass_rate": 0.1429,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "a912518",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 2,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T08:51:18Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "a63d178e355ed469478a4f4dc4c0a3c9a3907b518c250fd349d160bf2230b184",
+      "harness_commit": "a044aa0"
+    }
+  }
+}

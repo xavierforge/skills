@@ -1,0 +1,56 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "spec-viewer",
+  "evals": [
+    {
+      "eval_id": "spec-viewer-render-single-change",
+      "prompt": "/spec-viewer  (sandbox: exactly one OpenSpec change at openspec/changes/add-farewell/; English only, no gloss requested)",
+      "fixture": "spec-viewer/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With exactly one change present, /spec-viewer auto-selects openspec/changes/add-farewell/ and runs the generator, writing a single self-contained review.html next to the change: a real rendered page (inline CSS/JS, no external HTTP resource) carrying the change's content, not a stub.",
+      "expectations": [
+        {
+          "text": "review.html is written next to the change at openspec/changes/add-farewell/review.html",
+          "check": {"type": "file_exists", "path": "openspec/changes/add-farewell/review.html", "expect": true}
+        },
+        {
+          "text": "The rendered page is a real page, not an empty stub (size floor)",
+          "check": {"type": "file_size", "path": "openspec/changes/add-farewell/review.html", "min_bytes": 4000}
+        },
+        {
+          "text": "The page is self-contained: no external HTTP resource is loaded (script/link/img src|href)",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-farewell/review.html", "regex": "(?i)<(?:script|link|img)[^>]+(?:src|href)\\s*=\\s*[\"']https?://", "present": false}
+        },
+        {
+          "text": "The page renders the change's actual content (the proposal title)",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-farewell/review.html", "needle": "Add a farewell helper"}
+        }
+      ]
+    },
+    {
+      "eval_id": "spec-viewer-gloss-generation",
+      "prompt": "/spec-viewer openspec/changes/add-farewell/ with a zh-TW gloss (加中文)",
+      "fixture": "spec-viewer/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "A zh-TW gloss is produced: gloss.zh-TW.json is written next to the change, keyed by real section ids the generator assigned (e.g. proposal--why) with short zh-TW values, and Step 1 is re-run so review.html embeds the gloss (its has-gloss two-column slot).",
+      "expectations": [
+        {
+          "text": "gloss.zh-TW.json is written next to the change",
+          "check": {"type": "file_exists", "path": "openspec/changes/add-farewell/gloss.zh-TW.json", "expect": true}
+        },
+        {
+          "text": "The gloss is a JSON object with at least two entries, keyed by a real section id (proposal--why)",
+          "check": {"type": "json_check", "path": "openspec/changes/add-farewell/gloss.zh-TW.json", "min_keys": 2, "has_keys": ["proposal--why"]}
+        },
+        {
+          "text": "The gloss values are zh-TW (contain CJK characters)",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-farewell/gloss.zh-TW.json", "regex": "[一-鿿]"}
+        },
+        {
+          "text": "review.html was re-run and embeds the gloss (has-gloss slot present)",
+          "check": {"type": "file_contains", "path": "openspec/changes/add-farewell/review.html", "needle": "has-gloss"}
+        }
+      ]
+    }
+  ]
+}

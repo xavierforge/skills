@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "No new branch was created; the run stopped after finding the tree clean but on feat/existing-work, asking the user to confirm the work is unrelated before proceeding ('I want to confirm before proceeding, since I should never silently cut a new branch off another feature branch'). Final git state shows HEAD still on feat/existing-work with no new branches beyond main and feat/existing-work, so the conditional (legitimately stopping without branching) is satisfied and no branch descends from the unmerged commit.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": true,
+      "evidence": "HEAD branch 'feat/existing-work' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "No new branch was created (git-state.txt shows only feat/existing-work and main); the agent halted and asked 'are you starting genuinely new work... I should never silently cut a new branch off another feature branch,' correctly refusing to branch from feat/existing-work's HEAD without confirming the base should be main. Since no new branch exists, the conditional expectation is vacuously satisfied and the reasoning shown is correct.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "total": 1,
+    "pass_rate": 1.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 0,
+    "total_decided": 3,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "dd4371f",
+    "skill_name": "begin",
+    "skill_commit": "dd4371f",
+    "iteration": 7,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-08T05:34:41Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "650f967292f4fa50ac64a71a4ce942f1e9de44c1353aae1acf6117287bb73397",
+      "harness_commit": "dd4371f"
+    }
+  }
+}

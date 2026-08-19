@@ -1,0 +1,77 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "begin",
+  "evals": [
+    {
+      "eval_id": "begin-dirty-tree-guard",
+      "prompt": "/begin I'm starting new work on this repo: add a JSON export feature to the CLI. Get the base ready and open a branch for it.",
+      "fixture": "begin/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "On a dirty working tree, execution stops and asks the user to commit or stash first, never auto-stashing, and the uncommitted changes are left exactly in place.",
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user to commit or stash before switching branches",
+          "check": {"type": "llm_judged", "rubric": "The run must halt and ask the user to commit or stash the dirty tree before doing anything else, rather than proceeding to sync or branch. Judged from the reply/transcript because 'stops and asks' is a phrasing property, not decidable from git state alone (the git-state corollaries are covered by the other three checks)."}
+        },
+        {
+          "text": "No git stash is run on the user's behalf",
+          "check": {"type": "git_no_stash"}
+        },
+        {
+          "text": "The uncommitted changes remain in the working tree unchanged",
+          "check": {"type": "file_contains", "path": "README.md", "needle": "scratch note"}
+        },
+        {
+          "text": "No new branch is cut while the tree is dirty",
+          "check": {"type": "branch_count", "range": [1, 1]}
+        }
+      ]
+    },
+    {
+      "eval_id": "begin-on-feature-branch-new-work",
+      "prompt": "/begin I'm starting brand new, independent work: add a JSON export feature. This is unrelated to whatever is on the current branch.",
+      "fixture": "begin/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With HEAD on a feature branch that carries unpushed work, the new branch is NOT cut off that branch's unmerged commits; execution either stops to clarify or starts the new lane in a worktree cut from the default branch.",
+      "expectations": [
+        {
+          "text": "The new branch is not based on the current feature branch's unmerged commits",
+          "check": {"type": "llm_judged", "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check."}
+        },
+        {
+          "text": "The current checkout is not silently switched to a new branch in place",
+          "check": {"type": "head_branch", "equals": "feat/existing-work"}
+        },
+        {
+          "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+          "check": {"type": "llm_judged", "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check."}
+        }
+      ]
+    },
+    {
+      "eval_id": "begin-clean-maintainer-named",
+      "prompt": "/begin start work on a feature to add a farewell helper; call it feat/farewell",
+      "fixture": "begin/3",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "On a clean maintainer-mode repo with the work already named, the default branch is fast-forwarded and the new correctly-named branch is cut from the default branch with an explicit start point.",
+      "expectations": [
+        {
+          "text": "The default branch is fast-forwarded to its remote before branching",
+          "check": {"type": "ref_equals", "left": "trunk", "right": "origin/trunk"}
+        },
+        {
+          "text": "A new branch named feat/farewell is created",
+          "check": {"type": "branch_exists", "name": "feat/farewell"}
+        },
+        {
+          "text": "The new branch is cut from the default branch with an explicit start point",
+          "check": {"type": "is_ancestor", "ancestor": "trunk", "descendant": "feat/farewell"}
+        },
+        {
+          "text": "The default branch name is derived, not assumed to be 'main'",
+          "check": {"type": "branch_exists", "name": "main", "expect": false}
+        }
+      ]
+    }
+  ]
+}

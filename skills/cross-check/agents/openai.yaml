@@ -1,0 +1,5 @@
+interface:
+  display_name: "Cross Check"
+  short_description: "Review a diff since a fixed point on two axes, standards and spec"
+policy:
+  allow_implicit_invocation: false

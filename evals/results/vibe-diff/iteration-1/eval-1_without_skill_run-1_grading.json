@@ -1,0 +1,63 @@
+{
+  "expectations": [
+    {
+      "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than landing a review",
+      "passed": true,
+      "evidence": "expect=False; .review/feat-add-logging/diff.patch:no, .review/feat-add-logging/diff-review.json:no, .review/feat-add-logging/diff-review.html:no",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback landing)",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "The run reports it cannot build a review without a spec source (no OpenSpec change and no saved mini-spec), rather than reviewing anyway",
+      "passed": false,
+      "evidence": "[any] missing regex '(?i)(nothing to check it against|not a review|no (active )?(open ?spec|spec|change)|refuse)'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The refusal points at the fix: run /begin to save a mini-spec, or open an OpenSpec change",
+      "passed": false,
+      "evidence": "[any] missing needle '/begin'; regex '(?i)open ?spec'",
+      "check_type": "text_contains"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "bdcba91",
+    "skill_name": "vibe-diff",
+    "skill_commit": "c19620d",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-07-24T16:20:35Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "bdcba91"
+    }
+  }
+}

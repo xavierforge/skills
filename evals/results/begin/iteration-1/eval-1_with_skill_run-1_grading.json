@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops and asks the user to commit or stash before switching branches",
+      "passed": true,
+      "evidence": "The reply explicitly halts and asks: 'How would you like to handle it? 1. Commit it as-is 2. Stash it for later 3. Discard it... Let me know which, and I'll proceed with syncing main and opening the branch.' It did not proceed to sync/branch and instead awaited user input.",
+      "check_type": "llm_judged",
+      "rubric": "The run must halt and ask the user to commit or stash the dirty tree before doing anything else, rather than proceeding to sync or branch. Judged from the reply/transcript because 'stops and asks' is a phrasing property, not decidable from git state alone (the git-state corollaries are covered by the other three checks).",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No git stash is run on the user's behalf",
+      "passed": true,
+      "evidence": "no stash entries",
+      "check_type": "git_no_stash"
+    },
+    {
+      "text": "The uncommitted changes remain in the working tree unchanged",
+      "passed": true,
+      "evidence": "README.md (exists=True): all present: 'scratch note'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "No new branch is cut while the tree is dirty",
+      "passed": true,
+      "evidence": "1 local branches ['main'] (want [1,1])",
+      "check_type": "branch_count"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "bdcba91",
+    "skill_name": "begin",
+    "skill_commit": "c19620d",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-07-24T16:25:34Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "e1d79c8c8a88ba2bfb9d962c67916a46a3d90e342aa9f3caf68c0e07daa3933c",
+      "harness_commit": "bdcba91"
+    }
+  }
+}

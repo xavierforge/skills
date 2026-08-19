@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+      "passed": false,
+      "evidence": "[any] missing needle 'cross-check'; needle 'verify'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "missing layers explicitly reported as not run (cross-check, verify)",
+      "passed": false,
+      "evidence": "The final reply lists what was checked (git state, diff, openspec, review artifact, test discrepancy, remote/PR status) and explicitly says only 'Stopping here per instructions (Step 0 only)', but nowhere does it name 'cross-check' or 'verify' as layers that were skipped/not run \u2014 the two layers are simply absent from the readback rather than explicitly called out as not run.",
+      "check_type": "llm_judged",
+      "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+      "passed": true,
+      "evidence": "Reply states the artifact was found at '.review/feat-demo-gadget/diff-review.json' and summarizes test status in one line: 'AGENTS.md defines the actual quality gate as make check (\u2192 pytest -q), which I ran: 2 passed, not 3', flagging the discrepancy with the artifact's claimed 'bash test.sh ... 3' tests.",
+      "check_type": "llm_judged",
+      "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "stops after Step 0 without modifying the repo",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "86c4460",
+    "skill_name": "ship",
+    "skill_commit": "3cc9579",
+    "iteration": 3,
+    "model": "claude-sonnet-5",
+    "runs": 1,
+    "timestamp": "2026-08-06T09:33:10Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "claude-sonnet-5"
+    },
+    "grader": {
+      "model": "claude-sonnet-5",
+      "rubric_sha256": "dbbd388ac3df906bbd142e1814dfba4801218c8331a6277e57163dd80dff813d",
+      "harness_commit": "5e54fd4"
+    }
+  }
+}

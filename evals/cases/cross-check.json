@@ -1,0 +1,31 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "cross-check",
+  "evals": [
+    {
+      "eval_id": "cross-check-two-axis-verdict-artifact",
+      "prompt": "/cross-check main  (sandbox: branch feat/parser; spec at docs/spec.md with an unimplemented 'reject duplicate keys' requirement; CODING_STANDARDS.md present; the diff carries duplicated parsing loops and a missing docstring)",
+      "fixture": "cross-check/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "The two-axis review reports Standards and Spec under separate headings and persists review-verdict.json at .review/feat-parser/ (landing rule, no openspec) with layer cross-check and findings each carrying axis, title, severity, actioned; the duplicate-keys spec gap is caught on the spec axis.",
+      "expectations": [
+        {
+          "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",
+          "check": {"type": "json_check", "path": ".review/feat-parser/review-verdict.json", "equals": {"layer": "cross-check"}}
+        },
+        {
+          "text": "findings[] entries each carry axis/title/severity/actioned, axis in standards|spec",
+          "check": {"type": "json_check", "path": ".review/feat-parser/review-verdict.json", "array": {"path": "findings", "has_keys": ["axis", "title", "severity", "actioned"], "enum": {"axis": ["standards", "spec"]}}}
+        },
+        {
+          "text": "Standards and Spec presented under separate headings",
+          "check": {"type": "text_contains", "source": "any", "regexes": ["(?im)^#+.*\\bstandards\\b", "(?im)^#+.*\\bspec\\b"]}
+        },
+        {
+          "text": "unimplemented spec requirement (reject duplicate keys) caught",
+          "check": {"type": "text_contains", "source": "any", "regex": "(?i)duplicate key"}
+        }
+      ]
+    }
+  ]
+}

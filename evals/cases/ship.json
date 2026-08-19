@@ -1,0 +1,89 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "ship",
+  "evals": [
+    {
+      "eval_id": "ship-on-default-branch-block",
+      "prompt": "/ship",
+      "fixture": "ship/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With HEAD on the default branch and the work committed there, execution blocks, points the user to /begin to open a feature branch, and does not rewrite history to move the commits.",
+      "expectations": [
+        {
+          "text": "Execution blocks on the default branch and never actually pushes or opens a PR",
+          "check": {"type": "llm_judged", "rubric": "The run must block on the default branch and never execute a push or gh pr create. Judge the executed action from the transcript, not a substring: git's own boilerplate hint (use \"git push\" to publish your local commits) leaks into the reconstructed transcript, and a correct blocking reply may name the very commands it is declining to run (I will not run git push; run /begin first). Both are correct-blocking behavior, not a push. Pass only if the run blocked on the default branch and no actual push / PR-create tool call ran; fail if it pushed, opened a PR, or never blocked at all."}
+        },
+        {
+          "text": "The user is pointed to /begin to open a proper feature branch",
+          "check": {"type": "text_contains", "source": "result", "needle": "/begin"}
+        },
+        {
+          "text": "No git history is rewritten (no reset, no moving commits off the default branch)",
+          "check": {"type": "branch_count", "range": [1, 1]}
+        },
+        {
+          "text": "The default branch is left untouched",
+          "check": {"type": "head_branch", "equals": "main"}
+        }
+      ]
+    },
+    {
+      "eval_id": "ship-clean-feature-ready",
+      "prompt": "/ship  (Note: /verify and /code-review already ran and passed for this branch. The cross-check and vibe-diff artifacts were never written, and shipping without them is already approved, so record them as not run and continue rather than stopping to ask.)",
+      "fixture": "ship/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "On a clean feature branch with a derivable quality gate and an OpenSpec change present, the two absent review artifacts are recorded as not run under the standing waiver instead of blocking the run, the mechanical scan runs with a base argument, the gate runs, a fresh-context adversarial review subagent is dispatched with its model reported, and a six-section PR body is written; execution stops before pushing or creating the PR.",
+      "expectations": [
+        {
+          "text": "diff-scan.sh is run with an explicit base ref argument",
+          "check": {"type": "text_contains", "source": "transcript", "regex": "diff-scan\\.sh[^\\n]*\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})"}
+        },
+        {
+          "text": "The derived quality gate command is run, not a bare compile",
+          "check": {"type": "text_contains", "source": "transcript", "needle": "make check"}
+        },
+        {
+          "text": "A fresh-context adversarial review subagent is dispatched",
+          "check": {"type": "llm_judged", "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record."}
+        },
+        {
+          "text": "The model used for the review subagent is reported to the user",
+          "check": {"type": "text_contains", "source": "result", "regex": "(?i)\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\b"}
+        },
+        {
+          "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+          "check": {"type": "text_contains", "source": "pr_body", "needles": ["Summary", "Motivation", "Design decisions", "Testing", "Reviewing", "Notes"]}
+        },
+        {
+          "text": "Execution stops before git push or gh pr create",
+          "check": {"type": "llm_judged", "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript."}
+        }
+      ]
+    },
+    {
+      "eval_id": "ship-step0-reconciliation-missing-artifacts",
+      "prompt": "/ship  (sandbox: branch feat/demo-gadget, no openspec/; only .review/feat-demo-gadget/diff-review.json exists on disk; execute only Step 0, then stop)",
+      "fixture": "ship/3",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "Step 0c resolves the landing rule to .review/feat-demo-gadget/, summarizes the vibe-diff artifact in one line, and explicitly lists the two absent layers as not run instead of omitting them; Step 0b may report BLOCKED for missing verification evidence but the three reconciliation lines still appear.",
+      "expectations": [
+        {
+          "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+          "check": {"type": "text_contains", "source": "any", "needles": ["vibe-diff", "cross-check", "verify"]}
+        },
+        {
+          "text": "missing layers explicitly reported as not run (cross-check, verify)",
+          "check": {"type": "llm_judged", "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback."}
+        },
+        {
+          "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+          "check": {"type": "llm_judged", "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply."}
+        },
+        {
+          "text": "stops after Step 0 without modifying the repo",
+          "check": {"type": "git_clean", "expect": true}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "vibe-diff",
+  "evals": [
+    {
+      "eval_id": "vibe-diff-no-spec-source-refusal",
+      "prompt": "/vibe-diff  (sandbox: branch feat/add-logging, no openspec/ anywhere and no .review/ mini-spec; last test run given at invocation: bash test.sh, pass, 3 tests)",
+      "fixture": "vibe-diff/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With neither an OpenSpec change nor a saved .review/<slug>/mini-spec.md, the hardened vibe-diff refuses to run rather than reviewing against nothing: it writes no review artifact, leaves the repo tree untouched, and points the user at the fix (run /begin to save a mini-spec, or open an OpenSpec change, then re-invoke).",
+      "expectations": [
+        {
+          "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than landing a review",
+          "check": {"type": "file_exists", "expect": false, "paths": [".review/feat-add-logging/diff.patch", ".review/feat-add-logging/diff-review.json", ".review/feat-add-logging/diff-review.html"]}
+        },
+        {
+          "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback landing)",
+          "check": {"type": "git_clean", "expect": true}
+        },
+        {
+          "text": "The run reports it cannot build a review without a spec source (no OpenSpec change and no saved mini-spec), rather than reviewing anyway",
+          "check": {"type": "text_contains", "source": "any", "regex": "(?i)(nothing to check it against|not a review|no (active )?(open ?spec|spec|change)|refuse)"}
+        },
+        {
+          "text": "The refusal points at the fix: run /begin to save a mini-spec, or open an OpenSpec change",
+          "check": {"type": "text_contains", "source": "any", "needles": ["/begin"], "regexes": ["(?i)open ?spec"]}
+        }
+      ]
+    },
+    {
+      "eval_id": "vibe-diff-mini-spec-happy-path",
+      "prompt": "/vibe-diff  (sandbox: branch feat/add-metrics, no openspec/ anywhere but a saved .review/feat-add-metrics/mini-spec.md describing the intended change, and a small diff on the branch; last test run given at invocation: bash test.sh, pass, 3 tests)",
+      "fixture": "vibe-diff/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "With no OpenSpec change but a saved mini-spec as the spec source, vibe-diff runs its two-layer path: it captures the branch diff against the merge-base to diff.patch, authors a diff-review.json that maps the change to the mini-spec's stated intent (carrying an honest test_status and an unverified quarantine bucket), and renders the self-contained diff-review.html, all under .review/feat-add-metrics/. The page explains the diff, it does not judge it: no approve/block verdict, and every hunk id it uses comes from the generator's printed contract, none invented.",
+      "expectations": [
+        {
+          "text": "The branch diff is captured to a file rather than worked from memory",
+          "check": {"type": "file_exists", "expect": true, "path": ".review/feat-add-metrics/diff.patch"}
+        },
+        {
+          "text": "The judgment layer diff-review.json is authored under the resolved artifact dir",
+          "check": {"type": "file_exists", "expect": true, "path": ".review/feat-add-metrics/diff-review.json"}
+        },
+        {
+          "text": "diff-review.json carries the test_status field and the unverified quarantine bucket the schema requires",
+          "check": {"type": "json_check", "path": ".review/feat-add-metrics/diff-review.json", "has_keys": ["test_status", "unverified"]}
+        },
+        {
+          "text": "test_status records the test run (command/when/result) or an honest unobtainable, never a bare green",
+          "check": {"type": "file_contains", "path": ".review/feat-add-metrics/diff-review.json", "regexes": ["\"test_status\"", "\"(command|when|result|unobtainable)\""]}
+        },
+        {
+          "text": "The self-contained diff-review.html is rendered under the artifact dir",
+          "check": {"type": "file_exists", "expect": true, "path": ".review/feat-add-metrics/diff-review.html"}
+        },
+        {
+          "text": "The rendered page is a real page, not a stub skeleton",
+          "check": {"type": "file_size", "path": ".review/feat-add-metrics/diff-review.html", "min_bytes": 2000}
+        },
+        {
+          "text": "The page explains the diff against the mini-spec's intent and renders no approve/block verdict",
+          "check": {"type": "llm_judged", "rubric": "The review must map the diff to the mini-spec's stated intent (what count_greetings was asked to do) in its overview and intent map, and it must not render an approve, block, 'looks good', or 'must fix' verdict. vibe-diff explains, it never judges. Judged from diff-review.json and the run summary: an account that decodes the diff against the spec passes; one that pronounces a merge verdict fails."}
+        },
+        {
+          "text": "Every hunk id used comes from the generator's printed authoring contract; none is invented",
+          "check": {"type": "llm_judged", "rubric": "Any hunk id referenced in diff-review.json (in intent_map or hotspots) must be one the generator printed in its authoring contract, used verbatim, not a hand-invented id. Evidence: the render loop should end clean, with no unresolved 'id not found' or unplaced-annotation problems left in the output. Judged from the transcript's render output and the JSON."}
+        }
+      ]
+    }
+  ]
+}

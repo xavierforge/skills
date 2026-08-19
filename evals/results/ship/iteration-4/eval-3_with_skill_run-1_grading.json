@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+      "passed": true,
+      "evidence": "[any] all present: 'vibe-diff', 'cross-check', 'verify'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "missing layers explicitly reported as not run (cross-check, verify)",
+      "passed": true,
+      "evidence": "The reply's Step 0c section explicitly states: '`cross-check`: not run \u2014 no `review-verdict.json` found' and '`verify`: not run \u2014 no `verify.md` found', naming both absent layers rather than silently omitting them.",
+      "check_type": "llm_judged",
+      "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+      "passed": true,
+      "evidence": "Reply states: 'vibe-diff: tests pass (bash test.sh, 3), 0 risks \u2014 found at .review/feat-demo-gadget/diff-review.json', matching the actual file content {\"test_status\": {\"command\": \"bash test.sh\", \"result\": \"pass\", \"count\": 3}} \u2014 the artifact was found and its test status summarized in one line.",
+      "check_type": "llm_judged",
+      "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "stops after Step 0 without modifying the repo",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "7dcc88f",
+    "skill_name": "ship",
+    "skill_commit": "25a81ca",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-07T08:04:39Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "dbbd388ac3df906bbd142e1814dfba4801218c8331a6277e57163dd80dff813d",
+      "harness_commit": "7dcc88f"
+    }
+  }
+}
