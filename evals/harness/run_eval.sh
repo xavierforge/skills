@@ -137,13 +137,19 @@ ground_rules() {
   python3 - "$REPO/evals/EVALUATION.md" <<'PY'
 import re,sys
 md=open(sys.argv[1]).read()
-m=re.search(r"## Executor ground rules\n(.*?)\n## ",md,re.S)
+# Heading-level agnostic: the 2026-07-19 EVALUATION.md rewrite demoted this
+# section from H2 to H3 and the old H2-anchored pattern silently extracted
+# nothing from then on. Match any heading level and stop at the next heading
+# (or end of file); the blockquote body never contains '#'-prefixed lines.
+m=re.search(r"#{2,6} Executor ground rules\n(.*?)(?=\n#{1,6} |\Z)",md,re.S)
 body=m.group(1) if m else ""
 # strip the leading "> " quote markers
 print("\n".join(re.sub(r"^> ?","",l) for l in body.splitlines() if l.startswith(">") or not l.strip()))
 PY
 }
 GROUND_RULES="$(ground_rules)"
+[ -n "$(echo "$GROUND_RULES" | tr -d '[:space:]')" ] \
+  || die "extracted empty executor ground rules from EVALUATION.md (heading moved again?)"
 
 # ---------------------------------------------------------------------------
 # Run one arm: build sandbox, run the executor, snapshot git state
