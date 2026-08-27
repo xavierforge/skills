@@ -1,0 +1,68 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops with a refusal instead of inventing work from the repo",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+      "passed": false,
+      "evidence": "The reply only states 'no active OpenSpec change exists in this checkout or its git history/remotes' and the transcript's refusal says 'I can't complete the active OpenSpec change because this checkout has no openspec/ directory or change artifacts' \u2014 neither statement asserts that the skill serves OpenSpec projects only, only that no change was found.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The refusal points at proposing a change first as the way in",
+      "passed": false,
+      "evidence": "The refusal states only 'Please provide or check out the intended OpenSpec change' and the final reply says 'Blocked: no active OpenSpec change exists'; neither points the user at proposing a change first (e.g. via an OpenSpec proposal/change-creation step) as the way in \u2014 it only asks the user to supply/checkout an existing change.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No commits, branch changes, or file modifications are made",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "56929d7",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 3,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-27T14:14:46Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 324,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "3bbdab51dec7894a8f73d8363bb9c9249da6f2d18be3ce7ad8c9aed1cf651940",
+      "harness_commit": "56929d7"
+    }
+  }
+}

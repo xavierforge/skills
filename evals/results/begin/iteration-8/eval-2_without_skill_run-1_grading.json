@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "Git state shows feat/json-export at 9d9a738, which is origin/main's tip, and `git log main..HEAD` / `diffstat main...HEAD` confirm the only commit ahead is 'docs(readme): note upstream change' from origin, not the greetings work. The unpushed commit b0062fc on feat/existing-work remains isolated on that branch and is not an ancestor of feat/json-export per the decorated log.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "The agent ran `git switch -c feat/json-export origin/main`, and the final git state confirms feat/json-export (9d9a738) points at origin/main's tip, not at feat/existing-work's HEAD (b0062fc); `git log main..HEAD` shows only the upstream commit, and feat/existing-work remains a separate, untouched branch.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 1,
+    "total_decided": 3,
+    "total_pass_rate": 0.6667,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "56929d7",
+    "skill_name": "begin",
+    "skill_commit": "7c112c0",
+    "iteration": 8,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-27T13:48:13Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "650f967292f4fa50ac64a71a4ce942f1e9de44c1353aae1acf6117287bb73397",
+      "harness_commit": "56929d7"
+    }
+  }
+}

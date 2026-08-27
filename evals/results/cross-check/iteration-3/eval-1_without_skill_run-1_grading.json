@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",
+      "passed": false,
+      "evidence": ".review/feat-parser/review-verdict.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "findings[] entries each carry axis/title/severity/actioned, axis in standards|spec",
+      "passed": false,
+      "evidence": ".review/feat-parser/review-verdict.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "Standards and Spec presented under separate headings",
+      "passed": false,
+      "evidence": "[any] missing regex '(?im)^#+.*\\\\bspec\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "unimplemented spec requirement (reject duplicate keys) caught",
+      "passed": true,
+      "evidence": "[any] all present: /(?i)duplicate key/",
+      "check_type": "text_contains"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 1,
+    "total_failed": 3,
+    "total_decided": 4,
+    "total_pass_rate": 0.25,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "56929d7",
+    "skill_name": "cross-check",
+    "skill_commit": "862f4a0",
+    "iteration": 3,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-27T14:27:38Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "56929d7"
+    }
+  }
+}

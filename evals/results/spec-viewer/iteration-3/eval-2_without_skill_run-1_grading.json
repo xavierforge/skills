@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "gloss.zh-TW.json is written next to the change",
+      "passed": false,
+      "evidence": "expect=True; openspec/changes/add-farewell/gloss.zh-TW.json:no",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The gloss is a JSON object with at least two entries, keyed by a real section id (proposal--why)",
+      "passed": false,
+      "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "The gloss values are zh-TW (contain CJK characters)",
+      "passed": false,
+      "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json (exists=False): missing regex '[\u4e00-\u9fff]'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "review.html was re-run and embeds the gloss (has-gloss slot present)",
+      "passed": false,
+      "evidence": "openspec/changes/add-farewell/review.html (exists=False): missing needle 'has-gloss'",
+      "check_type": "file_contains"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4,
+    "pass_rate": 0.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 0,
+    "total_failed": 4,
+    "total_decided": 4,
+    "total_pass_rate": 0.0,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "56929d7",
+    "skill_name": "spec-viewer",
+    "skill_commit": "ea727b5",
+    "iteration": 3,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-27T14:35:27Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "56929d7"
+    }
+  }
+}

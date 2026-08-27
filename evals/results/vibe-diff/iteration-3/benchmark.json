@@ -1,0 +1,309 @@
+{
+  "metadata": {
+    "skill_name": "vibe-diff",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-27T14:48:04Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than landing a review",
+          "passed": true,
+          "evidence": "expect=False; .review/feat-add-logging/diff.patch:no, .review/feat-add-logging/diff-review.json:no, .review/feat-add-logging/diff-review.html:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback landing)",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "The run reports it cannot build a review without a spec source (no OpenSpec change and no saved mini-spec), rather than reviewing anyway",
+          "passed": true,
+          "evidence": "[any] all present: /(?i)(nothing to check it against|not a review|no (active )?(open ?spec|spec|change)|refuse)/",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The refusal points at the fix: run /begin to save a mini-spec, or open an OpenSpec change",
+          "passed": true,
+          "evidence": "[any] all present: '/begin', /(?i)open ?spec/",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The branch diff is captured to a file rather than worked from memory",
+          "passed": true,
+          "evidence": "expect=True; .review/feat-add-metrics/diff.patch:yes",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The judgment layer diff-review.json is authored under the resolved artifact dir",
+          "passed": true,
+          "evidence": "expect=True; .review/feat-add-metrics/diff-review.json:yes",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "diff-review.json carries the test_status field and the unverified quarantine bucket the schema requires",
+          "passed": true,
+          "evidence": "ok",
+          "check_type": "json_check"
+        },
+        {
+          "text": "test_status records the test run (command/when/result) or an honest unobtainable, never a bare green",
+          "passed": true,
+          "evidence": ".review/feat-add-metrics/diff-review.json (exists=True): all present: /\"test_status\"/, /\"(command|when|result|unobtainable)\"/",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The self-contained diff-review.html is rendered under the artifact dir",
+          "passed": true,
+          "evidence": "expect=True; .review/feat-add-metrics/diff-review.html:yes",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The rendered page is a real page, not a stub skeleton",
+          "passed": true,
+          "evidence": ".review/feat-add-metrics/diff-review.html: 9436 bytes (>= 2000)",
+          "check_type": "file_size"
+        },
+        {
+          "text": "The page explains the diff against the mini-spec's intent and renders no approve/block verdict",
+          "passed": true,
+          "evidence": "The final reply states the page 'maps the diff to the mini-spec and highlights eager iterable consumption as the key reviewer hotspot' with only a factual test status noted, and no approve/block/looks-good/must-fix language appears anywhere in the transcript or final reply.",
+          "check_type": "llm_judged",
+          "rubric": "The review must map the diff to the mini-spec's stated intent (what count_greetings was asked to do) in its overview and intent map, and it must not render an approve, block, 'looks good', or 'must fix' verdict. vibe-diff explains, it never judges. Judged from diff-review.json and the run summary: an account that decodes the diff against the spec passes; one that pronounces a merge verdict fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Every hunk id used comes from the generator's printed authoring contract; none is invented",
+          "passed": true,
+          "evidence": "generate.py's printed authoring contract listed exactly two ids ('hunk-src-metrics-py' and 'hunk-tests-test-metrics-py'), and the agent's subsequent verification explicitly grepped for and matched 'hunk-src-metrics-py' in diff-review.html, with no mention anywhere in the transcript or final reply of an unresolved/invented hunk id or any 'id not found' problem.",
+          "check_type": "llm_judged",
+          "rubric": "Any hunk id referenced in diff-review.json (in intent_map or hotspots) must be one the generator printed in its authoring contract, used verbatim, not a hand-invented id. Evidence: the render loop should end clean, with no unresolved 'id not found' or unplaced-annotation problems left in the output. Judged from the transcript's render output and the JSON.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than landing a review",
+          "passed": true,
+          "evidence": "expect=False; .review/feat-add-logging/diff.patch:no, .review/feat-add-logging/diff-review.json:no, .review/feat-add-logging/diff-review.html:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback landing)",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "The run reports it cannot build a review without a spec source (no OpenSpec change and no saved mini-spec), rather than reviewing anyway",
+          "passed": true,
+          "evidence": "[any] all present: /(?i)(nothing to check it against|not a review|no (active )?(open ?spec|spec|change)|refuse)/",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The refusal points at the fix: run /begin to save a mini-spec, or open an OpenSpec change",
+          "passed": false,
+          "evidence": "[any] missing needle '/begin'; regex '(?i)open ?spec'",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The branch diff is captured to a file rather than worked from memory",
+          "passed": false,
+          "evidence": "expect=True; .review/feat-add-metrics/diff.patch:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The judgment layer diff-review.json is authored under the resolved artifact dir",
+          "passed": false,
+          "evidence": "expect=True; .review/feat-add-metrics/diff-review.json:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "diff-review.json carries the test_status field and the unverified quarantine bucket the schema requires",
+          "passed": false,
+          "evidence": ".review/feat-add-metrics/diff-review.json: file missing",
+          "check_type": "json_check"
+        },
+        {
+          "text": "test_status records the test run (command/when/result) or an honest unobtainable, never a bare green",
+          "passed": false,
+          "evidence": ".review/feat-add-metrics/diff-review.json (exists=False): missing regex '\"test_status\"'; regex '\"(command|when|result|unobtainable)\"'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The self-contained diff-review.html is rendered under the artifact dir",
+          "passed": false,
+          "evidence": "expect=True; .review/feat-add-metrics/diff-review.html:no",
+          "check_type": "file_exists"
+        },
+        {
+          "text": "The rendered page is a real page, not a stub skeleton",
+          "passed": false,
+          "evidence": ".review/feat-add-metrics/diff-review.html: file missing",
+          "check_type": "file_size"
+        },
+        {
+          "text": "The page explains the diff against the mini-spec's intent and renders no approve/block verdict",
+          "passed": false,
+          "evidence": "result.md contains a 'Decision: the change' heading (truncated) and the final reply states 'Reviewed the metrics change: it matches the mini-spec, and make check passes' \u2014 this renders an implicit approve/pass verdict rather than purely explaining the diff against the spec's intent, and no diff-review.json with an overview/intent map was produced at all.",
+          "check_type": "llm_judged",
+          "rubric": "The review must map the diff to the mini-spec's stated intent (what count_greetings was asked to do) in its overview and intent map, and it must not render an approve, block, 'looks good', or 'must fix' verdict. vibe-diff explains, it never judges. Judged from diff-review.json and the run summary: an account that decodes the diff against the spec passes; one that pronounces a merge verdict fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Every hunk id used comes from the generator's printed authoring contract; none is invented",
+          "passed": false,
+          "evidence": "The transcript contains no diff-review.json, no intent_map/hotspots, no generator-printed authoring contract, and no render loop output referencing hunk ids at all \u2014 the run only inspected the diff, ran `make check`, and wrote result.md/transcript.md, so there is no evidence to verify the expectation.",
+          "check_type": "llm_judged",
+          "rubric": "Any hunk id referenced in diff-review.json (in intent_map or hotspots) must be one the generator printed in its authoring contract, used verbatim, not a hand-invented id. Evidence: the render loop should end clean, with no unresolved 'id not found' or unplaced-annotation problems left in the output. Judged from the transcript's render output and the JSON.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.375,
+        "stddev": 0.5303,
+        "min": 0.0,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.62",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.375,
+        "stddev": 0.5303,
+        "min": 0.0,
+        "max": 0.75
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.62"
+    }
+  }
+}
