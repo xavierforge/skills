@@ -13,6 +13,9 @@
 #
 # Environment:
 #   EVAL_MODEL=sonnet          model locked for every arm (cheap tier, decision-4)
+#   EVAL_EXECUTOR=claude       executor CLI: claude (default) or codex. codex runs
+#                              `codex exec` on the ChatGPT subscription and requires
+#                              an explicit EVAL_MODEL (e.g. gpt-5.6-terra)
 #   SKILL_CREATOR_DIR=...       override skill-creator location (else auto-discovered)
 #   RUN_EVAL_DRY=1             skip `claude -p`; write stub outputs so the whole
 #                              pipeline (scaffold->grade->aggregate->viewer) can be
@@ -38,6 +41,12 @@ EVAL_ID="${2:?usage: run_eval.sh <skill> <eval_id> [runs] [iteration]}"
 NRUNS="${3:-1}"
 ITER="${4:-1}"
 MODEL="${EVAL_MODEL:-sonnet}"
+EXECUTOR="${EVAL_EXECUTOR:-claude}"
+case "$EXECUTOR" in claude|codex) ;; *) echo "ABORT: unknown EVAL_EXECUTOR '$EXECUTOR' (claude|codex)" >&2; exit 3;; esac
+if [ "$EXECUTOR" = "codex" ] && [ -z "${EVAL_MODEL:-}" ]; then
+  echo "ABORT: EVAL_EXECUTOR=codex requires an explicit EVAL_MODEL (e.g. gpt-5.6-terra)." >&2
+  exit 3
+fi
 
 # ---------------------------------------------------------------------------
 # Execution-discipline guard: subscription only
@@ -45,8 +54,11 @@ MODEL="${EVAL_MODEL:-sonnet}"
 # Cover every env var that would route a run off the subscription: the API key,
 # a custom bearer token, and an endpoint redirect (proxy / gateway / Bedrock-style
 # setups). Guarding only ANTHROPIC_API_KEY would let a token or base-URL override
-# silently send the run through the API instead.
-for v in ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL; do
+# silently send the run through the API instead. The codex executor has the same
+# rule against its own vendor: ChatGPT login only, never an OpenAI API key.
+GUARD_VARS="ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL"
+[ "$EXECUTOR" = "codex" ] && GUARD_VARS="OPENAI_API_KEY OPENAI_BASE_URL"
+for v in $GUARD_VARS; do
   if [ -n "$(eval "echo \${$v:-}")" ]; then
     echo "ABORT: $v is set; eval runs must go through the subscription." >&2
     echo "       unset $v (and any other ANTHROPIC_* override) and retry." >&2
@@ -192,6 +204,107 @@ EOF
     printf '(dry run: %s / %s / %s -- no executor output)\n' "$suite" "$idn" "$arm" > "$OUT/result.md"
     printf '{"arm_rc":0,"stderr_scan":"dry","stderr_bytes":0,"model":"%s"}\n' "$MODEL" > "$RUN/exec.json"
     note "DRY $suite/$idn $arm -> stub outputs"
+  elif [ "$EXECUTOR" = "codex" ]; then
+    # Codex executor arm: `codex exec` non-interactive in the MAIN loop, ChatGPT
+    # subscription only (OPENAI_API_KEY guarded away above), hermetic
+    # (--ignore-user-config keeps auth but drops user config/hooks), and
+    # approvals+sandbox bypassed to mirror the claude arm's
+    # --dangerously-skip-permissions. `< /dev/null` for the same reason as the
+    # claude arm: codex exec appends piped stdin to the prompt.
+    local err_log="$RUN/codex.stderr" json_log="$RUN/codex.stream.json"
+    set +e
+    ( cd "$SB" && env -u OPENAI_API_KEY -u OPENAI_BASE_URL -u CLAUDECODE \
+        codex exec --skip-git-repo-check --ignore-user-config \
+               --dangerously-bypass-approvals-and-sandbox \
+               -C "$SB" -m "$MODEL" --json -o "$RUN/last_message.txt" \
+               "$prompt" >"$json_log" 2>"$err_log" </dev/null )
+    local rc=$?
+    set -e
+    # Same two-layer limit detection as the claude arm: stderr keyword scan first,
+    # then a proper JSON parse of the event stream (never grep the JSON body --
+    # token counts like "input_tokens":14429 would false-positive on 429). Codex
+    # has no rate_limit_event type; limit/auth failures surface as `error` or
+    # `turn.failed` events, so match limit keywords inside those events only.
+    local scan="clean"
+    if grep -qiE '(rate.?limit|usage limit|quota|unauthor)|\b(401|429)\b' "$err_log"; then scan="flagged"; fi
+    if [ "$scan" = "clean" ]; then
+      set +e
+      local lim_msg
+      lim_msg="$(python3 - "$json_log" <<'PY'
+import json,re,sys
+pat=re.compile(r"rate.?limit|usage limit|\b401\b|\b429\b|quota|unauthor",re.I)
+for line in open(sys.argv[1],encoding="utf-8",errors="replace"):
+    line=line.strip()
+    if not line: continue
+    try: o=json.loads(line)
+    except Exception: continue
+    blob=None
+    if o.get("type") in ("error","turn.failed"):
+        blob=json.dumps(o)
+    elif o.get("type")=="item.completed" and isinstance(o.get("item"),dict) and o["item"].get("type")=="error":
+        blob=json.dumps(o["item"])
+    if blob and pat.search(blob):
+        print(blob[:200]); sys.exit(0)
+sys.exit(1)
+PY
+)"
+      local wrc=$?
+      set -e
+      [ $wrc -eq 0 ] && { scan="flagged"; note "stream limit/auth event: $lim_msg"; }
+    fi
+    printf '{"arm_rc":%d,"stderr_scan":"%s","stderr_bytes":%s,"model":"%s","executor":"codex"}\n' \
+      "$rc" "$scan" "$(wc -c <"$err_log" | tr -d ' ')" "$MODEL" > "$RUN/exec.json"
+    if [ $rc -ne 0 ] || [ "$scan" = "flagged" ]; then
+      echo "----- codex stderr -----" >&2; tail -20 "$err_log" >&2
+      die "executor stopped ($suite/$idn $arm, rc=$rc, scan=$scan): auth/limit/other. NOT retrying (execution discipline)."
+    fi
+    # Rebuild result.md / transcript.md from codex.stream.json unconditionally,
+    # for the same idempotency reason as the claude arm (a rerun reuses run-N).
+    # Last agent_message -> result.md (falling back to --output-last-message);
+    # ordered agent messages + commands (+ truncated output) -> transcript.md.
+    OUT="$OUT" JSON_LOG="$json_log" LAST_MSG="$RUN/last_message.txt" python3 - <<'PY'
+import json,os
+out=os.environ["OUT"]; stream=os.environ["JSON_LOG"]; lastp=os.environ["LAST_MSG"]
+events=[]
+try:
+    for line in open(stream,encoding="utf-8",errors="replace"):
+        line=line.strip()
+        if line:
+            try: events.append(json.loads(line))
+            except Exception: pass
+except OSError:
+    events=[]
+items=[e["item"] for e in events if e.get("type")=="item.completed" and isinstance(e.get("item"),dict)]
+final=None
+for it in items:
+    if it.get("type")=="agent_message" and isinstance(it.get("text"),str):
+        final=it["text"]
+if final is None and os.path.exists(lastp):
+    t=open(lastp,encoding="utf-8",errors="replace").read().strip()
+    final=t or None
+rmd=os.path.join(out,"result.md")
+if final is not None:
+    open(rmd,"w",encoding="utf-8").write(final)
+elif os.path.exists(rmd):
+    os.remove(rmd)
+parts=["# transcript (reconstructed from codex.stream.json)\n"]
+for it in items:
+    t=it.get("type")
+    if t=="agent_message":
+        txt=(it.get("text") or "").strip()
+        if txt: parts.append(txt+"\n")
+    elif t=="command_execution":
+        parts.append("```\n$ "+str(it.get("command") or "")+"\n```\n")
+        outp=(it.get("aggregated_output") or "").strip()
+        if outp: parts.append("```\n"+outp[:800]+"\n```\n")
+    elif t=="file_change":
+        parts.append("[file_change] "+json.dumps(it.get("changes"))[:300]+"\n")
+    elif t=="mcp_tool_call":
+        parts.append("[tool:%s] %s\n"%(it.get("tool") or it.get("server"),str(it.get("arguments"))[:120]))
+open(os.path.join(out,"transcript.md"),"w",encoding="utf-8").write("\n".join(parts))
+PY
+    [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (stream had no agent_message)"
+    note "ran $suite/$idn $arm via codex (rc=0, stderr $scan)"
   else
     # Nested `claude -p` in the MAIN loop (never a subagent). Subscription only,
     # locked to the cheap tier, offline. `< /dev/null` so the prompt heredoc
@@ -404,7 +517,7 @@ finalize_suite() { # <suite> <workspace_iter_dir>
 # Main: strictly serial, cheapest eval first
 # ---------------------------------------------------------------------------
 [ -f "$BUILD" ] || die "missing $BUILD"
-note "repo=$REPO  model=$MODEL  runs=$NRUNS  iteration=$ITER  dry=${RUN_EVAL_DRY:-0}"
+note "repo=$REPO  executor=$EXECUTOR  model=$MODEL  runs=$NRUNS  iteration=$ITER  dry=${RUN_EVAL_DRY:-0}"
 [ -n "$SC_DIR" ] && note "skill-creator=$SC_DIR" || note "skill-creator=NOT FOUND (aggregate/viewer will be skipped)"
 
 for suite in $(suites); do
