@@ -210,7 +210,7 @@ EOF
     # rc check; the rc check is the primary defense and serial execution bounds the
     # blast radius to one extra run, so we accept it rather than parse the JSON.
     local scan="clean"
-    if grep -qiE '(rate.?limit|usage limit|401|429|quota|unauthor)' "$err_log"; then scan="flagged"; fi
+    if grep -qiE '(rate.?limit|usage limit|quota|unauthor)|\b(401|429)\b' "$err_log"; then scan="flagged"; fi
     # Close the documented residual gap: a usage-limit can arrive as a stream
     # event on stdout (rc stays 0), which the stderr scan never sees. Parse the
     # JSON properly (not grep, so "duration_ms":102429 cannot false-positive).
