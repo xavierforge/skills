@@ -1,88 +1,101 @@
 # Role agents
 
-## What this is
+[繁體中文](README.zh-TW.md)
 
-This repo's skills dispatch work to three named roles, not to model names: `explore`
-(read-only reconnaissance: locate files, trace symbols, sweep for "where or how is
-X", cite conclusions with file:line, change nothing), `too-te` (fully-specified
-mechanical execution: a tasks.md section, a pattern edit, a checklist audit, a data
-extraction job, given a complete spec of goal, scope, and done-criteria), and
-`sai-hu` (judgment-heavy implementation: features, bug fixes, and refactors with
-real design decisions, or a task where a `too-te` run stalled twice). One rule ties
-the whole roster together: skill text names roles, never model names, so the
-roster can be re-pinned or re-hosted without touching a single skill body.
+## Why this exists
 
-`agents/claude/` and `agents/codex/` are two renderings of the same three role
-contracts, one per harness. The contract (what each role is for, what it may
-decide, when it must stop and report instead of guessing) is authored once and
-kept in sync by hand across both renderings; only the frontmatter/config shape
-differs per platform.
+In short: when most Skills in this repo hand out work, they get better results
+by dispatching to three custom sub-agents:
+
+- **`explore` (read-only recon)**: finds files, traces code, and works out
+  "where is this and how does it work". Its conclusions come with file and
+  line numbers (file:line citations), and it never touches the code.
+- **`too-te` (mechanical execution)**: handles tasks that are already fully
+  specified, such as bulk edits, checklist-driven review, or data extraction,
+  provided it is given an explicit goal, scope, and done-criteria.
+- **`sai-hu` (main implementer)**: work that needs judgment goes here! That
+  covers new features, bug fixes, refactors, and any hard problem `too-te`
+  has stalled on twice in a row.
+
+The point of this setup: a `SKILL.md` only ever names roles, so later swaps of
+model or platform never touch a written `SKILL.md`. `agents/claude/` and
+`agents/codex/` are just this contract implemented on each platform; the core
+rules are identical, only the config format differs.
 
 ## Installation
 
-**Claude Code**: copy or symlink `agents/claude/*.md` into `~/.claude/agents/`.
-Symlinking keeps the roster following this repo as it evolves:
+### Claude Code
 
-```
+Symlink the `.md` files under `agents/claude/` into `~/.claude/agents/`; that
+way, when the repo updates, these custom sub-agents upgrade with it:
+
+```bash
 for f in agents/claude/*.md; do ln -sfn "$PWD/$f" ~/.claude/agents/"$(basename "$f")"; done
 ```
 
-**Codex**: copy `agents/codex/*.toml` into `~/.codex/agents/`:
+### Codex
 
-```
+Copy the `.toml` files under `agents/codex/` straight into `~/.codex/agents/`:
+
+```bash
 mkdir -p ~/.codex/agents && cp agents/codex/*.toml ~/.codex/agents/
 ```
 
-Codex reads one agent per `.toml` file, and on current releases (codex-cli
-0.150) two restrictions make plain copies the only working install:
+Note that Codex is currently (codex-cli 0.150) less flexible; two limitations
+make plain copying the only install method that works:
 
-- Symlinked role files are rejected at spawn time: the link still appears in
-  the spawn tool's role listing, but dispatching it fails with "agent type is
-  currently not available". After editing a role here, re-copy it instead of
-  relying on a link.
-- Only the user-wide directory is read. The project-scoped `.codex/agents/`
-  that upstream documentation describes is not loaded.
+- **No symlink support**: a linked file shows up in the listing, but actually
+  running it errors out (agent type is currently not available), so after
+  changing a config file, remember to copy it over again.
+- **Global path only**: it reads the user-wide folder exclusively; the
+  project-level `.codex/agents/` in the official docs is never picked up.
 
-The spawn tool's schema is generated from the installed roster: an empty
-`~/.codex/agents/` exposes no role parameter at all, and the roles appear in
-the tool's listing once the files are in place.
+_(Aside: Codex's tool listing is generated dynamically. Before any files are
+installed you will not even see a role parameter; it appears once they are in
+place.)_
 
 ## Dispatch
 
-Neither harness needs routing configuration beyond the install. A skill line
-such as "dispatch the `too-te` role" resolves natively: Claude Code routes it
-through the Agent tool's subagent types; Codex routes it through the spawn
-tool's `agent_type` argument, loads the role's `developer_instructions`, and
-applies the TOML's pinned model and reasoning effort to the child. Only
-`agent_type` selects a role; naming a task or a subagent after a role does
-not load anything.
+Once both platforms are installed, there is no need for elaborate model
+routing in a global CLAUDE.md or AGENTS.md. Write one line in a script,
+"dispatch the `too-te` role", and the system takes care of itself:
 
-## Known differences (degraded mode, stated honestly)
+- **Claude Code**: goes through the Agent tool's subagent mechanism.
+- **Codex**: goes through the spawn tool's `agent_type` argument, which loads
+  the matching instructions and applies the model and reasoning effort set in
+  the TOML. Note that in Codex only the proper argument (`agent_type`)
+  actually summons a role; just naming a task or subagent after a role does
+  nothing.
 
-Codex's agent format is not a full equivalent of Claude Code's, and this repo does
-not try to paper over the gap:
+## Known platform differences (Codex degraded mode)
 
-- **No hard turn ceiling**: `too-te`'s Claude Code definition sets `maxTurns: 100`
-  as an enforced circuit breaker. Codex has no equivalent field, so the Codex
-  rendering carries the same 100-turn figure as a stated self-budget inside the
-  contract text instead of an enforced stop; the wind-down and breakpoint-report
-  behavior still applies, it is just not backstopped by the harness.
-- **No per-tool blocklist**: Claude Code keeps these roles leaf agents through
-  enforced frontmatter (`disallowedTools: Agent, Workflow` on `too-te` and
-  `sai-hu`, a Read/Glob/Grep-only allowlist on `explore`). Codex has no
-  per-tool allow/deny list; current releases give spawned subagents no
-  multi-agent tools at all, so the roles run as leaves there too. Each Codex
-  role additionally carries `[agents] enabled = false` and an explicit leaf
-  clause in its `developer_instructions` as insurance against a future release
-  granting nested spawning. Finer tool granularity (which read tools `explore`
-  may reach for) has no Codex equivalent.
-- **Coarse-grained sandboxing**: Codex's `sandbox_mode` is a three-way switch
-  (read-only, workspace-write, danger-full-access), mapped here as read-only for
-  `explore` and workspace-write for `too-te` and `sai-hu`. It is not a substitute
-  for Claude Code's per-tool allowlist (Read/Glob/Grep for `explore`); it only
-  constrains filesystem/exec access, not which tools a role reaches for.
+No sugarcoating here: Codex's config cannot yet reach full parity with Claude
+Code:
 
-This repo provides basic support for both harnesses, not full parity. Getting a
-harness-specific guarantee beyond what is listed above (a real turn ceiling, a
-real tool blocklist) means adjusting the rendering yourself against that
-platform's current capabilities.
+- **No hard turn ceiling**: `too-te` has `maxTurns: 100` as a forced brake on
+  the Claude Code side, but Codex has no such feature, so "100 turns" can
+  only be written into the prompt as self-restraint; the system will not cut
+  the line for us. The fallback is the contract's wind-down rule: as the
+  budget runs low, it must stop itself at a clean breakpoint and report its
+  progress as a breakpoint write-up.
+- **No precise tool restriction (Tool Blocklist)**: Claude Code can pin roles
+  down to leaf nodes in config (`disallowedTools: Agent, Workflow` on
+  `too-te` and `sai-hu`) or restrict `explore` to reading. Codex currently
+  has no such denylist mechanism. That said, testing shows subagents spawned
+  on the current version cannot reach any multi-agent tools in the first
+  place, so "no further delegation" is natively guaranteed for now; the
+  `[agents] enabled = false` and written rules in the Codex rendering are
+  insurance against a future release opening up nested spawning. What truly
+  stays on the honor system is the finer tool restriction, such as requiring
+  `explore` to use only read tools, which has no counterpart in Codex.
+- **Coarser sandbox permissions**: Codex's sandbox is a three-way switch
+  (read-only, workspace-write, danger-full-access); we set `explore` to
+  read-only and the other two to write. Compared with Claude Code's ability
+  to restrict specific tools directly, that is still a gap; moreover, the
+  sandbox governs filesystem and execution permissions, not which tools a
+  role actually reaches for.
+
+To sum up, this repo provides basic dual-platform support. If you need
+hardened safety guarantees (such as a strict forced stop or tool lockdown),
+you will still have to tune things yourself against what the platform can do
+at the time.
