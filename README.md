@@ -2,87 +2,182 @@
 
 [繁體中文](README.zh-TW.md)
 
-A disciplined agent delivery pipeline: from spec to merged PR, with role-tiered dispatch, layered review gates, and eval-measured skills. It works best on an OpenSpec-structured project; most of the skills also run standalone.
+This repo holds eight skills that walk one change from a framed spec all the
+way to a merged PR, in this order:
 
-The eight skills cover the delivery path from a framed change to a merged PR: branch discipline at the start (`begin`), role-tiered dispatch through the execute phase (`factory`, `section`), layered review gates with a decision ledger before shipping (`cross-check`, `vibe-diff`, `preflight`), and reconciled PR creation at the end (`ship`), each carrying its own behavioral eval. OpenSpec is the recommended spec backbone rather than a hard prerequisite: `factory`, `section`, and `spec-viewer` read an `openspec/changes/` layout and need it; `begin` and `ship` run on any project; `cross-check`, `vibe-diff`, and `preflight` use the OpenSpec change directory when it is there and fall back to a mini-spec and a `.review/` landing when it is not. The companion [`openspec-rules/`](openspec-rules/) directory ships the templates that layout fits into.
+1. **Prepare** — `begin`: sync the default branch to a clean base, then open
+   a feature branch.
+2. **Implement** — `factory` drives the whole change forward, one section per
+   round; `section` focuses on a single block, TDD per task, stopping after
+   one commit.
+3. **Layered review** — `cross-check`, `vibe-diff`, `spec-viewer`, and
+   `preflight` stack the review gates and maintain a decision ledger.
+4. **Contribute** — `ship`: reconcile, run the adversarial review, organize
+   the commits, then write the PR body and open the PR.
 
-This repo is the canonical source of truth for each skill. Edit here, not the installed copies (the CLI and manual tracks below install by symlink, so a copy is just a link back to this tree).
+The flow grew around the [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+workflow, so it works best doing SDD with it. In practice only three skills
+hard-require the OpenSpec directory layout (see the table); the rest run on
+any repo, automatically falling back to a mini-spec with a `.review/` landing
+when no spec directory is found, and the repo's
+[`openspec-rules/`](openspec-rules/) directory ships the templates needed.
+
+One more thing to remember: this repo is the single source of truth. Every
+install track below works by symlink, so make changes here, never in the
+installed copy.
+
+> **About the mini-spec**
+>
+> A term specific to this workflow: the few sentences of raw intent handed to
+> `/begin` when the work starts.
+> The system saves it **verbatim** to `.review/<branch-slug>/mini-spec.md`
+> (it never presumes to distill a summary out of the chat for you).
+> When the project has no OpenSpec change to consult, the review skills treat
+> this file as the sole baseline for reading the diff.
+>
+> **A worked example**
+>
+> Given the input:
+>
+> `/begin CLI gets a --json flag; schema matches the README table; default text output stays unchanged`
+>
+> the system opens a feature branch and saves that sentence, word for word,
+> as `.review/feat-cli-json-flag/mini-spec.md`.
+> A later `/vibe-diff` review then reads the branch's diff directly against
+> this mini-spec to explain, and judge, whether it matches the original
+> intent.
+
+## The skills
+
+| Skill                                | What it does                                                                          | OpenSpec | Invoke                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------- | -------- | ------------------------------ |
+| [`begin`](skills/begin/)             | Sync the default branch first, then open a clean feature branch                       | none     | `/begin`                       |
+| [`factory`](skills/factory/)         | Drive the active change, one section per round, a fresh subagent every round          | required | `/factory`                     |
+| [`section`](skills/section/)         | Run one numbered `tasks.md` section: TDD per task, one commit at the end, then stop   | required | `/section N` (model-invocable) |
+| [`cross-check`](skills/cross-check/) | Standards axis + spec axis review of the diff; persists a verdict for `/ship`         | optional | `/cross-check`                 |
+| [`vibe-diff`](skills/vibe-diff/)     | Self-contained diff-review page, read against the change's intent                     | optional | `/vibe-diff`                   |
+| [`spec-viewer`](skills/spec-viewer/) | One OpenSpec change rendered as a single handbook-style HTML page                     | required | `/spec-viewer`                 |
+| [`preflight`](skills/preflight/)     | Pre-contribution acceptance gate: reconcile, run the review layers, rule on findings  | optional | `/preflight`                   |
+| [`ship`](skills/ship/)               | Sync the base to the remote default branch's latest, quality gate, adversarial review, organize commits, write the PR body | optional | `/ship`                        |
+
+_(Note: **required** = nothing to act on without `openspec/changes/`;
+**optional** = uses it when present, takes the non-OpenSpec path when absent;
+**none** = fully decoupled.)_
 
 ## Installation
 
-Set up OpenSpec first if you want the full pipeline (step 0, optional), then install the skills through one of the three tracks below.
+> **TL;DR**
+>
+> Open this repo in your agent (Claude Code or Codex) and say **"follow the
+> setup runbook in [AGENTS.md](AGENTS.md)"**; it installs the skills, the
+> role roster, and the project's OpenSpec rule template in one pass. Running
+> this step in full is strongly recommended: it is the baseline that lets
+> every skill here perform at its best.
+>
+> To do it by hand instead, follow the tracks below.
 
-### 0. Optional: install OpenSpec
+### 0. OpenSpec (optional)
 
-[OpenSpec](https://github.com/Fission-AI/OpenSpec) gives a project the `openspec/changes/` structure the spec-driven skills read. Install it to unlock the full pipeline: `factory`, `section`, and `spec-viewer` need that layout, and `cross-check`, `vibe-diff`, and `preflight` use it when it is present. The rest run without it, so this step is optional; skip it if you only want `begin`, `ship`, or the standalone review skills.
+Install [OpenSpec](https://github.com/Fission-AI/OpenSpec) first if you want
+the full pipeline, or skip it if you only need `begin`, `ship`, or the
+standalone review skills. Beyond that the project has no external
+dependencies: wherever a skill body mentions a neighbor command
+(`/opsx:verify`, `/code-review`, ...), a fallback is written in, so nothing
+hard-fails on a missing command.
 
-Aside from OpenSpec, the suite has no external skill dependencies. Where a skill body names a neighbor command it does not own (`/opsx:verify`, `/code-review`, `/verify`, `/opsx:archive`), it carries a fallback for the environment that lacks that command, so nothing hard-fails on a missing command.
+### 1a. skills CLI (recommended)
 
-### 1. skills CLI (recommended)
-
-```
+```bash
 npx skills add xavierforge/skills
 ```
 
-The vercel-labs `skills` CLI works on any harness that follows the Agent-Skills standard (Claude Code, Codex, and others). It installs by symlink, so the skills keep following this repo as it evolves.
+The vercel-labs `skills` CLI supports every harness that follows the
+Agent-Skills standard (Claude Code, Codex, and others), and installs by
+symlink, so already-installed skills follow along as the repo updates.
 
-### 2. Claude Code plugin
+### 1b. Claude Code plugin
 
-```
+```bash
 claude plugin marketplace add xavierforge/skills
 claude plugin install xavierforge-skills@xavierforge
 ```
 
-The `.claude-plugin/` marketplace in this repo promotes all eight skills as one installable plugin for Claude Code users.
+### 1c. Manual symlink (fallback)
 
-### 3. Manual symlink (fallback)
-
-Link everything in one go (idempotent; re-run after adding a skill):
-
-```
+```bash
 for s in skills/*/; do ln -sfn "$PWD/$s" ~/.claude/skills/"$(basename "$s")"; done
 ```
 
-Or link a single skill: `ln -sfn "$PWD/skills/<skill>" ~/.claude/skills/<skill>`.
+This is safe to re-run (idempotent); run it again after adding a skill. To
+install a single skill:
+`ln -sfn "$PWD/skills/<skill>" ~/.claude/skills/<skill>`.
 
-Tool requirements: `git` everywhere; `gh` (GitHub CLI) only for ship's PR-creation step (begin is pure git); `uv` or any `python3` for the viewer skills' scripts.
+Tools needed: `git` always; `gh` only for ship's PR-creation step; the
+viewer skills' scripts need `uv` or any `python3`.
 
-## Role agents (recommended for the dispatching skills)
+### 2. Role agents (recommended)
 
-The skills that dispatch work (`factory`, `section`, `ship`) hand it to three named roles rather than to model names, so they run best with the role roster installed alongside the skills. Install it from [`agents/README.md`](agents/README.md), which covers both the Claude Code and Codex renderings and their degraded-mode differences. Without the roster installed the dispatch step degrades rather than hard-failing: `factory`, `section`, and `ship` fall back to a general subagent carrying the intended role's one-line contract and keep running, noting the degrade in their reports. Installing the roster is what turns that fallback into real model tiering and per-role tool boundaries; the non-dispatching skills are unaffected either way.
+The skills that dispatch work (`factory`, `section`, `ship`) hand tasks to
+three named roles rather than pinning specific models.
 
-## Skills
+Install the roster per [`agents/README.md`](agents/README.md) (both the
+Claude Code and Codex renderings are there). Nothing breaks without it:
+dispatch degrades to a plain subagent carrying the role's one-line contract
+and keeps running, noting the degrade in its report; installing the roster is
+what buys real model tiering and explicit tool boundaries.
 
-| Skill                                | What it does                                                                                                                                                                                                                                                                    | OpenSpec | Invocation                    |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------- |
-| [`begin`](skills/begin/)             | Two-phase start-of-contribution ritual: sync the default branch to a clean base and guard the working tree, then open the feature branch once the work is nameable                                                                                                              | none     | manual, `/begin`              |
-| [`cross-check`](skills/cross-check/) | Two-axis review of the diff since a fixed point, each axis run in its own parallel sub-agent and reported side by side (a standards axis against the repo's documented conventions plus a fixed smell baseline, and a spec axis against the originating issue or PRD); persists a `review-verdict.json` for `/ship` to reconcile against | optional | manual, `/cross-check`        |
-| [`factory`](skills/factory/)         | Drive the whole active OpenSpec change, one section per round through fresh subagents, with a plan gate, round budget, and ledger; user-invoked only                                                                                                                             | required | manual, `/factory`            |
-| [`preflight`](skills/preflight/)     | Pre-ship acceptance gate between `/factory` and `/ship`: reconcile against the change's Non-Goals and its `decisions.md` ledger, run the mechanical, runtime, and two static review layers, hand the sign-off page to the user (`/vibe-diff` in a fresh session), then triage every finding into fix, reversal request, or tracked, writing each ruling back to the ledger                                                | optional | manual, `/preflight`          |
-| [`section`](skills/section/)         | Execute-phase workflow: run one numbered `tasks.md` section (locate the active change, honor its dispatch annotation, TDD per task, one Conventional Commits commit, tick checkboxes, stop)                                                                                     | required | model-invocable, `/section N` |
-| [`ship`](skills/ship/)               | Pre-PR shipping workflow: base refresh, mechanical diff scan, quality gate, adversarial pre-PR review, commit organization, PR body; per-project facts derived at run time, no config file                                                                                      | optional | manual, `/ship`               |
-| [`spec-viewer`](skills/spec-viewer/) | Render one OpenSpec change into a single self-contained HTML review page: proposal, design, specs, and tasks assembled into a navigable handbook-style page                                                                                                                     | required | manual, `/spec-viewer`        |
-| [`vibe-diff`](skills/vibe-diff/)     | Render a self-contained diff-review page for a branch's diff against its merge-base, read against the OpenSpec change it implements; a deterministic script owns the page, the model authors only the judgment JSON; the right-side twin of `spec-viewer`, cross-linked with it | optional | manual, `/vibe-diff`          |
+## Conventions and principles
 
-OpenSpec column: **required** means the skill reads an OpenSpec change directory and has nothing to act on without one (`factory`, `section`, `spec-viewer`); **optional** means it uses the OpenSpec layout when present and takes a non-OpenSpec path when absent (`ship` asks and derives its spec location and post-merge ritual from the layout; `cross-check`, `vibe-diff`, and `preflight` fall back to a mini-spec and a `.review/` landing); **none** means fully decoupled (`begin`).
-
-## Conventions
-
-- **No hardcoded install paths**: When Claude Code invokes a skill it announces "Base directory for this skill: <path>", and every SKILL.md references its own files through that announcement, written as `<skill-base>/scripts/...` in skill bodies.
-- **Shared scripts exist once**: The canonical copy lives in one skill and the other skill reaches it as a sibling (`<skill-base>/../<other-skill>/scripts/...`). No symlinks between skills, so nothing degrades on a Windows checkout or a partial copy; the only failure mode is the sibling skill not being installed, which the referencing SKILL.md handles by saying so.
-- **Skill scripts live in `scripts/`**, are python3 stdlib-only or plain bash, and never require a per-project config file: per-project facts are derived at run time, confirmed with the user when ambiguous, and at most offered (never required) for recording in the project's own agent instructions.
+- **No hardcoded install paths**: skill bodies always reach their own files
+  as `<skill-base>/scripts/...`, resolved dynamically from the base directory
+  the harness provides at invocation.
+- **Shared scripts exist once**: the canonical copy lives in one skill, and a
+  neighbor reaches it by sibling path
+  (`<skill-base>/../<other-skill>/scripts/...`); skills never symlink to each
+  other. The only failure mode is "the sibling is not installed", and the
+  prompt says so outright when it happens.
+- **A clean script environment**: every skill script lives in `scripts/`,
+  uses only the python3 standard library or plain bash, and never depends on
+  a project-level config file; project facts are derived dynamically at run
+  time, and when they truly cannot be guessed, the user is simply asked.
 
 ## Evals
 
-Every skill carries a behavioral eval that measures what the skill adds at a fixed cheap model over the same model with no skill, run as a `with_skill` vs `without_skill` pair and scored on the resulting git state and outputs rather than on the runner's narration; the suites, the method, and the per-skill numbers live in [`evals/EVALUATION.md`](evals/EVALUATION.md). This is a Claude Code-only measurement layer: `evals/harness/run_eval.sh` invokes the `claude` CLI directly, and its `claude --safe-mode --dangerously-skip-permissions` call is deliberate and scoped to that harness, running each pair inside a disposable sandbox checkout where skipping the interactive permission prompt is what lets the batch run unattended; it is not a recommendation for normal skill use, and a public scanner flagging that flag is reading it out of its sandbox context.
+Every skill carries a behavioral eval: the same cheap model runs the
+`with_skill` and `without_skill` arms, and scoring looks directly at the
+resulting git state and outputs. The method and the numbers live in
+[`evals/EVALUATION.md`](evals/EVALUATION.md).
 
-## Portability and dual-harness support
+The harness's `claude --safe-mode --dangerously-skip-permissions` exists so a
+whole eval batch can run without human intervention, scoped to a disposable
+sandbox checkout; it is not an endorsement of the flag, so use your own
+judgment in normal work.
 
-This repo aims at basic support for both Claude Code and Codex, not full parity. The skill bodies and their Codex descriptors are kept harness-neutral; where a harness cannot enforce a guarantee, the degraded mode is stated honestly rather than papered over.
+## Cross-harness support (Claude Code + Codex)
 
-- **Python via uv, stdlib only**: Skill scripts are python3 stdlib-only, so the classic Python dependency problems (venv, pip, version pinning) are absent by construction; the only environment assumption is "any Python 3 exists". `uv run` is just the cross-platform launcher (it self-provisions an interpreter when none is installed); the SKILL.md bodies name the `python3` fallback for machines without uv. Keep new skill scripts stdlib-only to preserve this.
-- **Base directory, any harness**: The `<skill-base>` convention leans on Claude Code injecting "Base directory for this skill: <path>" at invocation. Other harnesses may not announce it; on those, the fallback is resolving relative to the SKILL.md file the harness loaded. Skill bodies are phrased as "this skill's base directory" (a concept any harness can satisfy) rather than naming the Claude Code banner as the only source.
-- **Frontmatter is Claude Code-only, descriptions are portable**: The keys `disable-model-invocation`, `model`, and `effort` in SKILL.md frontmatter are Claude Code extensions; other harnesses read only `name` and `description` and ignore the rest. For those harnesses each skill also ships an `agents/openai.yaml` Codex descriptor next to its SKILL.md, kept in sync with the description. In Claude Code, `disable-model-invocation: true` additionally drops the skill's description from the always-loaded skill list, so the user-invoked rituals (begin, ship, spec-viewer, vibe-diff) cost zero standing context.
-- **Role-phrased model routing, with one deliberate pin left**: ship's adversarial review asks for "the strongest review-grade model available" and reports which model it dispatched, so it survives a model lineup change without edits. spec-viewer still pins `model: haiku` (cheapest model that can run a script); if that pin ever goes stale, rephrase it as the role instead of a newer model id.
-- **Agent roster, supported on both harnesses with degraded mode stated**: the dispatching skills name three roles (explore, too-te, sai-hu), not model names, so the roster can be re-pinned or re-hosted without touching a skill body. Both renderings live in `agents/` (`agents/claude/*.md` and `agents/codex/*.toml`) and install per [`agents/README.md`](agents/README.md). Where a harness cannot back a guarantee (Codex has no hard turn ceiling and no per-tool blocklist), the role contract carries the constraint in prose and the skill reports rather than stalls when the environment differs; the exact differences are enumerated in that README's degraded-mode section.
-- **Slash-command coupling**: Skill bodies state the required event and treat neighbor slash commands as one way to satisfy it, not as hard dependencies (begin's branch rule is phrased as "before the new work's first commit" rather than naming the propose command; ship names /opsx:archive only as an example of the archive event). Direction: keep auditing for hard command dependencies as new skills are added.
+This repo provides basic dual-harness support without chasing full parity;
+wherever a harness cannot hold a guarantee, the degraded mode is stated
+honestly:
+
+- **Scripts depend only on the standard library**: no venv, pip, or version
+  pinning problems; `uv run` is just a cross-platform launcher, and the
+  project names `python3` as the fallback.
+- **`<skill-base>` holds on any harness**: Claude Code announces the base
+  directory at invocation; other platforms resolve against the location of
+  the loaded `SKILL.md`.
+- **Frontmatter is Claude Code-only**: other harnesses read only
+  `name`/`description`; each skill ships an extra `agents/openai.yaml` for
+  Codex to read, and `disable-model-invocation: true` is there so the
+  manually invoked ritual skills stay off the always-loaded list (zero
+  standing context).
+- **Model routing by role description**: `ship`, for example, asks for "the
+  strongest review-grade model available" instead of pinning a model id; the
+  one deliberate pin in the whole suite is spec-viewer's `model: haiku` (the
+  cheapest model that can run a script).
+- **An agent roster on both harnesses**: shipped as `agents/claude/*.md` and
+  `agents/codex/*.toml`; the exact gaps on the Codex side (no hard turn
+  ceiling, no tool blocklist) are all enumerated in
+  [`agents/README.md`](agents/README.md).
+- **No hard slash-command coupling**: skill bodies describe only the event
+  that must happen; neighbor commands are one way to satisfy it, and a
+  fallback exists for environments without them.
