@@ -1,0 +1,63 @@
+{
+  "expectations": [
+    {
+      "text": "gloss.zh-TW.json is written next to the change",
+      "passed": true,
+      "evidence": "expect=True; openspec/changes/add-farewell/gloss.zh-TW.json:yes",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The gloss is a JSON object with at least two entries, keyed by a real section id (proposal--why)",
+      "passed": true,
+      "evidence": "ok",
+      "check_type": "json_check"
+    },
+    {
+      "text": "The gloss values are zh-TW (contain CJK characters)",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/gloss.zh-TW.json (exists=True): all present: /[\u4e00-\u9fff]/",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "review.html was re-run and embeds the gloss (has-gloss slot present)",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/review.html (exists=True): all present: 'has-gloss'",
+      "check_type": "file_contains"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "spec-viewer",
+    "skill_commit": "ea727b5",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:31:34Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "887b501"
+    }
+  }
+}

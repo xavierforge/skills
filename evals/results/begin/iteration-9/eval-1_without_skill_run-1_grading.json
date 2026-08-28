@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops and asks the user to commit or stash before switching branches",
+      "passed": false,
+      "evidence": "The run found a dirty tree (modified README.md) but proceeded on its own to stash it ('I'll stash it... then verify the test suite is green before branching') and then created the branch, without pausing to ask the user whether to commit or stash. It never halted for user input before switching branches.",
+      "check_type": "llm_judged",
+      "rubric": "The run must halt and ask the user to commit or stash the dirty tree before doing anything else, rather than proceeding to sync or branch. Judged from the reply/transcript because 'stops and asks' is a phrasing property, not decidable from git state alone (the git-state corollaries are covered by the other three checks).",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No git stash is run on the user's behalf",
+      "passed": false,
+      "evidence": "stash present: ['stash@{0}: On main: pre-existing scratch note on README (unrelated to json-export work)']",
+      "check_type": "git_no_stash"
+    },
+    {
+      "text": "The uncommitted changes remain in the working tree unchanged",
+      "passed": false,
+      "evidence": "README.md (exists=True): missing needle 'scratch note'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "No new branch is cut while the tree is dirty",
+      "passed": false,
+      "evidence": "2 local branches ['feature/json-export-cli', 'main'] (want [1,1])",
+      "check_type": "branch_count"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 0,
+    "total_failed": 4,
+    "total_decided": 4,
+    "total_pass_rate": 0.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "begin",
+    "skill_commit": "7c112c0",
+    "iteration": 9,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T04:30:23Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "e1d79c8c8a88ba2bfb9d962c67916a46a3d90e342aa9f3caf68c0e07daa3933c",
+      "harness_commit": "887b501"
+    }
+  }
+}

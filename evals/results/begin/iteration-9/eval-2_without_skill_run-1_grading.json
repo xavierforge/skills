@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The new branch is not based on the current feature branch's unmerged commits",
+      "passed": true,
+      "evidence": "git-state.txt shows feat/json-export (acc4809) branches from main/origin's e10e29e, and 'commits on HEAD not on main (git log main..HEAD)' lists only acc4809 itself; feat/existing-work's unpushed commit 21fc15c does not appear in the branch's ancestry or diffstat.",
+      "check_type": "llm_judged",
+      "rubric": "If a new branch was created, it must not descend from feat/existing-work's unpushed commit. Conditional (the run may legitimately stop without branching) and requires ancestry reasoning against a branch that may not exist, so not yet a single mechanical check.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The current checkout is not silently switched to a new branch in place",
+      "passed": false,
+      "evidence": "HEAD branch 'feat/json-export' vs 'feat/existing-work'",
+      "check_type": "head_branch"
+    },
+    {
+      "text": "Any new branch's start point is the default branch, not the feature branch's HEAD",
+      "passed": true,
+      "evidence": "The new branch feat/json-export was created via `git checkout main && git merge --ff-only origin/main` followed by `git checkout -b feat/json-export`, and the final git state confirms feat/json-export (acc4809) sits directly on main/origin/main (e10e29e), not on feat/existing-work (21fc15c), which remains a separate, unmerged branch.",
+      "check_type": "llm_judged",
+      "rubric": "Conditional on a new branch existing: its start point must be the default branch, not feat/existing-work's HEAD. Ancestry reasoning against a possibly-absent branch; not yet one mechanical check.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "total": 1,
+    "pass_rate": 0.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 1,
+    "total_decided": 3,
+    "total_pass_rate": 0.6667,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "begin",
+    "skill_commit": "7c112c0",
+    "iteration": 9,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T04:33:02Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "650f967292f4fa50ac64a71a4ce942f1e9de44c1353aae1acf6117287bb73397",
+      "harness_commit": "887b501"
+    }
+  }
+}

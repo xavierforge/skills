@@ -1,0 +1,382 @@
+{
+  "metadata": {
+    "skill_name": "section",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-28T04:54:11Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A failing test is written before the implementation for each task in the section",
+          "passed": true,
+          "evidence": "Transcript shows test_farewell was added and run first ('pytest tests/test_greetings.py -q' \u2192 ImportError: farewell doesn't exist, 'Red confirmed'), and only after that failure was farewell() added to src/greetings.py, followed by a rerun showing '2 passed' (Green) \u2014 satisfying red-before-green ordering for section 1's task.",
+          "check_type": "llm_judged",
+          "rubric": "Red-before-green ordering per task: a failing test must be authored and observed to fail before its implementation. Ordering is a process property read from the transcript, not decidable from final state.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Exactly one commit is created for the whole section",
+          "passed": true,
+          "evidence": "1 commits on HEAD beyond main (want [1,1])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The commit subject follows Conventional Commits (type(scope): imperative)",
+          "passed": true,
+          "evidence": "head subject 'feat(greetings): add farewell helper' vs /^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\\([^)]+\\))?: .+/",
+          "check_type": "commit_subject"
+        },
+        {
+          "text": "The tasks.md checkboxes for this section are ticked and included in that same commit",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No task from any other numbered section is implemented",
+          "passed": true,
+          "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The full quality gate (`make check`, which covers tests beyond this section's own) is run once after all the section's tasks, not per task; the Red phase is confirmed with only the section-relevant test rather than the whole-suite gate",
+          "passed": true,
+          "evidence": "Red confirmation used only `pytest tests/test_greetings.py -q` (section-relevant), not the full suite; then after implementation was green, the transcript shows `make check` run exactly once, after all of section 1's tasks were complete: 'Section 1's tasks are complete. Now closing the section: run the full gate (`make check`)...' with output '3 passed in 0.01s', followed by ticking checkboxes and a single commit.",
+          "check_type": "llm_judged",
+          "rubric": "The whole-suite gate (`make check`) must run once after the section's tasks, while the per-task Red confirmation uses only the section-relevant test. This is an ordering/granularity property of the run, read from the transcript.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user which change to operate on",
+          "passed": true,
+          "evidence": "The transcript explicitly states \"The skill's Step 1 is explicit: when there is more than one active change directory, do not guess \u2014 list what was found and ask the user which change. I'll stop here rather than picking one,\" and the final reply confirms nothing was executed, matching the required stop-and-ask behavior.",
+          "check_type": "llm_judged",
+          "rubric": "With two active changes present the run must stop and ask which one to operate on. 'Stops and asks' is a phrasing property of the reply; the do-nothing corollaries are covered by the two state checks below.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No source or spec files are modified",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "No commit is created",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Change directories under archive/ are excluded from the ambiguity",
+          "passed": true,
+          "evidence": "[salvaged from malformed grader reply] The transcript explicitly ran `ls openspec/changes/ 2>&1 | grep -v archive` to exclude archive, then enumerated exactly two active changes ('add-farewell' and 'refactor-hello'), never mentioning 'archive/2026-01-add-punctuation' as a candidate despite it appearing in the raw directory listing and git show --stat.",
+          "check_type": "llm_judged",
+          "rubric": "The ask must name the two active changes and not treat the archived change under archive/ as a candidate. Requires reading which changes the reply enumerates.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The dispatch annotation on the section is read and honored",
+          "passed": true,
+          "evidence": "[transcript] all present: 'sai-hu'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The section is handed to the named agent role as a complete spec",
+          "passed": true,
+          "evidence": "The transcript shows sai-hu.md is actually installed (~/.claude/agents/sai-hu.md exists), yet the agent used general-purpose with 'Your role contract (sai-hu, fallback general-purpose agent): own the local design decisions the section's goal and const...' as the prompt, and the report explicitly noted 'sai-hu role wasn't an installed agent type in this sandbox' with fallback annotation in result.md ('The `sai-hu` role named in the section'...). The dispatch prompt was a full spec (goal, section content, contract) rather than inline reasoning, satisfying the fallback-form handoff requirement.",
+          "check_type": "llm_judged",
+          "rubric": "The section must be handed off as a self-contained spec (goal, scope, done-criteria), not reasoned out inline: to the sai-hu role when it is installed, or, in a rosterless harness where that role type is not installed and the dispatch would fail, to a fresh general subagent carrying the sai-hu one-line contract with the report noting the role in fallback form (`sai-hu (fallback: general)`). Either way the handoff must be a complete spec rather than inline reasoning, and a bare without_skill arm produces neither a role dispatch nor a fallback annotation, so the assertion still discriminates. Completeness of the handed-off spec is a quality judgment on the dispatch prompt.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The result is still one Conventional Commits commit with checkboxes ticked",
+          "passed": true,
+          "evidence": "1 commits on HEAD beyond main (want [1,1])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Execution stops after the one section",
+          "passed": true,
+          "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A failing test is written before the implementation for each task in the section",
+          "passed": true,
+          "evidence": "Transcript shows the test edit adding test_farewell was made first, then `pytest -q` was run and failed with ImportError ('Confirmed the failing test (task 1.1 done)'), and only afterward was `farewell` implemented in src/greetings.py and `make check` run to pass \u2014 satisfying red-before-green ordering for the sole task in section 1.",
+          "check_type": "llm_judged",
+          "rubric": "Red-before-green ordering per task: a failing test must be authored and observed to fail before its implementation. Ordering is a process property read from the transcript, not decidable from final state.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Exactly one commit is created for the whole section",
+          "passed": false,
+          "evidence": "0 commits on HEAD beyond main (want [1,1])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The commit subject follows Conventional Commits (type(scope): imperative)",
+          "passed": true,
+          "evidence": "head subject 'chore: scaffold greetings project and farewell change' vs /^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\\([^)]+\\))?: .+/",
+          "check_type": "commit_subject"
+        },
+        {
+          "text": "The tasks.md checkboxes for this section are ticked and included in that same commit",
+          "passed": true,
+          "evidence": "openspec/changes/add-farewell/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No task from any other numbered section is implemented",
+          "passed": true,
+          "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The full quality gate (`make check`, which covers tests beyond this section's own) is run once after all the section's tasks, not per task; the Red phase is confirmed with only the section-relevant test rather than the whole-suite gate",
+          "passed": false,
+          "evidence": "The Red-phase confirmation ran `pytest -q` (the full suite, collecting both tests/test_greetings.py and tests/test_mathutil.py) rather than a narrowed section-relevant test like `pytest tests/test_greetings.py::test_farewell`; this is the same command as the Makefile's whole-suite `check` target, so Red was confirmed with the whole-suite gate, not a section-scoped test, even though `make check` was also run once at the end.",
+          "check_type": "llm_judged",
+          "rubric": "The whole-suite gate (`make check`) must run once after the section's tasks, while the per-task Red confirmation uses only the section-relevant test. This is an ordering/granularity property of the run, read from the transcript.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops and asks the user which change to operate on",
+          "passed": true,
+          "evidence": "The reply ends with 'Question for you: Which change should I execute \u2014 add-farewell or refactor-hello? (Or both, section 1 of each?)' and explicitly states 'I stopped short of implementing anything', confirmed by clean git status/no commits on feat/execute beyond the scaffold.",
+          "check_type": "llm_judged",
+          "rubric": "With two active changes present the run must stop and ask which one to operate on. 'Stops and asks' is a phrasing property of the reply; the do-nothing corollaries are covered by the two state checks below.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No source or spec files are modified",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "No commit is created",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Change directories under archive/ are excluded from the ambiguity",
+          "passed": true,
+          "evidence": "The reply enumerates exactly two active changes ('add-farewell' and 'refactor-hello') as 'two active (non-archived) changes under openspec/changes/', explicitly excluding 'openspec/changes/archive/2026-01-add-punctuation' from candidacy despite it being discovered and cat'd during exploration.",
+          "check_type": "llm_judged",
+          "rubric": "The ask must name the two active changes and not treat the archived change under archive/ as a candidate. Requires reading which changes the reply enumerates.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The dispatch annotation on the section is read and honored",
+          "passed": true,
+          "evidence": "[transcript] all present: 'sai-hu'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The section is handed to the named agent role as a complete spec",
+          "passed": false,
+          "evidence": "Transcript shows the agent explicitly noted 'sai-hu' doesn't correspond to anything in this sandbox and 'proceeded' by executing Section 1 itself inline (writing tests, implementing code directly) rather than dispatching to any agent role \u2014 no Agent tool call was made, no fallback annotation like 'sai-hu (fallback: general)' appears anywhere, and the final reply confirms 'I executed Section 1' personally with no handoff of any kind.",
+          "check_type": "llm_judged",
+          "rubric": "The section must be handed off as a self-contained spec (goal, scope, done-criteria), not reasoned out inline: to the sai-hu role when it is installed, or, in a rosterless harness where that role type is not installed and the dispatch would fail, to a fresh general subagent carrying the sai-hu one-line contract with the report noting the role in fallback form (`sai-hu (fallback: general)`). Either way the handoff must be a complete spec rather than inline reasoning, and a bare without_skill arm produces neither a role dispatch nor a fallback annotation, so the assertion still discriminates. Completeness of the handed-off spec is a quality judgment on the dispatch prompt.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The result is still one Conventional Commits commit with checkboxes ticked",
+          "passed": false,
+          "evidence": "0 commits on HEAD beyond main (want [1,1])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Execution stops after the one section",
+          "passed": true,
+          "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+          "check_type": "file_contains"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8056,
+        "stddev": 0.1735,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.19",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7222,
+        "stddev": 0.2546,
+        "min": 0.5,
+        "max": 1.0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.28"
+    }
+  }
+}

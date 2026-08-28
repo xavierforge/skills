@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops with a refusal instead of inventing work from the repo",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+      "passed": false,
+      "evidence": "The final reply and transcript state that no active OpenSpec change exists ('No active changes found', 'no OpenSpec root exists'), but nowhere does the refusal state that the skill serves OpenSpec projects only \u2014 it never frames the refusal in terms of skill scope, and in fact the transcript notes 'No skill named `factory` was present', meaning no skill's scope statement was ever produced.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The refusal points at proposing a change first as the way in",
+      "passed": false,
+      "evidence": "The final reply and transcript only say the agent 'stopped to ask' clarifying questions and 'wrote up the situation plus clarifying questions'; nowhere does it point the user toward proposing a change (e.g., 'run openspec change propose' or similar) as the way forward \u2014 it mentions 'openspec init' only as something it declined to run speculatively, not as the recommended path in.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No commits, branch changes, or file modifications are made",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:04:29Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "3bbdab51dec7894a8f73d8363bb9c9249da6f2d18be3ce7ad8c9aed1cf651940",
+      "harness_commit": "887b501"
+    }
+  }
+}

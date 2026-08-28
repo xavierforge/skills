@@ -1,0 +1,85 @@
+{
+  "expectations": [
+    {
+      "text": "The foreman commits no section work: it stops at the parallel group and hands the split back",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The working tree is left clean: the foreman reads and plans, it does not implement either section",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "Both parallel sections remain unchecked in tasks.md (no section landed)",
+      "passed": true,
+      "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[ ] 1.1', '[ ] 2.1'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The reply is a lane plan: it hands each section back as a user-run /section lane rather than executing it",
+      "passed": true,
+      "evidence": "[any] all present: /(?i)/section\\b/",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The continue fallback (run the group sequentially) is offered as an exit",
+      "passed": false,
+      "evidence": "[any] missing regex '(?i)\\\\bcontinue\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "Each lane is a complete pasteable dispatch prompt (worktree and branch, /section N, acceptance command) and the plan records the shared base commit both lanes branch from",
+      "passed": false,
+      "evidence": "The transcript only shows truncated previews of the Write calls for result.md ('Running the add-helpers change... Repo guards pass (clean tree, on `' cuts off) and transcript.md, never revealing the actual lane-plan content with worktree paths, branch names, /section N commands, acceptance commands, or a recorded base commit hash. Without visibility into the actual dispatch prompts, there's no evidence the plan met the rubric's concrete requirements beyond the reply's vague claim of having 'produced the lane plan.'",
+      "check_type": "llm_judged",
+      "rubric": "The lane plan must emit one self-contained dispatch prompt per section that the user can paste into a fresh session: each carries a worktree and branch name, the commands to create the worktree off the recorded base, the /section N run for its section, and an acceptance command. The plan must record the shared base commit (the feature branch's current HEAD) that both lanes branch from. Judged from the reply: a genuine two-lane plan with a recorded base passes; vague advice to 'do them in parallel' fails.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The foreman does not self-fan-out concurrent dispatch: opening lanes is handed to the user, and no section is run by the foreman",
+      "passed": true,
+      "evidence": "Transcript shows the run stops with: 'per the skill the factory never fans out concurrent dispatch on its own \u2014 it must hand the group back as a lane plan and wait for the user,' verified independence, produced a lane plan, and asked whether to open lanes or run sequentially; final git state confirms no code changes (working tree clean, only the initial scaffold commit exists, no farewell.py/shout.py created).",
+      "check_type": "llm_judged",
+      "rubric": "The foreman must not spawn concurrent subagent dispatch for the parallel group on its own. It stops and hands the lanes to the user to open as dispatcher, and executes none of the group's sections itself. Judged from the transcript: any attempt to run the two sections concurrently (or to just start implementing them) is the failure this case discriminates against a bare arm that would do the work directly or section by section.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8,
+    "assertions_total": 7,
+    "undecided": 0,
+    "total_passed": 5,
+    "total_failed": 2,
+    "total_decided": 7,
+    "total_pass_rate": 0.7143,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:08:24Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "a63d178e355ed469478a4f4dc4c0a3c9a3907b518c250fd349d160bf2230b184",
+      "harness_commit": "887b501"
+    }
+  }
+}

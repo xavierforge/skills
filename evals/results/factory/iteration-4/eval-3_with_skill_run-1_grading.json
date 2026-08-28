@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The plan gate rejects the original tasks.md, citing at least one of the three loop-readiness properties",
+      "passed": true,
+      "evidence": "The transcript states: 'tasks.md has one section with two tasks, but neither task line names an explicit check, which the skill's step 1 requires before entering the loop' and the model then rewrote the section and 'stopped here before committing the rewrite or spawning any round' pending user approval \u2014 i.e., it rejected the original tasks.md, citing the missing-explicit-check loop-readiness property.",
+      "check_type": "llm_judged",
+      "rubric": "The plan gate must reject the single mega-section tasks.md, citing at least one loop-readiness property it violates. A judgment on the reply's stated reason.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "A rewritten tasks.md is produced and its diff is shown to the user",
+      "passed": true,
+      "evidence": "The transcript shows an Edit to tasks.md followed by `git diff -- openspec/changes/add-helpers/tasks.md`, whose output shows a real rewrite (adding explicit check clauses to tasks 1.1 and 1.2), and the final reply states 'I rewrote the section in place to add checks and stopped to show the diff... requires waiting for user approval before committing that rewrite.'",
+      "check_type": "llm_judged",
+      "rubric": "A loop-ready rewrite of tasks.md must be produced and its diff shown to the user for approval. Whether a genuine rewrite+diff is presented (vs vague advice) is judged from the reply; the rewrite may live only in the message, not on disk.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Execution stops waiting for approval, with no round run and no section work committed",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "total": 1,
+    "pass_rate": 1.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 0,
+    "total_decided": 3,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "factory",
+    "skill_commit": "ac0430c",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:06:04Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "bf9c90a9a948d1073d2566e7641577f2afb41f53ee5cb669aa3de4f810499c6e",
+      "harness_commit": "887b501"
+    }
+  }
+}

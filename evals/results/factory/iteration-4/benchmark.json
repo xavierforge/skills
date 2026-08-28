@@ -1,0 +1,539 @@
+{
+  "metadata": {
+    "skill_name": "factory",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-28T05:13:15Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
+          "passed": true,
+          "evidence": "Transcript states before any Agent round ran: \"Preconditions and plan gate pass: one active change (`add-helpers`), tree clean, on feature branch `feat/add-helpers`, and all 3 tasks.md sections are session-sized, independent, and verifiable (TDD checks named). No rewrite needed.\" This explicitly checks named sections, verifiable/ticked-checkbox structure, and section-scoped checks prior to the first [tool:Agent] call for round 1.",
+          "check_type": "llm_judged",
+          "rubric": "Before any round runs, the plan gate must be evaluated against all three loop-readiness properties (named sections, ticked-checkbox contract, section-scoped checks). This is a process assertion read from the transcript.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
+          "passed": true,
+          "evidence": "3 commits on HEAD beyond main (want [3,3])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Each section's checkboxes are ticked in that section's own commit",
+          "passed": true,
+          "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2', '[x] 2.1', '[x] 2.2', '[x] 3.1', '[x] 3.2'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "Each round dispatches a fresh subagent to the role its annotation selects, the sai-hu-annotated section going to sai-hu on the first round noted as per annotation, and no dispatch passes a model or effort parameter",
+          "passed": false,
+          "evidence": "The transcript only shows the round-1 Agent dispatch (subagent_type=general-purpose, section 1/too-te fallback, no model/effort param) before being truncated; there is no visible Agent dispatch or role-fallback announcement for round 2 (section 2, 'main'/default annotation) or round 3 (section 3, the sai-hu-annotated section), so the specific claim that the sai-hu section was dispatched to a sai-hu fallback role with no model/effort parameter is not evidenced, only inferable from the final commit list.",
+          "check_type": "llm_judged",
+          "rubric": "Each round must run in a fresh subagent dispatched to the role the section's annotation selects: the sai-hu-annotated section goes to sai-hu on the first round (noted per annotation), the default-annotated sections to too-te, and no dispatch may pass a model or effort parameter. In a rosterless harness where the role types are not installed and a dispatch to them would fail, dispatching a fresh general subagent that carries the intended role's one-line contract and recording the role in the ledger in fallback form (for example `sai-hu (fallback: general)`) counts as honoring the annotation; a bare without_skill arm does not invent these fallback annotations on its own, so the assertion still discriminates. Reading which role each round used (or its fallback form), whether the sai-hu section was honored on the first round, and whether any model or effort parameter was passed is a judgment over the round reports.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Dispatch is exactly one subagent deep: rounds dispatch, and no dispatched subagent spawns another",
+          "passed": true,
+          "evidence": "The transcript shows exactly one round-level dispatch pattern: '[tool:Agent] description=Execute section 1 add-helpers, subagent_type=general-purpose, run_in_background=False, prompt=Working directory: ...' followed only by Read/Edit/Bash tool calls (reading SKILL.md, editing test_greetings.py, running unittest) with no further Agent tool invocations inside that subagent's action stream, and final git state confirms 3 separate section commits (farewell, greet_all, shout) were produced via this same flat one-subagent-per-round pattern rather than inline execution or nested delegation.",
+          "check_type": "llm_judged",
+          "rubric": "Dispatch annotations select a starting role, never a nested delegation: no round's subagent may spawn a further subagent. Requires reasoning over the dispatch structure in the transcript. The property is dispatched-but-flat, so this row is NOT vacuously satisfied by the mere absence of nesting: if the run dispatched no subagent at all (it executed the sections inline in the main session), mark it failed, not passed. Pass only when at least one round dispatched a subagent AND no dispatched subagent spawned another.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "A one-line round report is emitted for every round, and a final ledger whose per-round lines name each section's role and any marker (per annotation, escalated, or turn budget) appears with per-round durations and total wall time",
+          "passed": false,
+          "evidence": "The final reply (result.md) only gives a narrative summary ('Used 3 of 6 budgeted rounds with zero retries; wrote transcript.md and result.md') with no per-round one-line reports and no final ledger listing each section's role/marker with per-round durations and total wall time; the visible transcript likewise shows only a prose round-1 kickoff note, not a structured ledger.",
+          "check_type": "llm_judged",
+          "rubric": "Every round emits a one-line report, and the run closes with a ledger where each round's line names the section's role and any marker (per annotation, escalated, or turn budget) alongside per-round durations and a total wall time. Presence and completeness of the ledger, including the per-round role and marker, is a structural judgment on the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "/opsx:verify is recorded as unavailable, not simulated as passing",
+          "passed": true,
+          "evidence": "Final reply states \"`/opsx:verify` isn't installed here so that step is recorded as `verify: unavailable` per the skill's contract,\" and no transcript evidence shows verify being fabricated as passing; the round otherwise relied on real repo checks (git log, make check output) rather than simulated verify output.",
+          "check_type": "llm_judged",
+          "rubric": "/opsx:verify must be recorded as unavailable rather than simulated as passing. Distinguishing an honest 'unavailable' note from a fabricated pass requires reading intent, not one string match.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No git push or gh command is attempted",
+          "passed": true,
+          "evidence": "[transcript] (present:false) missing regex '(?m)^\\\\s*(git push|gh )'",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops with a refusal instead of inventing work from the repo",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+          "passed": true,
+          "evidence": "The final reply states: \"I can't run `/factory` here \u2014 this skill only serves OpenSpec projects, and there's no active change under `openspec/cha[nges]...\" (result.md content shown in transcript), and the summary confirms 'per the skill's Step 0 \"zero active change\" case, I refused to run the factory loop rather than improvise' after confirming no openspec/ directory exists.",
+          "check_type": "llm_judged",
+          "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The refusal points at proposing a change first as the way in",
+          "passed": true,
+          "evidence": "The result.md content quoted in the transcript states: \"I can't run `/factory` here \u2014 this skill only serves OpenSpec projects, and there's no active change under `openspec/cha[nges]...\" and the final reply explicitly notes 'next steps (propose an OpenSpec change first)', directly pointing the user at proposing a change as the way forward.",
+          "check_type": "llm_judged",
+          "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No commits, branch changes, or file modifications are made",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The plan gate rejects the original tasks.md, citing at least one of the three loop-readiness properties",
+          "passed": true,
+          "evidence": "The transcript states: 'tasks.md has one section with two tasks, but neither task line names an explicit check, which the skill's step 1 requires before entering the loop' and the model then rewrote the section and 'stopped here before committing the rewrite or spawning any round' pending user approval \u2014 i.e., it rejected the original tasks.md, citing the missing-explicit-check loop-readiness property.",
+          "check_type": "llm_judged",
+          "rubric": "The plan gate must reject the single mega-section tasks.md, citing at least one loop-readiness property it violates. A judgment on the reply's stated reason.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "A rewritten tasks.md is produced and its diff is shown to the user",
+          "passed": true,
+          "evidence": "The transcript shows an Edit to tasks.md followed by `git diff -- openspec/changes/add-helpers/tasks.md`, whose output shows a real rewrite (adding explicit check clauses to tasks 1.1 and 1.2), and the final reply states 'I rewrote the section in place to add checks and stopped to show the diff... requires waiting for user approval before committing that rewrite.'",
+          "check_type": "llm_judged",
+          "rubric": "A loop-ready rewrite of tasks.md must be produced and its diff shown to the user for approval. Whether a genuine rewrite+diff is presented (vs vague advice) is judged from the reply; the rewrite may live only in the message, not on disk.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Execution stops waiting for approval, with no round run and no section work committed",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The foreman commits no section work: it stops at the parallel group and hands the split back",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The working tree is left clean: the foreman reads and plans, it does not implement either section",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "Both parallel sections remain unchecked in tasks.md (no section landed)",
+          "passed": true,
+          "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[ ] 1.1', '[ ] 2.1'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The reply is a lane plan: it hands each section back as a user-run /section lane rather than executing it",
+          "passed": true,
+          "evidence": "[any] all present: /(?i)/section\\b/",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The continue fallback (run the group sequentially) is offered as an exit",
+          "passed": false,
+          "evidence": "[any] missing regex '(?i)\\\\bcontinue\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "Each lane is a complete pasteable dispatch prompt (worktree and branch, /section N, acceptance command) and the plan records the shared base commit both lanes branch from",
+          "passed": false,
+          "evidence": "The transcript only shows truncated previews of the Write calls for result.md ('Running the add-helpers change... Repo guards pass (clean tree, on `' cuts off) and transcript.md, never revealing the actual lane-plan content with worktree paths, branch names, /section N commands, acceptance commands, or a recorded base commit hash. Without visibility into the actual dispatch prompts, there's no evidence the plan met the rubric's concrete requirements beyond the reply's vague claim of having 'produced the lane plan.'",
+          "check_type": "llm_judged",
+          "rubric": "The lane plan must emit one self-contained dispatch prompt per section that the user can paste into a fresh session: each carries a worktree and branch name, the commands to create the worktree off the recorded base, the /section N run for its section, and an acceptance command. The plan must record the shared base commit (the feature branch's current HEAD) that both lanes branch from. Judged from the reply: a genuine two-lane plan with a recorded base passes; vague advice to 'do them in parallel' fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The foreman does not self-fan-out concurrent dispatch: opening lanes is handed to the user, and no section is run by the foreman",
+          "passed": true,
+          "evidence": "Transcript shows the run stops with: 'per the skill the factory never fans out concurrent dispatch on its own \u2014 it must hand the group back as a lane plan and wait for the user,' verified independence, produced a lane plan, and asked whether to open lanes or run sequentially; final git state confirms no code changes (working tree clean, only the initial scaffold commit exists, no farewell.py/shout.py created).",
+          "check_type": "llm_judged",
+          "rubric": "The foreman must not spawn concurrent subagent dispatch for the parallel group on its own. It stops and hands the lanes to the user to open as dispatcher, and executes none of the group's sections itself. Judged from the transcript: any attempt to run the two sections concurrently (or to just start implementing them) is the failure this case discriminates against a bare arm that would do the work directly or section by section.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
+          "passed": false,
+          "evidence": "The transcript shows the agent reading tasks.md and proposal.md then immediately starting 'Round 1: farewell(name)' with no explicit gate evaluation against named sections, ticked-checkbox contract, or section-scoped checks; the final Write output even states 'No skill was named for this run, so I proceeded with my own judgment,' indicating no plan-gate process was applied at all.",
+          "check_type": "llm_judged",
+          "rubric": "Before any round runs, the plan gate must be evaluated against all three loop-readiness properties (named sections, ticked-checkbox contract, section-scoped checks). This is a process assertion read from the transcript.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
+          "passed": false,
+          "evidence": "0 commits on HEAD beyond main (want [3,3])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "Each section's checkboxes are ticked in that section's own commit",
+          "passed": true,
+          "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2', '[x] 2.1', '[x] 2.2', '[x] 3.1', '[x] 3.2'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "Each round dispatches a fresh subagent to the role its annotation selects, the sai-hu-annotated section going to sai-hu on the first round noted as per annotation, and no dispatch passes a model or effort parameter",
+          "passed": false,
+          "evidence": "The transcript shows zero Agent tool invocations for any round \u2014 all three sections (farewell, greet_all, shout) were implemented directly via Read/Edit/Bash calls in the main agent's own context, despite tasks.md annotating them with [dispatch: too-te], [dispatch: main], and [dispatch: sai-hu] respectively. No fresh subagent was dispatched to sai-hu (or any fallback role) for the shout section, and no per-round dispatch ledger entries exist at all.",
+          "check_type": "llm_judged",
+          "rubric": "Each round must run in a fresh subagent dispatched to the role the section's annotation selects: the sai-hu-annotated section goes to sai-hu on the first round (noted per annotation), the default-annotated sections to too-te, and no dispatch may pass a model or effort parameter. In a rosterless harness where the role types are not installed and a dispatch to them would fail, dispatching a fresh general subagent that carries the intended role's one-line contract and recording the role in the ledger in fallback form (for example `sai-hu (fallback: general)`) counts as honoring the annotation; a bare without_skill arm does not invent these fallback annotations on its own, so the assertion still discriminates. Reading which role each round used (or its fallback form), whether the sai-hu section was honored on the first round, and whether any model or effort parameter was passed is a judgment over the round reports.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Dispatch is exactly one subagent deep: rounds dispatch, and no dispatched subagent spawns another",
+          "passed": false,
+          "evidence": "Despite tasks.md annotating [dispatch: too-te], [dispatch: main], [dispatch: sai-hu], the transcript shows no Agent tool invocations at all \u2014 every round (Read/Edit/Bash for make check) was executed directly in the main session, e.g. 'Round 1: farewell(name)' proceeds straight to Read/Edit/Bash calls with no subagent dispatch. Since no subagent was ever dispatched, the dispatched-but-flat property is not satisfied.",
+          "check_type": "llm_judged",
+          "rubric": "Dispatch annotations select a starting role, never a nested delegation: no round's subagent may spawn a further subagent. Requires reasoning over the dispatch structure in the transcript. The property is dispatched-but-flat, so this row is NOT vacuously satisfied by the mere absence of nesting: if the run dispatched no subagent at all (it executed the sections inline in the main session), mark it failed, not passed. Pass only when at least one round dispatched a subagent AND no dispatched subagent spawned another.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "A one-line round report is emitted for every round, and a final ledger whose per-round lines name each section's role and any marker (per annotation, escalated, or turn budget) appears with per-round durations and total wall time",
+          "passed": false,
+          "evidence": "The transcript shows only prose narration ('Round 1: farewell(name)', 'Round 2: greet_all(names)', etc.) with no structured one-line-per-round report format, and there is no final ledger anywhere in the transcript or result.md listing each round's section role, marker (per annotation/escalated/turn budget), per-round duration, or total wall time.",
+          "check_type": "llm_judged",
+          "rubric": "Every round emits a one-line report, and the run closes with a ledger where each round's line names the section's role and any marker (per annotation, escalated, or turn budget) alongside per-round durations and a total wall time. Presence and completeness of the ledger, including the per-round role and marker, is a structural judgment on the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "/opsx:verify is recorded as unavailable, not simulated as passing",
+          "passed": false,
+          "evidence": "The transcript never mentions /opsx:verify at all \u2014 there is no record, note, or mention of it being unavailable; the run instead used AGENTS.md's `make check` gate silently, so the expectation that unavailability be explicitly recorded (rather than simply omitted or implicitly worked around) is not met.",
+          "check_type": "llm_judged",
+          "rubric": "/opsx:verify must be recorded as unavailable rather than simulated as passing. Distinguishing an honest 'unavailable' note from a fabricated pass requires reading intent, not one string match.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No git push or gh command is attempted",
+          "passed": true,
+          "evidence": "[transcript] (present:false) missing regex '(?m)^\\\\s*(git push|gh )'",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution stops with a refusal instead of inventing work from the repo",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+          "passed": false,
+          "evidence": "The final reply and transcript state that no active OpenSpec change exists ('No active changes found', 'no OpenSpec root exists'), but nowhere does the refusal state that the skill serves OpenSpec projects only \u2014 it never frames the refusal in terms of skill scope, and in fact the transcript notes 'No skill named `factory` was present', meaning no skill's scope statement was ever produced.",
+          "check_type": "llm_judged",
+          "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The refusal points at proposing a change first as the way in",
+          "passed": false,
+          "evidence": "The final reply and transcript only say the agent 'stopped to ask' clarifying questions and 'wrote up the situation plus clarifying questions'; nowhere does it point the user toward proposing a change (e.g., 'run openspec change propose' or similar) as the way forward \u2014 it mentions 'openspec init' only as something it declined to run speculatively, not as the recommended path in.",
+          "check_type": "llm_judged",
+          "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "No commits, branch changes, or file modifications are made",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The plan gate rejects the original tasks.md, citing at least one of the three loop-readiness properties",
+          "passed": false,
+          "evidence": "The transcript shows no plan gate check at all \u2014 the agent read tasks.md (single section '1. Build all the helpers and docs' with two tasks) and proceeded directly to implement both tasks without ever rejecting or flagging the mega-section structure or citing any loop-readiness property.",
+          "check_type": "llm_judged",
+          "rubric": "The plan gate must reject the single mega-section tasks.md, citing at least one loop-readiness property it violates. A judgment on the reply's stated reason.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "A rewritten tasks.md is produced and its diff is shown to the user",
+          "passed": false,
+          "evidence": "The transcript shows only an Edit tool call that flips '- [ ]' to '- [x]' for task 1.1 (task 1.2 was never checked off in the transcript diff shown, though the final git state shows both checked); at no point does the final reply or transcript show a rewritten tasks.md diff presented to the user for approval \u2014 the final reply merely states 'checked off both tasks in tasks.md' without displaying any diff.",
+          "check_type": "llm_judged",
+          "rubric": "A loop-ready rewrite of tasks.md must be produced and its diff shown to the user for approval. Whether a genuine rewrite+diff is presented (vs vague advice) is judged from the reply; the rewrite may live only in the message, not on disk.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "Execution stops waiting for approval, with no round run and no section work committed",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The foreman commits no section work: it stops at the parallel group and hands the split back",
+          "passed": true,
+          "evidence": "0 commits on HEAD beyond main (want [0,0])",
+          "check_type": "git_log_count"
+        },
+        {
+          "text": "The working tree is left clean: the foreman reads and plans, it does not implement either section",
+          "passed": false,
+          "evidence": "tree dirty (expect clean); 5 entries",
+          "check_type": "git_clean"
+        },
+        {
+          "text": "Both parallel sections remain unchecked in tasks.md (no section landed)",
+          "passed": false,
+          "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): missing needle '[ ] 1.1'; needle '[ ] 2.1'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "The reply is a lane plan: it hands each section back as a user-run /section lane rather than executing it",
+          "passed": false,
+          "evidence": "[any] missing regex '(?i)/section\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The continue fallback (run the group sequentially) is offered as an exit",
+          "passed": false,
+          "evidence": "[any] missing regex '(?i)\\\\bcontinue\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "Each lane is a complete pasteable dispatch prompt (worktree and branch, /section N, acceptance command) and the plan records the shared base commit both lanes branch from",
+          "passed": false,
+          "evidence": "The transcript shows no /section-based lane dispatch plan at all \u2014 the agent implemented both farewell and shout itself sequentially in the same session (Round 1, Round 2), never producing pasteable per-lane dispatch prompts with worktree/branch names, /section N commands, acceptance commands, or a recorded shared base commit for parallel dispatch.",
+          "check_type": "llm_judged",
+          "rubric": "The lane plan must emit one self-contained dispatch prompt per section that the user can paste into a fresh session: each carries a worktree and branch name, the commands to create the worktree off the recorded base, the /section N run for its section, and an acceptance command. The plan must record the shared base commit (the feature branch's current HEAD) that both lanes branch from. Judged from the reply: a genuine two-lane plan with a recorded base passes; vague advice to 'do them in parallel' fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The foreman does not self-fan-out concurrent dispatch: opening lanes is handed to the user, and no section is run by the foreman",
+          "passed": false,
+          "evidence": "The tasks.md tagged both sections with [dispatch: too-te, parallel: yes], signaling they should be opened as parallel lanes for the user to dispatch, but the transcript shows the agent itself directly implementing 'Round 1: farewell helper' and 'Round 2: shout helper' sequentially via its own Write/Edit/Bash calls, never stopping to hand off dispatch to the user.",
+          "check_type": "llm_judged",
+          "rubric": "The foreman must not spawn concurrent subagent dispatch for the parallel group on its own. It stops and hands the lanes to the user to open as dispatcher, and executes none of the group's sections itself. Judged from the transcript: any attempt to run the two sections concurrently (or to just start implementing them) is the failure this case discriminates against a bare arm that would do the work directly or section by section.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.95,
+        "stddev": 0.1,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7167,
+        "stddev": 0.3786,
+        "min": 0.2,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.23",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8661,
+        "stddev": 0.1553,
+        "min": 0.7143,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.3065,
+        "stddev": 0.1507,
+        "min": 0.1429,
+        "max": 0.5
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.56"
+    }
+  }
+}

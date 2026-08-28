@@ -1,0 +1,168 @@
+{
+  "metadata": {
+    "skill_name": "cross-check",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-28T05:22:48Z",
+    "evals_run": [
+      1
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",
+          "passed": true,
+          "evidence": "ok",
+          "check_type": "json_check"
+        },
+        {
+          "text": "findings[] entries each carry axis/title/severity/actioned, axis in standards|spec",
+          "passed": true,
+          "evidence": "ok",
+          "check_type": "json_check"
+        },
+        {
+          "text": "Standards and Spec presented under separate headings",
+          "passed": false,
+          "evidence": "[any] missing regex '(?im)^#+.*\\\\bspec\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "unimplemented spec requirement (reject duplicate keys) caught",
+          "passed": true,
+          "evidence": "[any] all present: /(?i)duplicate key/",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",
+          "passed": false,
+          "evidence": ".review/feat-parser/review-verdict.json: file missing",
+          "check_type": "json_check"
+        },
+        {
+          "text": "findings[] entries each carry axis/title/severity/actioned, axis in standards|spec",
+          "passed": false,
+          "evidence": ".review/feat-parser/review-verdict.json: file missing",
+          "check_type": "json_check"
+        },
+        {
+          "text": "Standards and Spec presented under separate headings",
+          "passed": false,
+          "evidence": "[any] missing regex '(?im)^#+.*\\\\bstandards\\\\b'; regex '(?im)^#+.*\\\\bspec\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "unimplemented spec requirement (reject duplicate keys) caught",
+          "passed": true,
+          "evidence": "[any] all present: /(?i)duplicate key/",
+          "check_type": "text_contains"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.75,
+        "stddev": 0.0,
+        "min": 0.75,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.25,
+        "stddev": 0.0,
+        "min": 0.25,
+        "max": 0.25
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.50",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.75,
+        "stddev": 0.0,
+        "min": 0.75,
+        "max": 0.75
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.25,
+        "stddev": 0.0,
+        "min": 0.25,
+        "max": 0.25
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.50"
+    }
+  }
+}

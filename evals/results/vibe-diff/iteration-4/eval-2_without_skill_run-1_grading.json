@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "The branch diff is captured to a file rather than worked from memory",
+      "passed": false,
+      "evidence": "expect=True; .review/feat-add-metrics/diff.patch:no",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The judgment layer diff-review.json is authored under the resolved artifact dir",
+      "passed": false,
+      "evidence": "expect=True; .review/feat-add-metrics/diff-review.json:no",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "diff-review.json carries the test_status field and the unverified quarantine bucket the schema requires",
+      "passed": false,
+      "evidence": ".review/feat-add-metrics/diff-review.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "test_status records the test run (command/when/result) or an honest unobtainable, never a bare green",
+      "passed": false,
+      "evidence": ".review/feat-add-metrics/diff-review.json (exists=False): missing regex '\"test_status\"'; regex '\"(command|when|result|unobtainable)\"'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The self-contained diff-review.html is rendered under the artifact dir",
+      "passed": false,
+      "evidence": "expect=True; .review/feat-add-metrics/diff-review.html:no",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The rendered page is a real page, not a stub skeleton",
+      "passed": false,
+      "evidence": ".review/feat-add-metrics/diff-review.html: file missing",
+      "check_type": "file_size"
+    },
+    {
+      "text": "The page explains the diff against the mini-spec's intent and renders no approve/block verdict",
+      "passed": false,
+      "evidence": "The final reply states 'verdict is ready to ship' and result.md/transcript describe this as a baseline judgment producing a ship/no-ship call, which directly violates the requirement to render no approve/block verdict; vibe-diff is meant to explain, not judge.",
+      "check_type": "llm_judged",
+      "rubric": "The review must map the diff to the mini-spec's stated intent (what count_greetings was asked to do) in its overview and intent map, and it must not render an approve, block, 'looks good', or 'must fix' verdict. vibe-diff explains, it never judges. Judged from diff-review.json and the run summary: an account that decodes the diff against the spec passes; one that pronounces a merge verdict fails.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Every hunk id used comes from the generator's printed authoring contract; none is invented",
+      "passed": false,
+      "evidence": "No skill was used at all (\"No `vibe-diff` skill exists in this session\"), so no diff-review.json, intent_map, hotspots, or authoring contract with hunk ids was ever produced; there is nothing in the transcript or git state satisfying the expectation.",
+      "check_type": "llm_judged",
+      "rubric": "Any hunk id referenced in diff-review.json (in intent_map or hotspots) must be one the generator printed in its authoring contract, used verbatim, not a hand-invented id. Evidence: the render loop should end clean, with no unresolved 'id not found' or unplaced-annotation problems left in the output. Judged from the transcript's render output and the JSON.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 6,
+    "total": 6,
+    "pass_rate": 0.0,
+    "assertions_total": 8,
+    "undecided": 0,
+    "total_passed": 0,
+    "total_failed": 8,
+    "total_decided": 8,
+    "total_pass_rate": 0.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "vibe-diff",
+    "skill_commit": "7c112c0",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:19:33Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "6eb11d4122851132fb8c8116c215b54efb7f24570029449ec12b42514f5d2c81",
+      "harness_commit": "887b501"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "expectations": [
+    {
+      "text": "review.html is written next to the change at openspec/changes/add-farewell/review.html",
+      "passed": true,
+      "evidence": "expect=True; openspec/changes/add-farewell/review.html:yes",
+      "check_type": "file_exists"
+    },
+    {
+      "text": "The rendered page is a real page, not an empty stub (size floor)",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/review.html: 33305 bytes (>= 4000)",
+      "check_type": "file_size"
+    },
+    {
+      "text": "The page is self-contained: no external HTTP resource is loaded (script/link/img src|href)",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/review.html (exists=True): (present:false) missing regex '(?i)<(?:script|link|img)[^>]+(?:src|href)\\\\s*=\\\\s*[\"\\']https?://'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The page renders the change's actual content (the proposal title)",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/review.html (exists=True): all present: 'Add a farewell helper'",
+      "check_type": "file_contains"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "887b501",
+    "skill_name": "spec-viewer",
+    "skill_commit": "ea727b5",
+    "iteration": 4,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-08-28T05:25:01Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "harness_commit": "887b501"
+    }
+  }
+}
