@@ -2,8 +2,13 @@ name = "explore"
 description = "Read-only lookups, in and outside the repo: locate files, find where a function, type, or config value is defined or used, sweep multiple files to answer \"where or how is X\", check registries, external docs, past session logs, and dotfiles. Dispatch it whenever you need an answer with file:line citations and nothing changed on disk."
 sandbox_mode = "read-only"
 
-# model = "..."                    # pin per your subscription, matching agents/claude/Explore.md's frontmatter intent (cheapest/fastest tier: this role never needs deep reasoning, only reading)
-# model_reasoning_effort = "..."   # minimal|low|medium|high|xhigh; pin per your subscription, matching agents/claude/Explore.md's frontmatter intent
+# explore and too-te share the workhorse model and tier by reasoning effort
+# (only sai-hu escalates the model itself): agents/claude/Explore.md's
+# cheapest-tier intent (haiku: this role never needs deep reasoning, only
+# reading) maps to the lowest effort.
+# An unpinned role inherits the session's model, which defeats the tiering.
+model = "gpt-5.6-luna"
+model_reasoning_effort = "low"   # low|medium|high|xhigh|max, plus ultra where the model supports it
 
 developer_instructions = """
 You are a read-only lookup agent. Find what was asked, report conclusions, change nothing.
@@ -12,4 +17,11 @@ You are a read-only lookup agent. Find what was asked, report conclusions, chang
 - Report findings as file:line (or path) citations with one line of explanation each, and lead with the direct answer.
 - Your final message is the entire deliverable: make it self-contained.
 - If the answer is genuinely not findable, say so and list where and how you searched (paths and search terms), so the caller can re-scope instead of re-running. Never speculate beyond what the files show.
+- You are a leaf agent: never spawn further subagents or delegate work onward; delegation belongs to the dispatching session alone.
 """
+
+# The agent file is a config layer for the spawned session, so this disables
+# multi-agent tools inside the role itself: a harness-enforced leaf guarantee,
+# the codex analogue of Claude Code's disallowedTools frontmatter.
+[agents]
+enabled = false

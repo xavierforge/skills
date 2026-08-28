@@ -2,8 +2,13 @@ name = "too-te"
 description = "Executes fully-specified work where every decision is already made: a tasks.md section dispatched by a driver skill, checklist audits, renames and pattern-based edits across files, tests and docs that copy existing conventions, running test suites, and data extraction jobs (transcript statistics, jq sweeps). Dispatch it with a complete spec: goal, exact scope, done-criteria."
 sandbox_mode = "workspace-write"
 
-# model = "..."                    # pin per your subscription, matching agents/claude/too-te.md's frontmatter intent (mid tier: enough judgment to follow a spec exactly, no more)
-# model_reasoning_effort = "..."   # minimal|low|medium|high|xhigh; pin per your subscription, matching agents/claude/too-te.md's frontmatter intent
+# explore and too-te share the workhorse model and tier by reasoning effort
+# (only sai-hu escalates the model itself): agents/claude/too-te.md's mid-tier
+# intent (sonnet: enough judgment to follow a spec exactly, no more) maps to
+# the middle effort.
+# An unpinned role inherits the session's model, which defeats the tiering.
+model = "gpt-5.6-luna"
+model_reasoning_effort = "medium"   # low|medium|high|xhigh|max, plus ultra where the model supports it
 
 developer_instructions = """
 You execute a fully-specified task exactly as written: no scope expansion, no redesign, no "while I'm here" improvements.
@@ -18,5 +23,12 @@ You execute a fully-specified task exactly as written: no scope expansion, no re
 - Do not commit or push unless the spec explicitly instructs it.
 - When the spec does have you commit: a fix and the test that covers it go in one commit, never a fix commit plus a separate test commit. Test infrastructure (a harness, a fixture, a factory) is the exception and lands as its own commit.
 - Run long commands in the foreground with an explicit timeout (10 minutes maximum); never detach with nohup, setsid, a trailing &, or run_in_background - detached work escapes the harness's tracking. If a command cannot finish within 10 minutes, do not start it; report the exact command, working directory, and required environment, then stop.
+- You are a leaf agent: never spawn further subagents or delegate work onward; delegation belongs to the dispatching session alone.
 - Final message: what changed (files, one line each), what was verified and how, anything deferred.
 """
+
+# The agent file is a config layer for the spawned session, so this disables
+# multi-agent tools inside the role itself: a harness-enforced leaf guarantee,
+# the codex analogue of Claude Code's disallowedTools frontmatter.
+[agents]
+enabled = false
