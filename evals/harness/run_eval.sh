@@ -296,11 +296,11 @@ for it in items:
     elif t=="command_execution":
         parts.append("```\n$ "+str(it.get("command") or "")+"\n```\n")
         outp=(it.get("aggregated_output") or "").strip()
-        if outp: parts.append("```\n"+outp[:800]+"\n```\n")
+        if outp: parts.append("```\n"+outp[:2400]+"\n```\n")
     elif t=="file_change":
-        parts.append("[file_change] "+json.dumps(it.get("changes"))[:300]+"\n")
+        parts.append("[file_change] "+json.dumps(it.get("changes"))[:1200]+"\n")
     elif t=="mcp_tool_call":
-        parts.append("[tool:%s] %s\n"%(it.get("tool") or it.get("server"),str(it.get("arguments"))[:120]))
+        parts.append("[tool:%s] %s\n"%(it.get("tool") or it.get("server"),str(it.get("arguments"))[:1200]))
 open(os.path.join(out,"transcript.md"),"w",encoding="utf-8").write("\n".join(parts))
 PY
     [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (stream had no agent_message)"
@@ -420,7 +420,7 @@ for e in events:
                 if cmd:
                     parts.append("```\n$ "+str(cmd)+"\n```\n")
                 else:
-                    summ=", ".join("%s=%s"%(k,str(v)[:120]) for k,v in inp.items())
+                    summ=", ".join("%s=%s"%(k,str(v)[:1200]) for k,v in inp.items())
                     parts.append("[tool:%s] %s\n"%(name,summ))
     elif e.get("type")=="user":
         for b in content:
@@ -431,7 +431,7 @@ for e in events:
                 else:
                     txt=str(c)
                 txt=txt.strip()
-                if txt: parts.append("```\n"+txt[:800]+"\n```\n")
+                if txt: parts.append("```\n"+txt[:2400]+"\n```\n")
 open(tmd,"w",encoding="utf-8").write("\n".join(parts))
 PY
     [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (stream had no final result event)"

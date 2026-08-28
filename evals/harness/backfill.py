@@ -47,8 +47,12 @@ REPO = HARNESS_DIR.parent.parent
 MODEL = os.environ.get("EVAL_MODEL", "sonnet")
 
 # Bound the prompt so a long transcript cannot blow the judge's context.
-TRANSCRIPT_CAP = 16000
-RESULT_CAP = 8000
+# Wide caps: 60k chars is ~15k tokens, comfortable for the judge's window.
+# 16k proved too tight in practice: factory-scale runs overflowed it and the
+# judge failed assertions whose evidence (later dispatches, the final ledger)
+# sat past the cap.
+TRANSCRIPT_CAP = 60000
+RESULT_CAP = 16000
 
 
 def die(msg: str, code: int = 1) -> "None":
@@ -109,7 +113,13 @@ def read_capped(path: Path, cap: int) -> str:
         return "(missing)"
     txt = path.read_text(encoding="utf-8", errors="replace")
     if len(txt) > cap:
-        return txt[:cap] + f"\n...(truncated, {len(txt) - cap} more chars)"
+        # Keep head AND tail: end-of-run evidence (final ledger, last
+        # dispatches, the closing report) decides many assertions, so a
+        # head-only cut starves the judge of exactly the part that matters.
+        head, tail = (cap * 3) // 5, cap - (cap * 3) // 5
+        return (txt[:head]
+                + f"\n...(middle truncated, {len(txt) - cap} chars elided)...\n"
+                + txt[-tail:])
     return txt
 
 
