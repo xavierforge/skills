@@ -258,51 +258,11 @@ PY
       echo "----- codex stderr -----" >&2; tail -20 "$err_log" >&2
       die "executor stopped ($suite/$idn $arm, rc=$rc, scan=$scan): auth/limit/other. NOT retrying (execution discipline)."
     fi
-    # Rebuild result.md / transcript.md from codex.stream.json unconditionally,
-    # for the same idempotency reason as the claude arm (a rerun reuses run-N).
-    # Last agent_message -> result.md (falling back to --output-last-message);
-    # ordered agent messages + commands (+ truncated output) -> transcript.md.
-    OUT="$OUT" JSON_LOG="$json_log" LAST_MSG="$RUN/last_message.txt" python3 - <<'PY'
-import json,os
-out=os.environ["OUT"]; stream=os.environ["JSON_LOG"]; lastp=os.environ["LAST_MSG"]
-events=[]
-try:
-    for line in open(stream,encoding="utf-8",errors="replace"):
-        line=line.strip()
-        if line:
-            try: events.append(json.loads(line))
-            except Exception: pass
-except OSError:
-    events=[]
-items=[e["item"] for e in events if e.get("type")=="item.completed" and isinstance(e.get("item"),dict)]
-final=None
-for it in items:
-    if it.get("type")=="agent_message" and isinstance(it.get("text"),str):
-        final=it["text"]
-if final is None and os.path.exists(lastp):
-    t=open(lastp,encoding="utf-8",errors="replace").read().strip()
-    final=t or None
-rmd=os.path.join(out,"result.md")
-if final is not None:
-    open(rmd,"w",encoding="utf-8").write(final)
-elif os.path.exists(rmd):
-    os.remove(rmd)
-parts=["# transcript (reconstructed from codex.stream.json)\n"]
-for it in items:
-    t=it.get("type")
-    if t=="agent_message":
-        txt=(it.get("text") or "").strip()
-        if txt: parts.append(txt+"\n")
-    elif t=="command_execution":
-        parts.append("```\n$ "+str(it.get("command") or "")+"\n```\n")
-        outp=(it.get("aggregated_output") or "").strip()
-        if outp: parts.append("```\n"+outp[:2400]+"\n```\n")
-    elif t=="file_change":
-        parts.append("[file_change] "+json.dumps(it.get("changes"))[:1200]+"\n")
-    elif t=="mcp_tool_call":
-        parts.append("[tool:%s] %s\n"%(it.get("tool") or it.get("server"),str(it.get("arguments"))[:1200]))
-open(os.path.join(out,"transcript.md"),"w",encoding="utf-8").write("\n".join(parts))
-PY
+    # Rebuild result.md / transcript.md unconditionally via the shared
+    # reconstructor, which also harvests child session rollouts: codex's
+    # --json stream never surfaces a spawn, so dispatch evidence exists only
+    # in $CODEX_HOME/sessions and must be folded into the transcript here.
+    python3 "$HARNESS_DIR/codex_transcript.py" "$RUN" >/dev/null
     [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (stream had no agent_message)"
     note "ran $suite/$idn $arm via codex (rc=0, stderr $scan)"
   else
