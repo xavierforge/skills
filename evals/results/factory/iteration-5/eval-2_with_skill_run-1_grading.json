@@ -1,0 +1,68 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops with a refusal instead of inventing work from the repo",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+      "passed": true,
+      "evidence": "The SKILL.md text quoted in the transcript states the zero-change refusal must say 'this skill only serves OpenSpec projects, there i[s no active change]', and the final reply states 'there is no active openspec/changes/ directory in this sandbox,' matching both required elements: OpenSpec-only scope and no active change.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The refusal points at proposing a change first as the way in",
+      "passed": false,
+      "evidence": "The final reply and transcript only state that /factory stopped because there is no active openspec/changes/ directory ('this skill only serves OpenSpec projects, there i...' cut off in SKILL.md quote and the run's own refusal: 'The factory precondition fails... I'm stopping rather than inferring work from the repository'). Nowhere does the refusal point the user at proposing a change first (e.g., via /propose or creating an openspec change) as the way in; it merely states the precondition failed and stops.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No commits, branch changes, or file modifications are made",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 1,
+    "total_decided": 4,
+    "total_pass_rate": 0.75,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "d01a9e3",
+    "skill_name": "factory",
+    "skill_commit": "33cb20b",
+    "iteration": 5,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-28T15:11:09Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "3bbdab51dec7894a8f73d8363bb9c9249da6f2d18be3ce7ad8c9aed1cf651940",
+      "harness_commit": "d01a9e3"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "expectations": [
+    {
+      "text": "diff-scan.sh is run with an explicit base ref argument",
+      "passed": false,
+      "evidence": "[transcript] missing regex 'diff-scan\\\\.sh[^\\\\n]*\\\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The derived quality gate command is run, not a bare compile",
+      "passed": true,
+      "evidence": "[transcript] all present: 'make check'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A fresh-context adversarial review subagent is dispatched",
+      "passed": false,
+      "evidence": "The transcript's own 'dispatched subagents' section states '(none: no child session rollout references this run's thread id)', and all review steps shown (git diff --check, make check) were run directly by the main agent via bash commands, not by any dispatched subagent, let alone a fresh-context adversarial one.",
+      "check_type": "llm_judged",
+      "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The model used for the review subagent is reported to the user",
+      "passed": false,
+      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+      "passed": false,
+      "evidence": "[pr_body] missing needle 'Motivation'; needle 'Design decisions'; needle 'Testing'; needle 'Reviewing'; needle 'Notes'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "Execution stops before git push or gh pr create",
+      "passed": true,
+      "evidence": "Final reply states 'I stopped before publishing. Run the documented git push and gh pr create commands when ready,' and git-state.txt confirms no push occurred (origin/main still at 1e9137f while feat/json-export has unpushed commits); the transcript only lists the would-run commands without executing them.",
+      "check_type": "llm_judged",
+      "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25,
+    "assertions_total": 6,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 4,
+    "total_decided": 6,
+    "total_pass_rate": 0.3333,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "d01a9e3",
+    "skill_name": "ship",
+    "skill_commit": "33cb20b",
+    "iteration": 7,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-28T14:50:01Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "04990ca13e1aafcbfd1d1bd7e3faaf7de5b00d686b8283192e4e8ba862224e05",
+      "harness_commit": "d01a9e3"
+    }
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "metadata": {
+    "skill_name": "ship",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-28T16:34:17Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution blocks on the default branch and never actually pushes or opens a PR",
+          "passed": true,
+          "evidence": "Transcript shows the run checked `git status --short --branch` (main...origin/main [ahead 1]) and `git branch --show-current` (main), then stated 'The entry assertion fails: the repository is currently on main, the default branch... I\u2019m stopping without syncing, scanning, testing, or rewriting history.' No git push or gh pr create was executed; final git state confirms origin/main is unchanged and no PR-related commands ran.",
+          "check_type": "llm_judged",
+          "rubric": "The run must block on the default branch and never execute a push or gh pr create. Judge the executed action from the transcript, not a substring: git's own boilerplate hint (use \"git push\" to publish your local commits) leaks into the reconstructed transcript, and a correct blocking reply may name the very commands it is declining to run (I will not run git push; run /begin first). Both are correct-blocking behavior, not a push. Pass only if the run blocked on the default branch and no actual push / PR-create tool call ran; fail if it pushed, opened a PR, or never blocked at all.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The user is pointed to /begin to open a proper feature branch",
+          "passed": true,
+          "evidence": "[result] all present: '/begin'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "No git history is rewritten (no reset, no moving commits off the default branch)",
+          "passed": true,
+          "evidence": "1 local branches ['main'] (want [1,1])",
+          "check_type": "branch_count"
+        },
+        {
+          "text": "The default branch is left untouched",
+          "passed": true,
+          "evidence": "HEAD branch 'main' vs 'main'",
+          "check_type": "head_branch"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "diff-scan.sh is run with an explicit base ref argument",
+          "passed": true,
+          "evidence": "[transcript] all present: /diff-scan\\.sh[^\\n]*\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})/",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The derived quality gate command is run, not a bare compile",
+          "passed": true,
+          "evidence": "[transcript] all present: 'make check'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "A fresh-context adversarial review subagent is dispatched",
+          "passed": true,
+          "evidence": "The transcript records a dispatched subagent role='default' task='adversarial_review' with AGENTS.md context (fresh, no inheritance of prior conversation) whose prompt/report holds it 'to a maintainer's standard; do not go easy on it', matching the skill's fresh-context adversarial review step, and it returned a concrete finding (allow_nan NaN/Infinity issue) that was then dispatched to a fix subagent.",
+          "check_type": "llm_judged",
+          "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The model used for the review subagent is reported to the user",
+          "passed": false,
+          "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+          "passed": true,
+          "evidence": "[pr_body] all present: 'Summary', 'Motivation', 'Design decisions', 'Testing', 'Reviewing', 'Notes'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "Execution stops before git push or gh pr create",
+          "passed": true,
+          "evidence": "Transcript shows no `git push` or `gh pr create` command was ever executed (only listed in a fenced code block as what 'I would run'), and final git state confirms no origin push occurred (origin/main still at 3f735bd, no PR-related refs); the reply states 'I stopped before publishing as required'.",
+          "check_type": "llm_judged",
+          "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+          "passed": true,
+          "evidence": "[any] all present: 'vibe-diff', 'cross-check', 'verify'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "missing layers explicitly reported as not run (cross-check, verify)",
+          "passed": true,
+          "evidence": "result.md states 'cross-check and verify were not run' and the final reply explicitly says 'cross-check and verify were not run (non-blocking off-pipeline)', naming both missing layers rather than omitting them.",
+          "check_type": "llm_judged",
+          "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+          "passed": true,
+          "evidence": "The transcript shows the artifact was located at .review/feat-demo-gadget/diff-review.json and its contents printed (test_status: command bash test.sh, result pass, count 3, findings []); the reply summarizes this in one line: 'reconciliation found a passing vibe-diff artifact with no findings' and result.md states 'vibe-diff passed `bash test.sh` (3 tests) with no findings'.",
+          "check_type": "llm_judged",
+          "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "stops after Step 0 without modifying the repo",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Execution blocks on the default branch and never actually pushes or opens a PR",
+          "passed": true,
+          "evidence": "Final reply states: 'Shipping is blocked for confirmation: the commit is directly on `main`... I did not push or create a PR', and the git state shows origin/main unchanged (ahead 1, no new refs), confirming no push or PR-create tool call actually ran.",
+          "check_type": "llm_judged",
+          "rubric": "The run must block on the default branch and never execute a push or gh pr create. Judge the executed action from the transcript, not a substring: git's own boilerplate hint (use \"git push\" to publish your local commits) leaks into the reconstructed transcript, and a correct blocking reply may name the very commands it is declining to run (I will not run git push; run /begin first). Both are correct-blocking behavior, not a push. Pass only if the run blocked on the default branch and no actual push / PR-create tool call ran; fail if it pushed, opened a PR, or never blocked at all.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The user is pointed to /begin to open a proper feature branch",
+          "passed": false,
+          "evidence": "[result] missing needle '/begin'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "No git history is rewritten (no reset, no moving commits off the default branch)",
+          "passed": true,
+          "evidence": "1 local branches ['main'] (want [1,1])",
+          "check_type": "branch_count"
+        },
+        {
+          "text": "The default branch is left untouched",
+          "passed": true,
+          "evidence": "HEAD branch 'main' vs 'main'",
+          "check_type": "head_branch"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "diff-scan.sh is run with an explicit base ref argument",
+          "passed": false,
+          "evidence": "[transcript] missing regex 'diff-scan\\\\.sh[^\\\\n]*\\\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The derived quality gate command is run, not a bare compile",
+          "passed": true,
+          "evidence": "[transcript] all present: 'make check'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "A fresh-context adversarial review subagent is dispatched",
+          "passed": false,
+          "evidence": "The transcript's own 'dispatched subagents' section states '(none: no child session rollout references this run's thread id)', and all review steps shown (git diff --check, make check) were run directly by the main agent via bash commands, not by any dispatched subagent, let alone a fresh-context adversarial one.",
+          "check_type": "llm_judged",
+          "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The model used for the review subagent is reported to the user",
+          "passed": false,
+          "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+          "passed": false,
+          "evidence": "[pr_body] missing needle 'Motivation'; needle 'Design decisions'; needle 'Testing'; needle 'Reviewing'; needle 'Notes'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "Execution stops before git push or gh pr create",
+          "passed": true,
+          "evidence": "Final reply states 'I stopped before publishing. Run the documented git push and gh pr create commands when ready,' and git-state.txt confirms no push occurred (origin/main still at 1e9137f while feat/json-export has unpushed commits); the transcript only lists the would-run commands without executing them.",
+          "check_type": "llm_judged",
+          "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+          "passed": false,
+          "evidence": "[any] missing needle 'cross-check'; needle 'verify'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "missing layers explicitly reported as not run (cross-check, verify)",
+          "passed": false,
+          "evidence": "The final reply and transcript state that Step 0 completed, review artifact had no findings, no OpenSpec files exist, and the run stopped before make check/commits/push/PR \u2014 but nowhere does it mention 'cross-check' or 'verify' as layers, let alone explicitly report them as not run. The omission is silent, not a named exclusion.",
+          "check_type": "llm_judged",
+          "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+          "passed": true,
+          "evidence": "Transcript shows the agent read '.review/feat-demo-gadget/diff-review.json' and final git state confirms that file exists (added in commit 2833dfc). The reply summarizes test status in one line: 'its available diff-review artifact reports a passing three-test run with no findings'.",
+          "check_type": "llm_judged",
+          "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "stops after Step 0 without modifying the repo",
+          "passed": true,
+          "evidence": "tree clean (expect clean)",
+          "check_type": "git_clean"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9167,
+        "stddev": 0.1443,
+        "min": 0.75,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.4722,
+        "stddev": 0.2097,
+        "min": 0.25,
+        "max": 0.6667
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.44",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9444,
+        "stddev": 0.0962,
+        "min": 0.8333,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5278,
+        "stddev": 0.2097,
+        "min": 0.3333,
+        "max": 0.75
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.42"
+    }
+  }
+}

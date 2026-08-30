@@ -1,0 +1,68 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops and asks the user which change to operate on",
+      "passed": false,
+      "evidence": "The agent never asked the user anything; it unilaterally decided 'The actionable active change is add-farewell... whereas the other change is a separate refactor' and proceeded to implement section 1 without pausing for input, despite two active changes (add-farewell and refactor-hello) being present in openspec/changes/.",
+      "check_type": "llm_judged",
+      "rubric": "With two active changes present the run must stop and ask which one to operate on. 'Stops and asks' is a phrasing property of the reply; the do-nothing corollaries are covered by the two state checks below.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No source or spec files are modified",
+      "passed": false,
+      "evidence": "tree dirty (expect clean); 3 entries",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "No commit is created",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Change directories under archive/ are excluded from the ambiguity",
+      "passed": true,
+      "evidence": "The transcript explicitly identifies 'The actionable active change is add-farewell... whereas the other change is a separate refactor,' enumerating only add-farewell and refactor-hello as candidates, while archive/2026-01-add-punctuation is never treated as ambiguous or a candidate\u2014it's only shown incidentally in the file listing and final git-state dump.",
+      "check_type": "llm_judged",
+      "rubric": "The ask must name the two active changes and not treat the archived change under archive/ as a candidate. Requires reading which changes the reply enumerates.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 2,
+    "total_decided": 4,
+    "total_pass_rate": 0.5,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "9d593a71af4b91a2182357b9c7d0435dd994ccfd05f66cc2578a9361a7a63945",
+    "harness_commit": "d01a9e3",
+    "skill_name": "section",
+    "skill_commit": "33cb20b",
+    "iteration": 5,
+    "model": "gpt-5.6-terra",
+    "runs": 1,
+    "timestamp": "2026-08-28T14:57:38Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 39,
+      "model": "gpt-5.6-terra",
+      "executor": "codex"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "51fe3d5b8f82e54fb01f2b2fe81c714412dac0899f4e7c46505e35b754276024",
+      "harness_commit": "d01a9e3"
+    }
+  }
+}
