@@ -40,7 +40,7 @@ Never edit installed copies; this repo is the source of truth.
 
 - `agents/claude/*.md` are the role source of truth. Any installed copy must be byte-for-byte identical to the file here.
 - Each skill's `agents/openai.yaml` Codex descriptor tracks that skill's SKILL.md `description`; update the descriptor whenever the description changes.
-- Every `<doc>.md` with a `<doc>.zh-TW.md` sibling is a mirror pair (today: the root README, `agents/README.md`): change both together, keep structure aligned. The zh-TW rendering is a natural translation that keeps English jargon, never a literal one.
+- Every `<doc>.md` with a `<doc>.zh-TW.md` sibling is a mirror pair (today: the root README, `agents/README.md`, `evals/EVALUATION.md`): change both together, keep structure aligned. The zh-TW rendering is a natural translation that keeps English jargon, never a literal one.
 
 ## Evals
 
