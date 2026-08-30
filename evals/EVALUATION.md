@@ -1,185 +1,176 @@
 # Skill evaluations: results & specification
 
-This directory holds the **behavioral evaluations** for the workflow skills in
-this repo, and it is the **single source of truth** for how those evals are
-shaped, run, scored, and reported. Each eval measures one thing: **what does the
-skill add, at a fixed model, over the same model with no skill?** The reusable,
-version-controlled inputs are the case files ([`cases/`](./cases/)) and the
-sandbox builder ([`harness/`](./harness/)); the grader / analyzer / aggregator
-come from Anthropic's installed `skill-creator` skill.
+[繁體中文](EVALUATION.zh-TW.md)
 
-**Read the numbers first, the method second.** The total table below is the
-headline; the per-suite detail follows; ["How the evals work"](#how-the-evals-work)
-(schema, check types, discipline, iron rules) sits at the bottom for when you
-need it.
+In short: this directory holds the **behavioral evaluations** for the repo's
+workflow skills, and it is the **single source of truth** for how those evals
+are designed, run, scored, and reported. Every eval asks one question: **at a
+fixed model, what does having the skill installed add over not having it?**
+The version-controlled inputs are the case files ([`cases/`](./cases/)) and
+the harness ([`harness/`](./harness/)); the aggregation and review tooling is
+taken directly from Anthropic's `skill-creator` skill.
 
-## Results: the eight skills
+Recommended reading order: numbers first, method second. The cross-harness
+table below is the headline; the plumbing (schema, check types, discipline,
+iron rules) all sits in ["How the evals work"](#how-the-evals-work) at the
+bottom, for when you want to dig.
 
-One row per skill. `with_skill` / `without_skill` are pass rates (mean ± stddev
-where n > 1); `Δ` is the gain the skill buys. Two measurement regimes coexist
-and are **not directly comparable** (see [the note below](#two-regimes)): a
-**machine-subset** number scores only the mechanical checks `check.py` decides
-(every `llm_judged` row deferred and excluded), while a **full-assertion**
-number scores the whole assertion set (the machine checks plus the `llm_judged`
-rows, resolved either by the new pipeline's `backfill.py` grader or, historically,
-by an older LLM-graded round). Each row says which regime it is and links its
-provenance; a backfilled row reports the full-assertion total with the machine
-subset in parentheses.
+## Results: the cross-harness comparison (2026-08-28)
 
-Measured 2026-08-06 at EVAL_MODEL `claude-sonnet-5`, one strictly serial round
-over all eight suites (iteration-2 everywhere except `preflight`, which was
-already at 3). Every arm ran clean: `rc=0`, no auth or limit signal. Two suites
-were then re-measured within the round: `ship` at iteration-3 to verify a fix
-this round surfaced, and `preflight` at iteration-5 so its tightened rubric was
-the one in force. Every suite with deferred rows has since been backfilled, so
-each row reports the full-assertion total with the machine subset in
-parentheses; `cross-check` and `spec-viewer` are fully mechanical suites with
-nothing to defer, so their single number is already the whole assertion set.
+The suite now runs under **two executors**: Claude Code (`claude -p` with
+`EVAL_MODEL=sonnet`) and Codex (`codex exec` with `EVAL_MODEL=gpt-5.6-terra`,
+enabled via `EVAL_EXECUTOR=codex`). This round ran all eight suites once on
+each executor (one run per arm), with identical case files, an identical
+harness, and the same backfill judge (`sonnet` on both).
 
-The whole previous table was measured at EVAL_MODEL `sonnet` and is **not
-comparable across the model change**; those rounds now live in
-[`history.md`](./history.md), result files included.
+One thing to note: the four codex suites carrying dispatch assertions
+(`ship`, `section`, `factory`, `preflight`) were measured with the
+[role roster](../agents/README.md) installed in `~/.codex/agents/`, so the
+collab `spawn` tool had named roles to hand work to; the other four suites
+carry no dispatch assertions and are unaffected by the roster.
 
-| Skill | Latest iter | n | with_skill | without_skill | Δ | Provenance |
-|-------|-------------|---|-----------|---------------|---|-----------|
-| `begin` | 6 | 1 | **1.00** | 0.6389 | +0.36 | full assertion set, total (machine subset 1.00 / 0.4722) ([results](./results/begin/iteration-6/)); eval-2's lane-handling `llm_judged` row was removed after passing the baseline wrongly in three consecutive rounds against the `head_branch` check that decides the same property mechanically, so this round's three verdicts finally agree. Baseline movement between rounds is dominated by run-to-run variance, not by that correction (see history) (automation) |
-| `ship` | 3 | 1 | **1.00** | 0.3889 | **+0.61** | full assertion set, total (machine subset 1.00 / 0.4722) ([results](./results/ship/iteration-3/)); iteration-2 scored 0.9167 on one genuine skill defect (eval-2's reviewer-model line); this round re-measured it after the `3cc9579` fix on an unchanged assertion (hybrid) |
-| `section` | 2 | 1 | **1.00** | 0.7222 | +0.28 | full assertion set, total (machine subset 1.00 / 0.8056) ([results](./results/section/iteration-2/)) (judgment) |
-| `factory` | 2 | 1 | **1.00** | 0.4940 | **+0.51** | full assertion set, total (machine subset 1.00 / 0.7167) ([results](./results/factory/iteration-2/)); eval-1's one-subagent-deep row was graded under an earlier rubric that a do-nothing run satisfied vacuously, since tightened, so the recorded without_skill total is if anything generous and the row's stored `rubric_sha256` no longer matches the case file (judgment) |
-| `vibe-diff` | 2 | 1 | **1.00** | 0.25 | **+0.75** | full assertion set, total (machine subset identical) ([results](./results/vibe-diff/iteration-2/)) (hybrid) |
-| `cross-check` | 2 | 1 | **1.00** | 0.25 | **+0.75** | whole assertion set; fully mechanical suite, nothing deferred ([results](./results/cross-check/iteration-2/)) (judgment) |
-| `spec-viewer` | 2 | 1 | **1.00** | 0.125 | **+0.88** | whole assertion set; fully mechanical suite, nothing deferred ([results](./results/spec-viewer/iteration-2/)) (automation) |
-| `preflight` | 6 | 1 | **1.00** | 0.6111 | +0.39 | full assertion set, total (machine subset 1.00 / 0.4167) ([results](./results/preflight/iteration-6/)); first round on the corrected contract, in which preflight commits each accepted fix as a fixup and stops short of pushing. Both with_skill runs scored the whole assertion set, landing a `fixup!` against the commit each fix corrected plus a separate `docs` commit for the ledger, on a clean tree. Not comparable to iterations 4 and 5, which were measured against the superseded lands-no-commits expectation (judgment) |
+Numbers are full-assertion totals (machine checks plus backfilled `llm_judged`
+rows), shown as passed/total. Each suite's raw grading sits in
+`results/<suite>/iteration-N/` at the iteration numbers in the table (Claude
+Code / Codex).
 
-Two readings this round forced, both of which the backfill decided:
+| Skill | Iter (cc/cx) | Claude with | Claude w/o | Codex with | Codex w/o |
+|-------|--------------|-------------|------------|------------|-----------|
+| `begin` | 9 / 8 | **11/11** | 6/11 | **11/11** | 8/11 |
+| `ship` | 6 / 7 | 13/14 | 7/14 | 13/14 | 7/14 |
+| `section` | 4 / 5 | **14/14** | 10/14 | **14/14** | 10/14 |
+| `factory` | 4 / 5 | 18/22 | 6/22 | 11/22 | 8/22 |
+| `vibe-diff` | 4 / 3 | **12/12** | 2/12 | **12/12** | 3/12 |
+| `cross-check` | 4 / 3 | 3/4 | 1/4 | 3/4 | 1/4 |
+| `spec-viewer` | 4 / 3 | **8/8** | 1/8 | **8/8** | 1/8 |
+| `preflight` | 11 / 12 | **15/15** | 8/15 | 14/15 | 7/15 |
+| **Total** | | **94/100** | 41/100 | **86/100** | 45/100 |
 
-- **The machine subset understates the judgment-class skills.** `factory`'s Δ
-  went from +0.28 on the machine subset to +0.51 on the full assertion set, and
-  `section`'s from +0.19 to +0.28, because the discriminating assertions are
-  exactly the deferred ones. The sharpest case is `factory` eval-3's
-  without_skill arm: machine subset 1.00, full assertion 0.3333. The bare model
-  passed every mechanical check (commit count, files present) while the grader
-  found the plan gate never ran at all.
-- **Backfilling does not always widen Δ.** It widened `factory` (+0.28 to
-  +0.51) and `section` (+0.19 to +0.28) but narrowed `preflight` (+0.58 to
-  +0.39), because there the grader read the bare model's prose more generously
-  than the machine checks read its git state. Which way a suite moves is a fact
-  about its assertions, not a rule of the method, so read both regimes per
-  suite rather than assuming the total is the kinder number.
-- **A stronger baseline compresses Δ, and that is not a reason to grow the
-  skill.** On `claude-sonnet-5` the without_skill arm reaches 1.00 on
-  `factory` eval-2, `factory` eval-3 (machine subset) and `section` eval-2: the
-  bare model now refuses correctly on the guard scenarios these cases were
-  built for. Per the regime note below, those rows stay as drift sentinels; the
-  answer to a compressed Δ is to measure at the cheap tier the skill actually
-  dispatches to, not to add rules until the baseline fails again.
+On the machine-judged subset alone the two executors sit close: `with_skill`
+is 66/69 (Claude) vs 63/69 (Codex); the baselines (no skill) 29/69 vs 32/69.
+Which shows the skills' value holds across platforms: **+0.53 on Claude
+Code, +0.41 on Codex**, with the two baselines close as well (41/100 vs
+45/100).
 
-Δ measures added capability for skills that teach the model a judgment
-structure it lacks. For ritual-automation skills that codify a repetitive
-prompt the user would otherwise retype by hand, the real KPI is with_skill
-compliance and run-to-run predictability, not Δ; begin's 1.00 with_skill is
-that number. Suites split three ways: ritual-automation (begin, spec-viewer),
-hybrid where both measures apply (ship, vibe-diff), and judgment-structure
-where delta is the measure (cross-check, factory, section, preflight). The
-table's Provenance column tags each row automation, hybrid, or judgment to
-match.
+As for why points were lost, the reasons are these:
 
-Some expectations pass on both arms and register a zero Δ; these stay in the
-assertion set by design, since they act as compliance guards for the codified
-rituals and as sentinels for model drift, not as dead weight to prune.
+- **Codex `factory` stuck at the plan-approval gate (nearly all of its 11
+  lost points)**: the eval-1 and eval-4 runs stopped at the gate to wait for
+  user approval, but an eval is an automated script with no one to answer
+  it, so not a single round ran and the downstream assertions (rounds,
+  ledger, `/opsx:verify`, the lane plan) fell with it.
+- **`factory` eval-2, both platforms, both arms**: the refusal neither says
+  the skill serves OpenSpec projects only nor points at proposing a change
+  first. A wording gap in the SKILL.md prompt.
+- **Claude `factory`, two rows**: the transcript the judge read was cut
+  short before the later dispatches and the final ledger appeared. Read
+  those two rows as a lower bound, not as work left undone.
+- **The rest is the baseline failing where it was expected to**: doing the
+  work inline instead of dispatching, picking a change without asking the
+  user, fanning out where lanes belong to the user. That spread is exactly
+  Δ (the improvement the skill buys).
 
-All eight suites are now on the new pipeline. `vibe-diff` and `cross-check` are
-**native** runs of their carved-out suites (current hardened refusal / two-axis
-contracts), not a regrade of the retired `review-artifacts` iteration-1 runs,
-which is retained as history and context in the
-[per-suite section](#per-suite-results). See the directory the table's
-Provenance column links for each suite's raw grading, and
-[`history.md`](./history.md) for the narrative behind each number and for the
-retired rounds.
+Note that dispatch itself loses no points on either side: Codex spawns the
+roster roles through its collab tool (a section annotated `sai-hu` really
+does go to a `sai-hu` child). Dispatch is judged from the records each spawn
+leaves behind (details under "The Codex executor's particulars" below). With
+the dispatch-related rows removed, `with_skill` is 88/92 (Claude) vs 82/92
+(Codex).
 
-## Per-suite results
+### <a id="round-caveats"></a>Comparability with earlier rounds
 
-### `factory` (under the driver + check.py, machine subset, prior round)
+Executor prompts issued between 2026-07-19 and 2026-08-27 carried **no ground
+rules**: a documentation restructure demoted the heading the harness extracts
+them from, and the extraction silently returned an empty string until the
+anchor was made heading-agnostic (with an abort on empty extraction). Rounds
+on either side of that boundary are therefore **not same-condition** and are
+not compared numerically. `with_skill` results were barely affected, since
+the skills carry most of those constraints in their own text, so earlier
+conclusions stand; the superseded 2026-08-06 table remains in git history and
+[`history.md`](./history.md).
 
-`factory` iteration-2 holds **1.00 ± 0.00** on the machine subset across all six
-runs; the baseline swings **0.50 ± 0.46** (factory/1 0.33/0.67, factory/2 1.0/1.0,
-factory/3 0.0/0.0), the variance the n=2 round was added to expose. On the
-iteration-1 **total-row miss**: that round's transcripts were observed to show an
-explicit `total` wall-time row (3m 32s / 3m 55s) closing both factory/1 with_skill
-ledgers, but that evidence lives only in the (gitignored) run workspace, so the
-**formal verdict awaits the `llm_judged` supplemental grader** folding it into
-`grading.json`: the assertion is judgment-graded and deferred by check.py. All
-twelve runs recorded `rc=0` / `stderr_scan=clean`. Results are regenerated by
-rerunning the suite; see [`history.md`](./history.md#factory) for this round's
-narrative.
+A first codex measurement of the four dispatch-bearing suites (iterations
+`ship/5`, `section/3`, `factory/3`, `preflight/10`) ran before the role
+roster existed in the execution environment, when the collab `spawn` tool
+exposed zero agent types and dispatch was impossible by construction. Those
+iterations were superseded by the post-roster re-measurement in the table
+above and removed from `results/`; git history retains them.
 
-### `review-artifacts` iteration-1: the split's history (machine subset)
+### Reading Δ (the improvement)
 
-The `review-artifacts` suite was **dissolved** into per-skill suites (`ship/3`,
-`vibe-diff/1`, `cross-check/1`) so every suite names one skill. Its
-iteration-1 grading was recorded, then dropped with the rest of the
-pre-2026-07-24 result sets; [`history.md`](./history.md) carries its narrative
-under `vibe-diff` and `cross-check`. Those two suites have **since been run
-natively** under their own hardened contracts, so this table is now history and
-provenance, not the live source for those rows:
+Δ measures whether a skill gives the model a structured judgment it lacks;
+in other words, added capability.
+For skills that codify a repeated ritual (ritual-automation, e.g. `begin`,
+`spec-viewer`), the real KPI is compliance and run-to-run stability with the
+skill on, not Δ.
 
-| Eval (old id) | now in suite | with_skill | without_skill |
-|---------------|--------------|-----------|---------------|
-| ship-step0-reconciliation | `ship/3` | 2/2 | 1/2 |
-| vibe-diff-no-spec-source-refusal | `vibe-diff/1` | 4/4\* | 3/4\* |
-| cross-check-two-axis-verdict | `cross-check/1` | 4/4 | 2/4 |
+By that standard the eight suites fall into three classes:
 
-\*eval-2 was **re-specified to the hardened refusal contract** after this round
-ran (commit `e8bf4fb`). The `iteration-1` grading held the pre-rewrite
-`fallback-landing` scoring (with_skill 1/3) before it was dropped with the rest
-of the pre-2026-07-24 result sets; the values above are the **regrade of
-the same retained runs** under the current case file, condensed in
-[`history.md`](./history.md#vibe-diff). The next `vibe-diff` round records the
-new contract natively.
+1. **Ritual-automation** (`begin`, `spec-viewer`)
+2. **Hybrid** (`ship`, `vibe-diff`)
+3. **Judgment-structure** (`cross-check`, `factory`, `section`,
+   `preflight`) — only this class is read by Δ.
 
-### Historical full-assertion rounds (`begin` / `ship` / `section`, pre-checker)
+Some rows pass on both arms (zero Δ) on purpose: they are sentinels watching
+whether the model still follows the ritual and whether it has quietly
+drifted, not dead-weight rows. And when a smarter baseline compresses Δ,
+that is no license to pile on rules until the baseline fails again; the
+right move is to measure on the cheap model the skill actually dispatches
+to.
 
-All three have **since been run under `check.py`** (begin and ship at
-iteration-4, with their `llm_judged` rows backfilled into a full-assertion total;
-section at iteration-4, machine subset); those new-pipeline rounds are the ones
-condensed in [`history.md`](./history.md). What this section retains is the **earlier full-assertion
-LLM-graded rounds** on their entries in [`history.md`](./history.md)
-([`begin`](./history.md#begin), [`ship`](./history.md#ship),
-[`section`](./history.md#section)), which predate the
-checker and stay as history. Across those rounds the skills held ~100% with the
-whole spread in the baseline, because a capable model already nails happy paths
-unaided and the skills' measured value concentrates in the guard scenarios a bare
-model gets wrong. `section`'s delta triples on its target cheap tier (Haiku
-iteration-3, **+0.38**, vs Sonnet iteration-2 **+0.14**), which is why its
-historical note cites the Haiku round. Read each page for the scenario-by-scenario
-story and the cost (the skills trade time and tokens for correctness).
+### The Codex executor's particulars
 
-### `spec-viewer`: new suite
+Setting `EVAL_EXECUTOR=codex` routes every arm through `codex exec` instead
+of `claude -p`, with all the discipline unchanged:
 
-Two mechanical cases (`cases/spec-viewer.json`): (1) render a single OpenSpec
-change to `review.html` (file exists, size floor, no external HTTP resource,
-real content), and (2) generate a zh-TW gloss (`gloss.zh-TW.json` structure and
-entry count, re-embedded page). **iteration-1** (Sonnet, n=1): with_skill
-**1.00** vs without_skill **0.13** (Δ+0.88), the widest gap in the table, since
-driving the generator and authoring a gloss is work a bare model does not do
-unprompted; both new check types (`file_size`, `json_check.min_keys`) decided on
-live runs. Results are regenerated by rerunning the suite; see
-[`history.md`](./history.md#spec-viewer) for this round's narrative.
+- **Vendor subscription only, never an API key**: the Claude executor
+  requires `ANTHROPIC_API_KEY` and its siblings unset; Codex likewise
+  requires `OPENAI_API_KEY` unset and goes through the ChatGPT login. Codex
+  mode also demands an explicit `EVAL_MODEL`.
+- **Hermetic launch**: `codex exec --ignore-user-config --skip-git-repo-check
+  --dangerously-bypass-approvals-and-sandbox --json` (the counterpart of
+  Claude's safe mode). One trap to know about: `--ignore-user-config` does
+  **not** hide `~/.codex/agents/` — with a role roster installed, codex arms
+  can see it. Both arms of one executor see the same environment, so
+  within-executor Δ is unaffected; keep it in mind when comparing rounds
+  across a roster install.
+- **The same evidence contract**: `result.md` and `transcript.md` are rebuilt
+  unconditionally from `codex.stream.json`, the run's authoritative record.
+- **Limit signals and capacity overload are handled differently**: a
+  `401`/`429`/quota signal stops the whole batch, no forced retry (same as
+  the Claude side). The one exception is the provider reporting "model is at
+  capacity": a mid-turn transient that dies without producing any output,
+  retryable with spacing, because a failed turn leaves nothing behind to
+  inflate a score with.
+- **Dispatch evidence lives only in session rollouts, never in the stream**:
+  the collab `spawn` tool can only summon agents present in
+  `~/.codex/agents/`. But the `--json` report shows a spawn only as a
+  receiverless `wait` tag; what the child agent actually did all sits in its
+  rollout file under `$CODEX_HOME/sessions` (matched via
+  `parent_thread_id`). `harness/codex_transcript.py` harvests those rollouts
+  into the transcript's `[dispatch]` records, and that is what the judge
+  scores from.
 
-### <a id="two-regimes"></a>Why the two regimes are reported separately
+## History and the two scoring regimes
 
-A fresh **new-pipeline** round scores only the **machine subset**: `check.py`
-defers every `llm_judged` row (`passed: null`) and excludes it from the rate, so
-on its own it is not a full-assertion score. A later `backfill.py` pass (see
-[How `llm_judged` is resolved](#how-llm_judged-is-resolved)) resolves those
-deferred rows and records a **full-assertion total** alongside the machine
-subset, never mixed into one number: `summary.pass_rate` stays the machine
-subset, `summary.total_pass_rate` is the total. Both are committed to
-`results/<suite>/iteration-N/` (Claude Sonnet), each with a fingerprint carrying
-`checker_sha256`, the per-arm `skill_commit`, the `execution` record (rc + stderr
-auth/limit scan), and, once backfilled, the separate `grader` block. The
-**historical per-suite-page** numbers were full-assertion LLM-graded rounds
-predating the checker, and stay as history.
+The earlier historical rounds (the 2026-08-06 table, the old rounds where an
+LLM was the whole grader, and the rest) are condensed into
+[`history.md`](./history.md). Two scoring regimes appear there, and they
+must **never be mixed in a comparison**:
+
+- A freshly finished round carries only the **machine subset (pure machine
+  verdicts)**: `check.py` marks every row needing human-or-LLM judgment
+  (`llm_judged`) as `passed: null`, deferred and excluded from the rate.
+- A later `backfill.py` pass hands the deferred rows to an LLM and records a
+  **full-assertion total**; the two sit side by side, never merged:
+  `summary.pass_rate` is the machine score, `summary.total_pass_rate` the
+  combined total.
+
+The hard-won lessons from those rounds still apply: the pure machine subset
+always understates judgment-class skills (the hardest calls are exactly the
+deferred ones), and backfill can widen or narrow Δ, so read both numbers. A
+capable model handles the happy path on its own; a skill's real value is
+whether the guardrails hold when the model gets it wrong.
 
 ## How the evals work
 
@@ -196,66 +187,45 @@ predating the checker, and stay as history.
 | [`spec-viewer`](./history.md#spec-viewer) | `spec-viewer` | 2 | render a change page, generate a zh-TW gloss |
 | [`preflight`](./history.md#preflight) | `preflight` | 2 | triage three findings against Non-Goals and the decision ledger, honest not-run reporting with a ledger caveat line per absent layer |
 
-One suite per skill: every suite's top-level `skill_name` is the single skill it
-tests. The `vibe-diff` and `cross-check` suites were carved out of the former
-cross-skill `review-artifacts` suite (its `ship` Step 0c case moved into `ship`);
-their historical round is recorded in [`history.md`](./history.md) under each
-suite's own heading. `vibe-diff`'s eval-2 and `factory`'s eval-4 are the newest
-additions, covering the mini-spec happy path and the parallel-group lane
-hand-off respectively.
+Each suite's top-level `skill_name` names the one skill it concentrates on.
 
-### What every eval measures
+### What each eval actually measures
 
-Each scenario runs in its **own isolated, offline git sandbox** built to a
-specific precondition (a dirty tree, an occupied feature lane, a repo whose
-default branch is `trunk`, a branch ready to ship, …). For that sandbox we run
-the skill's task prompt under two **arms** on the same cheap model:
+Every scenario runs in its **own isolated, offline git sandbox**, built to a
+prescribed state (a dirty tree, an occupied lane, and so on). On the same
+sandbox, the same model runs two **arms**:
 
-- **with_skill**: told to read and follow the skill's `SKILL.md`.
-- **without_skill** (baseline): the same task prompt, no skill.
+- **with_skill**: told to read the skill's `SKILL.md` and follow it.
+- **without_skill** (baseline): the task prompt only, no skill, left to its
+  own devices.
 
-A grader then scores each run against the eval's `expectations`. Machine checks
-judge the **resulting git state and the run's own outputs** rather than
-trusting the executor's narration; genuine judgment calls are handed to
-`skill-creator`'s grader. Scores are aggregated into `mean ± stddev` per arm
-with a `Δ` column.
+Machine checks judge the **resulting git state and the run's own outputs**
+rather than trusting the executor's narration; genuine judgment calls are
+deferred to the backfill grader.
 
-**Safe mode is load-bearing.** Every executor run is launched with `claude
---safe-mode`, which loads **no ambient context** (no user or project
-`CLAUDE.md`, no auto-memory, no settings-driven instructions). This keeps the
-two arms differing by exactly one variable: this repo's global `CLAUDE.md`
-carries commit-discipline and delegation rules that overlap with what the
-skills enforce, so auto-injecting it would silently hand the baseline the same
-guidance and make the skill look weaker than it is. The skill's `SKILL.md`,
-fed explicitly to the `with_skill` arm, becomes the **only** difference.
-Corollary: when a `SKILL.md` itself says to *read* an `AGENTS.md`/`CLAUDE.md`
-in the repo (e.g. `ship` derives commit discipline that way), that file is
-still present in the sandbox and readable on demand; safe mode removes the
+**The hermetic launch is load-bearing.** Every executor runs with ambient
+context stripped (`claude --safe-mode`; `codex exec --ignore-user-config`):
+no user or project instructions, no auto-memory. This keeps the two arms
+differing by exactly one variable; this repo's global instructions carry
+commit-discipline rules that overlap with what the skills enforce, and
+auto-injecting them would silently hand the baseline the same guidance. When
+a `SKILL.md` itself says to *read* an `AGENTS.md` in the repo, that file is
+still present in the sandbox and readable on demand: hermetic launch removes
 ambient auto-load, not the skill's own explicit lookups.
 
-#### How the skill reaches the `with_skill` arm
+**How the skill reaches the `with_skill` arm**: there is no skill install and
+no auto-load. The `with_skill` prompt names the absolute path to
+`skills/<skill_under_test>/SKILL.md` and says to read and follow it,
+resolving `<skill-base>` references against that skill's directory in the
+repo checkout; `without_skill` gets the bare task. Nothing is copied into any
+skills registry, and hermetic mode never blocks an explicit read of a file
+sitting in the checkout.
 
-There is **no skill install and no auto-load**. The `with_skill` arm is handed
-the absolute path to `skills/<skill_under_test>/SKILL.md` in its prompt and told
-to read and follow it (resolving any `<skill-base>` script references against
-that skill's directory in the repo checkout); `without_skill` gets the bare
-task. The skill files live in the repo checkout *outside* the sandbox, and the
-executor reads them explicitly. This is why a probe showing `--safe-mode` does
-not load a project's `.claude/skills/` is **not** in tension with past
-`with_skill` runs "having" the skill: those runs never relied on the
-`.claude/skills/` registry or on auto-load at all. Safe mode disables ambient
-auto-load; it never blocks an explicit `Read` of a file sitting in the
-checkout. `run_eval.sh` implements exactly this: the arm is launched as `claude
---safe-mode --dangerously-skip-permissions --model <cheap> -p <prompt>`, and the
-`with_skill` prompt names the `SKILL.md` path. Nothing is copied into any skills
-registry.
-
-Network isolation is **instruction plus fixture, not enforcement**: the executor
-runs under `--dangerously-skip-permissions`, so no permission layer blocks a
-network command. `git push` is inert because `origin` is a local bare repo, but
-`gh` / `curl` are only *forbidden by the executor ground rules*, not sandboxed;
-keep these runs on disposable checkouts. Do not read this as a hard guarantee
-that nothing can leave the machine.
+**Network isolation is instruction plus fixture, not enforcement**: the
+executor runs with permissions bypassed, so no layer blocks a network
+command. `git push` is inert because `origin` is a local bare repo, but `gh`
+and `curl` are only *forbidden by the executor ground rules*; keep these runs
+on disposable checkouts.
 
 ### Schema v1: `skills-eval/1`
 
@@ -283,10 +253,10 @@ is its only interpreter.
 }
 ```
 
-Every expectation pairs the **human-readable `text`** (what a reviewer reads)
-with a **typed `check`** (what the checker evaluates). The principle:
-**anything a machine can decide gets a machine check; only genuine judgment is
-left to `llm_judged`**, and each `llm_judged` records *why* in its rubric.
+Every expectation pairs the **human-readable `text`** with a **typed
+`check`**. The principle: **anything a machine can decide gets a machine
+check; only genuine judgment is left to `llm_judged`**, and each `llm_judged`
+records *why* in its rubric.
 
 #### Check-type vocabulary
 
@@ -294,7 +264,7 @@ The checker resolves paths as follows: `file_*`, `json_check`, and
 `changes_confined_to` operate on the **sandbox git tree**; `text_contains`
 operates on the **run's own output artifacts** (`result.md`, `transcript.md`,
 `PR_BODY.md`) selected by `source`. `git_log_count`'s default `base` is the
-fixture's initial commit (the state before the run).
+fixture's initial commit.
 
 **Git / filesystem state (sandbox after the run):**
 
@@ -312,7 +282,7 @@ fixture's initial commit (the state before the run).
 | `file_exists` | `path?` \| `paths?`, `expect?:true` | the file(s) exist (absent if `expect:false`) |
 | `file_size` | `path`, `min_bytes?`, `max_bytes?` | the file exists and its byte size is within the given bound(s) |
 | `file_contains` | `path`, `needle?`\|`needles?`\|`regex?`\|`regexes?`, `present?:true` | the file matches (all `needles`/`regexes` required; `present:false` negates) |
-| `json_check` | `path`, `min_keys?`, `has_keys?`, `absent_keys?`, `equals?:{dotted:val}`, `array?:{path,has_keys?,enum?}` | the JSON parses and satisfies the given structural asserts (`min_keys`: top-level object has at least N keys) |
+| `json_check` | `path`, `min_keys?`, `has_keys?`, `absent_keys?`, `equals?:{dotted:val}`, `array?:{path,has_keys?,enum?}` | the JSON parses and satisfies the given structural asserts |
 | `changes_confined_to` | `prefix` | every path reported by `git status` lives under `prefix` |
 
 **Run output (the arm's own reply/transcript):**
@@ -325,161 +295,125 @@ fixture's initial commit (the state before the run).
 
 | Type | Fields | Behavior |
 |------|--------|----------|
-| `llm_judged` | `rubric` | `check.py` defers it (`passed: null`); an optional later `skill-creator` grader pass folds a verdict into the same `grading.json` (see "How `llm_judged` is resolved") |
+| `llm_judged` | `rubric` | `check.py` defers it (`passed: null`); a later `backfill.py` pass folds a verdict into the same `grading.json` |
 
-The vocabulary is **open**: new machine types may be added in later batches
-(the checker is the one place that learns them), and an `llm_judged`
-expectation is promoted to a machine check the moment one becomes decidable.
+The vocabulary is **open**: new machine types may be added (the checker is
+the one place that learns them), and an `llm_judged` expectation is promoted
+to a machine check the moment one becomes decidable.
 
 #### How `llm_judged` is resolved
 
 `check.py` is deterministic and calls no model, so it **defers** every
-`llm_judged` expectation rather than judging it: the row is written with
-`passed: null`, an evidence string flagging the deferral, and the expectation's
-`rubric` carried alongside. The normalize pass excludes `null` rows from the
-summary counts, so a deferred expectation is never scored as a failure (a run
-with only machine checks decided reports e.g. `2/2`, not `2/4`). Because the
-grading is deterministic, `fingerprint.checker_sha256` fully identifies the
-machine verdicts.
+`llm_judged` expectation: the row is written with `passed: null` and its
+rubric carried alongside, excluded from the summary counts rather than scored
+as a failure. Because grading is deterministic,
+`fingerprint.checker_sha256` fully identifies the machine verdicts.
 
-The judgment itself is a **separate, optional supplemental pass**, run by
-`harness/backfill.py <suite> <iteration>` in the **main loop** (never a
-subagent), not by `check.py`. This is why the run **workspace is retained** (the
-gitignored `skills/<suite>/<suite>-workspace/…`, holding each run's
-`transcript.md` + `outputs/`): a deferred row can be filled later without a
-re-run. `backfill.py` touches **only** the `passed: null` `llm_judged` rows,
-leaving machine rows, `checker_sha256`, and every existing fingerprint field
-untouched. It judges each deferred row with **one `claude -p` call** (the
-subscription, cheap tier, offline, strictly serial, stopping on any limit), fed
-the row's `text` plus `rubric` and the run's own `result.md`, `transcript.md`,
-and `git-state.txt`, then merges the returned `{passed, evidence}` back into the
-**same** `grading.json` with `verdict_source: "grader"`. (skill-creator's
-`agents/grader.md` is **not** used for this: it overwrites the whole file and
-carries no fingerprint, which would erase the machine verdicts and provenance
-this design keeps separate.)
+The judgment is a **separate supplemental pass**:
+`harness/backfill.py <suite> <iteration>`, run in the main loop, never a
+subagent. This is why the gitignored run workspace is retained: a deferred
+row can be filled later without a re-run. `backfill.py` touches **only** the
+`passed: null` rows, judging each with one `claude -p` call (subscription,
+cheap tier, strictly serial, stop on any limit) fed the row's `text` plus
+`rubric` and the run's own `result.md`, `transcript.md`, and `git-state.txt`,
+then merging `{passed, evidence}` back with `verdict_source: "grader"`. The
+judge prompt budgets 60k transcript chars with head-and-tail elision, so
+end-of-run evidence survives truncation. When running backfill after a codex
+round, leave `EVAL_MODEL` unset: the variable names the judge model here, not
+the SUT.
 
-Because the grader is an LLM, the pass **records its identity in a separate
-`fingerprint.grader` block**, distinct from `checker_sha256`, so a mechanical
-verdict and a model-judged one are never conflated. That block is a **fixed
-schema**, not an illustration:
+Because the grader is an LLM, its identity lands in a separate
+`fingerprint.grader` block, distinct from `checker_sha256`:
 
 ```json
 "grader": {"model": "<model>", "rubric_sha256": "<sha256 of this run's llm_judged (text, rubric) rows>", "harness_commit": "<short HEAD>"}
 ```
 
-The summary then carries both regimes **side by side**: `summary.pass_rate` (with
-its `passed` / `failed` / `total`) still means the **machine subset**, name and
-semantics unchanged, while backfill adds `summary.total_pass_rate` (with
-`total_passed` / `total_decided`) over machine plus grader rows and folds a
-`run_summary_total` block into `benchmark.json`. Until a suite's deferred rows are
-backfilled, its `llm_judged` rows stay `null` and are reported as deferred; once
-backfill covers them, that suite's total-table row switches to the `total` number,
-with the machine subset shown in parentheses.
+The summary carries both regimes side by side: `summary.pass_rate` stays the
+machine subset; backfill adds `summary.total_pass_rate` over machine plus
+grader rows and folds a `run_summary_total` block into `benchmark.json`.
 
 ### The fingerprint block
 
-Every `grading.json` **must** carry a `fingerprint` so a result can be traced
-to exactly what produced it. It is stamped automatically by `run_eval.sh`
-(`harness/run_eval.sh`), whose normalize pass runs after every grader:
+Every `grading.json` **must** carry a `fingerprint` so a result traces to
+exactly what produced it; `run_eval.sh`'s normalize pass stamps it:
 
 ```json
 "fingerprint": {
   "checker_sha256": "...", "harness_commit": "...",
   "skill_name": "...", "skill_commit": "...", "iteration": 2,
-  "model": "claude-sonnet-...", "runs": 1,
+  "model": "...", "runs": 1,
   "timestamp": "...", "environment": "local",
+  "execution": {"arm_rc": 0, "stderr_scan": "clean", "model": "...", "executor": "codex"},
   "grader": {"model": "...", "rubric_sha256": "...", "harness_commit": "..."}
 }
 ```
 
-The `grader` sub-block is present **only after** a `backfill.py` pass has folded
-`llm_judged` verdicts into that run; a machine-only round omits it, and its
-`rubric_sha256` (identity of the rubrics judged) is kept separate from
-`checker_sha256` (identity of the deterministic checker) on purpose.
+`execution` records the per-arm run outcome (rc, the stderr auth/limit scan,
+and, for codex arms, the executor); it makes the discipline claim auditable
+from the harvested JSON alone. `grader` is present only after a backfill
+pass; a machine-only round omits it.
 
 ### The driver and the skill-creator contract
 
 `harness/run_eval.sh <skill> <eval_id> [runs] [iteration]` runs the whole
-pipeline for one eval (or `all`): build the sandbox, run each arm, snapshot git
-state, grade, normalize, aggregate, and harvest. It is a **thin shell over the
-reproducible triad plus skill-creator's benchmark tools**: it adds no grading
-intelligence of its own.
-
-Grading routes through `harness/check.py`, the universal checker and **sole
-grader** for every suite: it interprets each expectation's typed `check`
-against the sandbox git tree and the run's own outputs, deciding every machine
-check and deferring `llm_judged` rows (`passed: null`) to a `skill-creator`
-grader pass that folds its verdict into the same `grading.json`. A **normalize
-pass** then guarantees the contract skill-creator's tools require: every
-`grading.json` carries `summary.{pass_rate,passed,failed,total}` and
-`expectations[{text,passed,evidence}]`, plus the fingerprint above. Undecided
-expectations (`passed: null`) are excluded from the summary counts rather than
-scored as failures.
-
-skill-creator contributes only the **aggregate** (`aggregate_benchmark.py`) and
-the **viewer** (`eval-viewer/generate_review.py`). Both are directory-contract
-consumers: they read `iteration-N/eval-*/<arm>/run-*/grading.json` plus
-`eval-*/eval_metadata.json` (and, for the viewer, `outputs/`). They never touch
-the sandbox git tree, so there is no scaffold to reconcile: our own sandbox
-shape is invisible to them, and a `grading.json` written at the run level
-satisfies both. `run_eval.sh` locates skill-creator automatically (override with
-`SKILL_CREATOR_DIR`). `harness/snapshot.sh` stays as the driver's git-state
-recorder: its `git-state.txt` lands in each run's `outputs/` as human- and
-viewer-visible evidence.
+pipeline for one eval (or `all`): build the sandbox, run each arm
+(`EVAL_EXECUTOR` selects the CLI), snapshot git state, grade with `check.py`,
+normalize, aggregate, and harvest. It adds no grading intelligence of its
+own. skill-creator contributes only the aggregate
+(`aggregate_benchmark.py`) and the viewer (`eval-viewer/generate_review.py`);
+both are directory-contract consumers reading
+`iteration-N/eval-*/<arm>/run-*/grading.json` plus `eval_metadata.json`, and
+never touch the sandbox git tree. `harness/snapshot.sh` records
+`git-state.txt` into each run's `outputs/` as evidence.
 
 ### Iteration policy
 
 Iterations are numbered **per skill** (`results/<skill>/iteration-N/`). Every
-round records the **git hash of the skill under test at that time**
+round records the git hash of the skill under test
 (`fingerprint.skill_commit`); cross-skill comparability comes from that hash,
-not from a shared iteration counter. A skill at iteration-3 and another at
-iteration-1 are compared by what their recorded commits were, never by number.
+never from a shared iteration counter.
 
 ### Baseline (arm) policy
 
-The **standard form** is `with_skill` vs `without_skill` with a `Δ` column;
-that is what `arms` declares in every case file. An `old_skill` arm (the
-skill's prior `SKILL.md`, frozen with `git archive <ref> skills/<name>`) is
-**optional**: it exists only for the one round that validates a skill upgrade
-against a regression, is built ad hoc for that round, and is **called out
-explicitly in the report**. It is never a standing fixture and is not encoded
-as a default arm. (The `review-artifacts` suite's iteration-1 numbers were
-measured against an `old_skill` main snapshot for the two modified skills; that
-was such a regression round, recorded as history on its page.)
+The standard form is `with_skill` vs `without_skill` with a Δ column. An
+`old_skill` arm (the skill's prior `SKILL.md`, frozen with `git archive`) is
+optional, built ad hoc for the one round that validates a skill upgrade
+against regression, and called out explicitly in that report; it is never a
+standing fixture.
 
 ### Reproducibility: the iron rules
 
-1. **The reproducible triad is version-controlled.** A run is defined by three
-   things and all three live in git: the **case** (`cases/<suite>.json`), the
-   **fixture** (`harness/build_sandbox.sh`), and the **driver**
-   (`harness/run_eval.sh`). If a scenario cannot be rebuilt from these, it is
-   not an eval.
-2. **Execution environments are disposable.** Codespaces, the scratchpad, and
-   worktrees are throwaway. Anything that lives *only* inside an execution
-   environment is treated as if it does not exist.
-3. **Only small JSON comes home.** The one thing a completed round brings back
-   into the repo is its `grading.json` plus the fingerprint block
-   (`results/<skill>/iteration-N/`). Per-run sandboxes, transcripts, and
-   benchmark blobs are regenerable and **gitignored** (`skills/*/*-workspace/`).
-4. **No round, no citation.** If a round's `grading.json` + fingerprint cannot
-   be brought back, the round is treated as never having run, and no report may
-   cite its numbers.
+1. **The reproducible triad is version-controlled.** A run is defined by the
+   **case** (`cases/<suite>.json`), the **fixture**
+   (`harness/build_sandbox.sh`), and the **driver** (`harness/run_eval.sh`),
+   and all three live in git. If a scenario cannot be rebuilt from these, it
+   is not an eval.
+2. **Execution environments are disposable.** Anything that lives *only*
+   inside an execution environment is treated as if it does not exist.
+3. **Only small JSON comes home.** A completed round brings back its
+   `grading.json` plus fingerprint (`results/<skill>/iteration-N/`); per-run
+   sandboxes, transcripts, and benchmark blobs are regenerable and
+   gitignored.
+4. **No round, no citation.** If a round's `grading.json` + fingerprint
+   cannot be brought back, the round is treated as never having run.
 
-> Why rule 1 exists: `review-artifacts`'s original sandbox was hand-built
-> inside Codespaces and never version-controlled. When that environment went
-> away the whole suite became unreproducible. The fixtures now live in
-> `build_sandbox.sh` precisely so that cannot recur.
+> Why rule 1 exists: an early suite's sandbox was hand-built inside a
+> Codespace and never version-controlled; when that environment went away the
+> whole suite became unreproducible. Fixtures live in `build_sandbox.sh`
+> precisely so that cannot recur.
 
 ### Executor ground rules
 
-These are the standing instructions handed to every executor subagent
-(previously `harness/EXEC_RULES.md`, now folded here):
+These are the standing instructions handed to every executor run;
+`run_eval.sh` extracts this blockquote verbatim into the prompt, so the
+heading above and the quote format below are load-bearing:
 
 > You are running ONE task inside an ISOLATED, OFFLINE git sandbox as part of a
-> skill benchmark. You are launched with `claude --safe-mode`: no ambient
-> context is loaded (no user/project `CLAUDE.md`, no auto-memory, no
-> settings-driven instructions), so both arms start from the same blank slate
-> and the skill under test is the only variable. Follow these rules:
+> skill benchmark. You are launched hermetically (`claude --safe-mode`, or
+> `codex exec --ignore-user-config`): no ambient context is loaded (no
+> user/project instructions, no auto-memory), so both arms start from the same
+> blank slate and the skill under test is the only variable. Follow these rules:
 >
 > - Your working directory is the sandbox path given in your prompt. `cd` into
 >   it first and operate ONLY inside it. The only files you may read outside it
@@ -493,8 +427,9 @@ These are the standing instructions handed to every executor subagent
 > - If your prompt names a skill to follow, read that SKILL.md and follow it
 >   exactly, resolving any `<skill-base>` script references against the base dir
 >   given. If no skill is named, use your own best judgment (baseline).
-> - You have the Agent/Task tool if the workflow calls for dispatching a
->   subagent; if you dispatch one, note which model you used.
+> - If your harness provides a subagent dispatch tool (Agent/Task), use it when
+>   the workflow calls for dispatching a subagent and note which model you
+>   used. If it provides none, do that step inline and say so explicitly.
 > - The project quality gate, when relevant, is `make check` (see AGENTS.md).
 >
 > When finished (or when you stop to ask/block), write into the outputs dir
@@ -511,15 +446,19 @@ These are the standing instructions handed to every executor subagent
 
 ### Execution discipline
 
-- Runs go through the **subscription**, not the API: `ANTHROPIC_API_KEY` must
-  be unset for the duration.
+- Runs go through the **subscription of the executor's own vendor**, never an
+  API key: `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` /
+  `ANTHROPIC_BASE_URL` must be unset for the Claude executor,
+  `OPENAI_API_KEY` / `OPENAI_BASE_URL` for the Codex executor. The driver
+  aborts if they are set.
 - **Strictly serial**, cheapest scenario first as a sentinel. On any `401` /
   `429` / rate-limit or usage-cap signal, **stop immediately** and report; do
-  not retry or fan out.
-- A nested `claude -p` invocation always runs in the **main execution loop**,
-  never inside a subagent prompt: the safety classifier blocks
-  `--dangerously-skip-permissions` when it appears inside a subagent (observed
-  twice).
+  not retry or fan out. A provider **capacity** error is the one exception:
+  transient, produces no gradable output, retryable with generous spacing.
+- A nested executor invocation (`claude -p` or `codex exec`) always runs in
+  the **main execution loop**, never inside a subagent prompt: the safety
+  classifier blocks `--dangerously-skip-permissions` when it appears inside a
+  subagent (observed twice).
 - If a load-bearing assumption breaks, **stop and report** rather than
   inventing a workaround on the spot.
 
@@ -530,15 +469,16 @@ evals/
   EVALUATION.md              this file: results + schema/rules single source
   cases/<suite>.json         schema v1: scenarios + typed expectations
   harness/build_sandbox.sh   sandbox construction (one case per fixture key)
-  harness/run_eval.sh        thin one-shot driver (build -> arms -> grade -> aggregate)
+  harness/run_eval.sh        thin one-shot driver (build -> arms -> grade -> aggregate; EVAL_EXECUTOR selects claude or codex)
+  harness/check.py           the one general checker (sole machine grader; interprets schema v1)
+  harness/backfill.py        supplemental llm_judged grader (fills deferred rows, adds total_pass_rate)
+  harness/codex_transcript.py  codex outputs reconstructor (stream + child session rollouts -> transcript.md/result.md)
   harness/snapshot.sh        post-run git-state recorder (evidence in outputs/)
-  harness/check.py           the one general checker (sole grader; interprets schema v1)
   results/<skill>/iteration-N/   grading.json + benchmark.json (small JSON only)
-  history.md                  condensed development trail per suite (supersedes the old per-suite <suite>-eval.md pages)
+  history.md                  condensed development trail per suite
 ```
 
 ---
 
-For the condensed development trail of each skill (measurements taken before the
-2026-07-24 contract re-alignment, with their result files removed), see
-[`history.md`](./history.md).
+For the condensed development trail of each skill, including the superseded
+single-executor rounds, see [`history.md`](./history.md).
