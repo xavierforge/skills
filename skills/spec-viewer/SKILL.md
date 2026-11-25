@@ -169,10 +169,10 @@ The script prints the output path, a section count, the full list of
 many questions it holds. Those section ids are what a gloss file keys on, so
 a first run with no gloss is also how you discover the ids to write one.
 
-After a successful run, open the resulting HTML yourself: `open
-<path-to>/review.html`. This is a hard step, not something to wait for the
-user to ask for; the point of the Quiz tab is that a reviewer actually looks
-at it.
+After a successful run, open the resulting `<path-to>/review.html` yourself
+(`open` on macOS, `xdg-open` on Linux, `start` on Windows). This is a hard
+step, not something to wait for the user to ask for; the point of the Quiz tab
+is that a reviewer actually looks at it.
 
 Stop after Step 2 unless a zh-TW reading aid is explicitly wanted.
 
