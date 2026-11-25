@@ -7,7 +7,7 @@
 1. **準備** — `begin`：把預設分支同步到乾淨基準，再開出一條 feature branch。
 2. **實作推進** — `factory`：負責推進整個開發進度，每輪處理一個 section；`section` 則專注執行單一個區塊，逐 task 做 TDD，完成一個 commit 就停。
 3. **多重審查** — `cross-check`、`vibe-diff`、`spec-viewer` 與 `preflight`：疊加多重審查閘門，並維護一份決策紀錄 (decision ledger)。
-4. **貢獻與合併** — `ship`：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
+4. **貢獻與合併** — `land`：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
 
 以上流程是圍繞著 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 工作流長出來的，所以搭配它進行 SDD 時效果最好。但實際上也只有三個 skill 硬性要求 OpenSpec 的資料夾結構 (詳見下表)；其餘的在任何 repo 都能跑，如果找不到 spec 資料夾，就會自動退回使用 mini-spec 並在 `.review/` 落地，專案內的 `openspec-rules/` 資料夾有提供需要的範本。
 
@@ -35,13 +35,15 @@
 | [`begin`](skills/begin/)             | 先同步預設分支，再開乾淨的 feature branch                                    | 不需要      | `/begin`              |
 | [`factory`](skills/factory/)         | 推進進行中的 change，一輪解決一個 section，每輪都會開啟全新 subagent                  | 必要       | `/factory`            |
 | [`section`](skills/section/)         | 執行 `tasks.md` 的單一編號 section：逐 task 進行 TDD 並在最後使用單一個 commit，做完就停 | 必要       | `/section N`（模型可自行呼叫） |
-| [`cross-check`](skills/cross-check/) | 對 diff 做 standards 與 spec 雙軸審查；留下 verdict 給 `/ship` 對帳          | 可選       | `/cross-check`        |
+| [`cross-check`](skills/cross-check/) | 對 diff 做 standards 與 spec 雙軸審查；留下 verdict 給 `/land` 對帳          | 可選       | `/cross-check`        |
 | [`vibe-diff`](skills/vibe-diff/)     | 產出 self-contained 的 diff review 頁面，對照 change 的意圖來讀              | 可選       | `/vibe-diff`          |
 | [`spec-viewer`](skills/spec-viewer/) | 把一個 OpenSpec change 渲染成單頁 handbook 式 HTML                       | 必要       | `/spec-viewer`        |
 | [`preflight`](skills/preflight/)     | 貢獻前的驗收閘門：對帳、跑各審查層、把 findings 逐一裁決                               | 可選       | `/preflight`          |
-| [`ship`](skills/ship/)               | 同步遠端預設分支的最新基準、執行品質閘門、對抗式審查、整理 commit、寫 PR body            | 可選       | `/ship`               |
+| [`land`](skills/land/)               | 同步遠端預設分支的最新基準、執行品質閘門、對抗式審查、整理 commit、寫 PR body            | 可選       | `/land`               |
 
 _(備註：**必要** = 沒 `openspec/changes/` 就無事可做；**可選** = 有就用，沒有就走非 OpenSpec 路徑；**不需要** = 完全解耦。)_
+
+`land` 原本叫 `ship`，因為 Claude Code 出了同名的 skill 才改名；如果你是用 symlink 安裝的，重跑一次安裝迴圈，再把 skills 目錄裡殘留的 `ship` 連結刪掉即可。
 
 ## 安裝方式
 
@@ -53,7 +55,7 @@ _(備註：**必要** = 沒 `openspec/changes/` 就無事可做；**可選** = �
 
 ### 0. OpenSpec（可選）
 
-要跑完整 pipeline 就得先裝 [OpenSpec](https://github.com/Fission-AI/OpenSpec)，但如果只想使用 `begin`、`ship` 或獨立審查的 skill 可以直接跳過。除此以外，本專案就沒有其他外部相依套件，skill 內文提到了隔壁的指令 (`/opsx:verify`、`/code-review` 等)，系統都有寫好 fallback，不用擔心會直接掛掉。
+要跑完整 pipeline 就得先裝 [OpenSpec](https://github.com/Fission-AI/OpenSpec)，但如果只想使用 `begin`、`land` 或獨立審查的 skill 可以直接跳過。除此以外，本專案就沒有其他外部相依套件，skill 內文提到了隔壁的指令 (`/opsx:verify`、`/code-review` 等)，系統都有寫好 fallback，不用擔心會直接掛掉。
 
 ### 1a. skills CLI（推薦）
 
@@ -78,11 +80,11 @@ for s in skills/*/; do ln -sfn "$PWD/$s" ~/.claude/skills/"$(basename "$s")"; do
 
 這招可以重複跑 (idempotent)，新增 skill 後再跑一次即可。若想單獨裝一個 skill 的話指令是：`ln -sfn "$PWD/skills/<skill>" ~/.claude/skills/<skill>`。
 
-需要的工具：`git` 一定要有；`gh` 只有 ship 開 PR 那一步用到；viewer 類 skill 的 script 需要 `uv` 或任一 `python3`。
+需要的工具：`git` 一定要有；`gh` 只有 land 開 PR 那一步用到；viewer 類 skill 的 script 需要 `uv` 或任一 `python3`。
 
 ### 2. Role agents（推薦）
 
-會自動派工的 skill (`factory`、`section`、`ship`) 是把任務發包給三個「具名角色」，而不是綁死特定模型。
+會自動派工的 skill (`factory`、`section`、`land`) 是把任務發包給三個「具名角色」，而不是綁死特定模型。
 
 請照 [`agents/README.md`](agents/README.md) 的說明安裝 (Claude Code 和 Codex 版都有)。沒裝也不會壞，派工時會自動降級成帶著一句話契約的普通 subagent 繼續跑，並在回報裡註明降級；但裝了才能擁有真正的模型分級和明確的工具邊界。
 
@@ -105,6 +107,6 @@ harness 裡的 `claude --safe-mode --dangerously-skip-permissions` 是為了讓�
 - **Script 只依賴標準函式庫**：沒有 venv、pip 或鎖版本的問題；`uv run` 只是個跨平台的啟動器，本專案有明寫 `python3` 當作備援。
 - **`<skill-base>` 在任何 harness 都成立**：Claude Code 在呼叫時會主動宣告 base directory；其他平台則以載入 `SKILL.md` 的位置為準進行解析。
 - **Frontmatter 是 Claude Code 專屬**：其他 harness 只讀 `name`/`description`；每個 skill 都多附了一份 `agents/openai.yaml` 給 Codex 讀，設定 `disable-model-invocation: true` 是為了讓手動呼叫的儀式類 skill 不去佔用常駐清單 (零常駐 context)。
-- **靠角色描述路由模型**：例如 `ship` 會要求「當下最強的 review 模型」，而不是綁死某個型號，全場唯一刻意綁定的只有 spec-viewer 的 `model: haiku` (因為要找能跑 script 的最便宜模型)。
+- **靠角色描述路由模型**：例如 `land` 會要求「當下最強的 review 模型」，而不是綁死某個型號，全場唯一刻意綁定的只有 spec-viewer 的 `model: haiku` (因為要找能跑 script 的最便宜模型)。
 - **雙平台都有 agent roster**：提供 `agents/claude/*.md` 和 `agents/codex/*.toml` 兩種版本；Codex 那邊的技術落差 (沒硬性回合上限、沒工具黑名單) 全都條列在 [`agents/README.md`](agents/README.md)。
 - **不硬性綁死 slash command**：skill 內文只描述「需要發生的事件」，鄰居指令只是解法之一，如果環境裡沒有指令可以 call，也有 fallback 可以走。

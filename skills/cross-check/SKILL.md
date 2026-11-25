@@ -1,6 +1,6 @@
 ---
 name: cross-check
-description: Two-axis review of the diff since a fixed point, one axis for Standards (repo conventions, structure, style) and one for Spec (does the change do what the issue or PRD asked). Use when /preflight or /ship needs its review layer, or the user asks to cross-check a change; a bare 'review this' request stays with /code-review.
+description: Two-axis review of the diff since a fixed point, one axis for Standards (repo conventions, structure, style) and one for Spec (does the change do what the issue or PRD asked). Use when /preflight or /land needs its review layer, or the user asks to cross-check a change; a bare 'review this' request stays with /code-review.
 ---
 
 Review the diff between a fixed point and `HEAD` along two axes that stay separate on purpose:
@@ -65,7 +65,7 @@ Finish with a single line giving each axis its finding count and its most seriou
 
 ### 6. Write the verdict artifact
 
-Persist the outcome so later tooling (notably `/ship`'s reconciliation step) reads the verdict from disk instead of trusting a verbal claim. Resolve where it lands with the **landing rule** the neighbor skills share (vibe-diff writes its artifacts by the same resolution): the active openspec change directory (`openspec/changes/<name>/`, excluding `archive/`) when exactly one exists, otherwise `.review/<slug>/` at the repo root, where `<slug>` is the branch name with `/` turned into `-` (`feat/hook-system` becomes `.review/feat-hook-system/`). Create the directory when it is missing. Write `review-verdict.json` there:
+Persist the outcome so later tooling (notably `/land`'s reconciliation step) reads the verdict from disk instead of trusting a verbal claim. Resolve where it lands with the **landing rule** the neighbor skills share (vibe-diff writes its artifacts by the same resolution): the active openspec change directory (`openspec/changes/<name>/`, excluding `archive/`) when exactly one exists, otherwise `.review/<slug>/` at the repo root, where `<slug>` is the branch name with `/` turned into `-` (`feat/hook-system` becomes `.review/feat-hook-system/`). Create the directory when it is missing. Write `review-verdict.json` there:
 
 ```json
 {
@@ -82,7 +82,7 @@ Persist the outcome so later tooling (notably `/ship`'s reconciliation step) rea
 - `fixed_point` is the ref pinned in step 1, verbatim.
 - `axis` is `standards` or `spec`, matching the two report headings.
 - `severity` is `hard` (a documented-standard breach, or a spec requirement missing or built wrong) or `judgement` (a smell baseline hit or other judgement call), the same distinction the reports already draw.
-- `actioned` records whether the finding was fixed by the time the file is written: `false` at review time. A later session that fixes a finding flips the flag in place rather than deleting the entry, since the artifact is the record `/ship` reconciles against.
+- `actioned` records whether the finding was fixed by the time the file is written: `false` at review time. A later session that fixes a finding flips the flag in place rather than deleting the entry, since the artifact is the record `/land` reconciles against.
 - An empty `findings` array is a valid verdict: it says the review ran and found nothing, which is exactly the fact worth having on disk.
 
 The step is done when `review-verdict.json` sits at the resolved landing spot and its `findings` match the two reports one to one: every reported finding has an entry, and no entry lacks a reported finding.

@@ -1,7 +1,7 @@
 {
   "name": "xavierforge-skills",
   "version": "0.1.0",
-  "description": "A disciplined agent delivery pipeline from spec to merged PR, with role-tiered dispatch, layered review gates, and eval-measured skills (begin, section, factory, preflight, ship, cross-check, spec-viewer, vibe-diff); works best on an OpenSpec project, most skills also run standalone.",
+  "description": "A disciplined agent delivery pipeline from spec to merged PR, with role-tiered dispatch, layered review gates, and eval-measured skills (begin, section, factory, preflight, land, cross-check, spec-viewer, vibe-diff); works best on an OpenSpec project, most skills also run standalone.",
   "author": {
     "name": "Xavier Yen"
   },
@@ -20,9 +20,9 @@
     "./skills/begin",
     "./skills/cross-check",
     "./skills/factory",
+    "./skills/land",
     "./skills/preflight",
     "./skills/section",
-    "./skills/ship",
     "./skills/spec-viewer",
     "./skills/vibe-diff"
   ]

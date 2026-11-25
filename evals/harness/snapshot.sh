@@ -22,7 +22,7 @@ mkdir -p "$OUT"
       break
     fi
   done
-  # tasks.md files (section/ship)
+  # tasks.md files (section/land)
   for f in $(git -C "$SB" ls-files '*tasks.md' 2>/dev/null); do
     echo; echo "## $f"; cat "$SB/$f"
   done

@@ -39,7 +39,12 @@ for any defect in the round.
   eval-2 from non-discriminating into a clean discriminator on the surviving
   `head_branch` check; deferred rows resolved by a backfill grader (sonnet).
 
-## `ship`
+## `land`
+
+This suite was named `ship` until the skill was renamed to `land`. Its
+recorded iterations moved to `results/land/` unchanged, so their
+grading and benchmark JSON still carry `"skill_name": "ship"` and the
+skill's old name in their wording; read those as the same suite.
 
 - **iter-2** (Sonnet, n=2, full-assertion): 1.00 / 0.42, Δ+0.58. Caught an
   autonomous rewrite of the default branch (an early run reset `main` and moved
@@ -149,7 +154,7 @@ carried that round forward unchanged.
 | Skill | Iter | n | with_skill | without_skill | Δ | Provenance |
 |-------|------|---|-----------|---------------|---|-----------|
 | `begin` | 1 | 1 | **1.00** | 0.9333 | +0.07 | full assertion set, total (automation) |
-| `ship` | 1 | 1 | **1.00** | 0.3889 | **+0.61** | full assertion set, total (hybrid) |
+| `land` | 1 | 1 | **1.00** | 0.3889 | **+0.61** | full assertion set, total (hybrid) |
 | `section` | 1 | 1 | **1.00** | 0.7778 | +0.22 | full assertion set, total; rosterless fallback contract (judgment) |
 | `factory` | 1 | 2 | **0.9844 ± 0.0442** | 0.4494 ± 0.2645 | **+0.54** | full assertion set, total; rosterless fallback contract; eval-1 with_skill was initially misgraded by a harness stale-transcript bug, corrected on regrade (judgment) |
 | `vibe-diff` | 1 | 1 | **1.00** | 0.3125 | **+0.69** | full assertion set, total (hybrid) |
@@ -167,7 +172,7 @@ returned and the suite reached 1.00 against 0.5555. The iteration-1 numbers are
 not comparable to either, since that round was scored with an honesty assertion
 later removed for passing on a coincidence, and it was never regraded.
 
-**One defect outlived this stratum.** `ship` iter-3 (in the per-skill section
+**One defect outlived this stratum.** `land` iter-3 (in the per-skill section
 above) had already caught the reviewer model going unreported, and iter-4 fixed
 it by carrying an `adversarial review: <model>` line into Step 7's summary. The
 2026-08-06 round found the same hole in a new shape: the line was present but
@@ -175,7 +180,7 @@ filled with the subagent type (`adversarial review: general-purpose`) rather
 than the model, because the skill never said what that slot holds when no
 `agents/` roster is installed and the reviewer degrades to a plain general
 subagent. Fixed in `3cc9579`, which makes the model mandatory and the type an
-optional suffix, and confirmed by `ship` iteration-3 on an unchanged assertion:
+optional suffix, and confirmed by `land` iteration-3 on an unchanged assertion:
 the row flipped green, the run wrote `adversarial review: opus (general-purpose,
 no roster)`, and the other two cases held. A fix that closes the case for one
 environment can leave the slot ambiguous in another.
@@ -186,9 +191,9 @@ a lands-no-commits assertion on the same `skill_commit` (`d899536`) and model
 that iteration-4 had passed it with. The first reading was that `SKILL.md`
 contradicted itself, and the no-commit rule was hardened to match the
 assertion. Checking how the two skills actually compose overturned that:
-`/ship`'s Step 2 scan and Step 4 adversarial review both read
+`/land`'s Step 2 scan and Step 4 adversarial review both read
 `<base>...HEAD`, so a fix left uncommitted is invisible to both and never
-reaches the PR, and `/ship`'s Step 5 already says it expects to squash fixup
+reaches the PR, and `/land`'s Step 5 already says it expects to squash fixup
 commits it finds on the branch. Leaving fixes in the tree was the reading that
 did not compose. The contract is now explicit in the other direction, preflight
 commits each accepted fix as a fixup against what it corrects and stops short

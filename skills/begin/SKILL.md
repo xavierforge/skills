@@ -1,6 +1,6 @@
 ---
 name: begin
-description: Two-phase start-of-contribution ritual, the opening bookend to /ship. Run manually at the start of a new piece of work to sync the base, guard the tree, and open the feature branch when the work is nameable.
+description: Two-phase start-of-contribution ritual, the opening bookend to /land. Run manually at the start of a new piece of work to sync the base, guard the tree, and open the feature branch when the work is nameable.
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,7 @@ This runs at the very start of a piece of work, in two phases, because the two
 halves of "get ready to work" become ready at different times.
 
 **Phase A (base ready)** needs only the repo: guard the tree, sync the default
-branch. Run it as early as possible; syncing now, not at ship time, is the
+branch. Run it as early as possible; syncing now, not at PR time, is the
 point, because a feature built on a week-old base collides with upstream
 right before the PR.
 
@@ -45,18 +45,18 @@ commits.
 
 ### Step A2. Sync the default branch to latest
 
-Run the shared sync script. Its canonical copy lives in the ship skill, which
+Run the shared sync script. Its canonical copy lives in the land skill, which
 sits beside this one, so resolve it from this skill's base directory (the path
 announced when the skill is invoked); never assume an install location such as
 `~/.claude/skills/`:
 
 ```
-<skill-base>/../ship/scripts/sync-base.sh
+<skill-base>/../land/scripts/sync-base.sh
 ```
 
 It is pure git (no gh needed) and owns the mechanical half of this step: detect
 the mode (an `upstream` remote means **contribution mode**, origin is your fork;
-otherwise **maintainer mode**, origin is canonical; the same rule `/ship` uses),
+otherwise **maintainer mode**, origin is canonical; the same rule `/land` uses),
 derive the default branch from the canonical remote (never assuming `main`),
 and fast-forward it to the canonical remote. Crucially, it fast-forwards the
 default **in place, without switching your checkout**: if you are sitting on an
@@ -67,7 +67,7 @@ default. Only when the default already is your current branch does it fast-forwa
 by moving HEAD. In contribution mode it also pushes the fork's default branch and
 verifies the fork is level with upstream. It prints the derived facts (mode,
 canonical remote, default branch, sync result); read them back and use that
-default branch name everywhere below in place of `<default>`. `/ship`'s refresh
+default branch name everywhere below in place of `<default>`. `/land`'s refresh
 step calls the same script, which is why the base ends up in the identical shape
 whether you sync here or there.
 
@@ -174,7 +174,7 @@ for the in-place case.
 ### Step B2. Choose the branch name
 
 The branch must be `<type>/<kebab-case>`, matching the global commit conventions
-and the assertion `/ship` makes at gate time (`feat/hook-system`,
+and the assertion `/land` makes at gate time (`feat/hook-system`,
 `fix/honor-pure-stdout`, `docs/audit-readme-links`). `type` is one of feat, fix,
 docs, test, refactor, chore, perf, build, ci.
 
@@ -202,7 +202,7 @@ work on that branch's unmerged commits. Naming `<default>` costs nothing when
 you are already on it and prevents the wrong-base mistake when you are not.
 
 Confirm you landed on it (`git branch --show-current`). Do not push an empty
-branch: there are no commits yet, and `/ship` (or the first real commit) pushes
+branch: there are no commits yet, and `/land` (or the first real commit) pushes
 it. Pushing now just creates an empty remote branch to clean up.
 
 ### Step B4. Save the mini-spec, only when one was explicitly requested
@@ -230,7 +230,7 @@ never needed one.
 When it does fire, write to `.review/<slug>/mini-spec.md`, where `<slug>` is
 the branch name with `/` replaced by `-`, the same slugging B1 uses for the
 worktree path (`feat/hook-system` → `.review/feat-hook-system/mini-spec.md`).
-This mirrors where `/vibe-diff` and `/ship` already land their own artifacts,
+This mirrors where `/vibe-diff` and `/land` already keep their own artifacts,
 so a later session finds all of a branch's review material in one place. Create
 the directory if it does not exist. Tell the user where it landed. This skill
 only writes the file and reports the path; whether `.review/` is gitignored is
@@ -240,5 +240,5 @@ each repo's own concern, not this skill's.
 
 Tell the user the base is fresh and the branch is open, so they can start the work
 (including whatever scaffolding this change needs, which now has a branch to be
-committed on). Remind them that `/ship` at the end refreshes the base
-again and runs the gates; they do not need to sync by hand before shipping.
+committed on). Remind them that `/land` at the end refreshes the base
+again and runs the gates; they do not need to sync by hand before running it.

@@ -1,6 +1,6 @@
 ---
 name: vibe-diff
-description: Render a branch's diff against its merge-base into one self-contained diff-review.html, read against the OpenSpec change it implements, the right-side twin of /spec-viewer. Run manually in a fresh session after a change's sections are executed, before /ship's adversarial review.
+description: Render a branch's diff against its merge-base into one self-contained diff-review.html, read against the OpenSpec change it implements, the right-side twin of /spec-viewer. Run manually in a fresh session after a change's sections are executed, before /land's adversarial review.
 disable-model-invocation: true
 ---
 
@@ -25,7 +25,7 @@ writes a sentence of judgment.
 **vibe-diff explains, it never judges.** The page is a map, not a verdict: no
 approve/block signal, no "this is fine" or "you must fix this." Surface what a
 reviewer would want to look at twice; let them decide. Judging the diff is
-`/ship`'s adversarial review, a separate, later, blocking gate.
+`/land`'s adversarial review, a separate, later, blocking gate.
 
 ## Precondition: run in a fresh session
 
@@ -58,7 +58,7 @@ the failure mode this precondition exists to catch before it happens again.
   `<slug>` is the branch name with `/` replaced by `-`
   (`feat/hook-system` → `.review/feat-hook-system/`); create it if missing.
   This two-tier **landing rule** (active change dir, else `.review/<slug>/`)
-  is the same resolution `/ship`'s reconciliation step and cross-check's
+  is the same resolution `/land`'s reconciliation step and cross-check's
   verdict artifact use, so never invent a third location. `.review/` is local review scratch, not part
   of the shipped work: leave it uncommitted (suggest adding `.review/` to
   `.gitignore` if the repo does not already ignore it).
@@ -181,7 +181,7 @@ Field-by-field intent (all optional except that an empty file is not a review):
   highlights the line and sets the note beside it in the margin. Annotate only
   the lines that need it, not every line. A mismatched `match` is reported and
   rendered as an unplaced note, so check the script's output and fix rather
-  than ship a dangling claim.
+  than publish a dangling claim.
 - `unverified`: anything you believe but cannot tie to a hunk. Quarantined,
   never mixed in with anchored claims as if it were confirmed. An honest gap
   helps a reviewer; a confident-looking guess misleads one.

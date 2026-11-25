@@ -24,7 +24,7 @@ each executor (one run per arm), with identical case files, an identical
 harness, and the same backfill judge (`sonnet` on both).
 
 One thing to note: the four codex suites carrying dispatch assertions
-(`ship`, `section`, `factory`, `preflight`) were measured with the
+(`land`, `section`, `factory`, `preflight`) were measured with the
 [role roster](../agents/README.md) installed in `~/.codex/agents/`, so the
 collab `spawn` tool had named roles to hand work to; the other four suites
 carry no dispatch assertions and are unaffected by the roster.
@@ -37,7 +37,7 @@ Code / Codex).
 | Skill | Iter (cc/cx) | Claude with | Claude w/o | Codex with | Codex w/o |
 |-------|--------------|-------------|------------|------------|-----------|
 | `begin` | 9 / 8 | **11/11** | 6/11 | **11/11** | 8/11 |
-| `ship` | 6 / 7 | 13/14 | 7/14 | 13/14 | 7/14 |
+| `land` | 6 / 7 | 13/14 | 7/14 | 13/14 | 7/14 |
 | `section` | 4 / 5 | **14/14** | 10/14 | **14/14** | 10/14 |
 | `factory` | 4 / 5 | 18/22 | 6/22 | 11/22 | 8/22 |
 | `vibe-diff` | 4 / 3 | **12/12** | 2/12 | **12/12** | 3/12 |
@@ -90,7 +90,7 @@ conclusions stand; the superseded 2026-08-06 table remains in git history and
 [`history.md`](./history.md).
 
 A first codex measurement of the four dispatch-bearing suites (iterations
-`ship/5`, `section/3`, `factory/3`, `preflight/10`) ran before the role
+`land/5`, `section/3`, `factory/3`, `preflight/10`) ran before the role
 roster existed in the execution environment, when the collab `spawn` tool
 exposed zero agent types and dispatch was impossible by construction. Those
 iterations were superseded by the post-roster re-measurement in the table
@@ -107,7 +107,7 @@ skill on, not Δ.
 By that standard the eight suites fall into three classes:
 
 1. **Ritual-automation** (`begin`, `spec-viewer`)
-2. **Hybrid** (`ship`, `vibe-diff`)
+2. **Hybrid** (`land`, `vibe-diff`)
 3. **Judgment-structure** (`cross-check`, `factory`, `section`,
    `preflight`) — only this class is read by Δ.
 
@@ -179,7 +179,7 @@ whether the guardrails hold when the model gets it wrong.
 | Suite | Skill under test | Scenarios | Page |
 |-------|------------------|-----------|------|
 | [`begin`](./history.md#begin) | `begin` | 3 | dirty-tree guard, occupied-lane new work, clean maintainer-named |
-| [`ship`](./history.md#ship) | `ship` | 3 | on the default branch, ready-to-ship, Step 0c reconciliation |
+| [`land`](./history.md#land) | `land` | 3 | on the default branch, ready-to-land, Step 0c reconciliation |
 | [`section`](./history.md#section) | `section` | 3 | happy one-section, two active changes, dispatch annotation |
 | [`factory`](./history.md#factory) | `factory` | 4 | full three-section loop, no-active-change refusal, plan-gate rewrite, parallel-group lane hand-off |
 | [`vibe-diff`](./history.md#vibe-diff) | `vibe-diff` | 2 | no-spec-source refusal (hardened contract), mini-spec happy path |
@@ -439,7 +439,7 @@ heading above and the quote format below are load-bearing:
 >    exact question or block message you'd give the user, quoted. Note what you
 >    deliberately did NOT do and why.
 > 2. `result.md`: your final user-facing reply.
-> 3. (ship only) `PR_BODY.md`: the PR body you composed, if any.
+> 3. (land only) `PR_BODY.md`: the PR body you composed, if any.
 >
 > Leave the git repo in its final state (do not clean up or revert). Reply with
 > a 2-3 sentence summary.

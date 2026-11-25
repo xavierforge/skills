@@ -6,7 +6,7 @@
 #
 # Usage:
 #   run_eval.sh <skill> <eval_id> [runs] [iteration]
-#     <skill>     suite name (begin|ship|section|factory|vibe-diff|cross-check|spec-viewer|preflight) or "all"
+#     <skill>     suite name (begin|land|section|factory|vibe-diff|cross-check|spec-viewer|preflight) or "all"
 #     <eval_id>   numeric fixture index (1,2,3...) or "all" for every eval in the suite
 #     [runs]      runs per arm (default 1; the cheapest scenario is the sentinel)
 #     [iteration] iteration number -> iteration-<N> (default 1)
@@ -86,7 +86,7 @@ VIEWER="${SC_DIR:+$SC_DIR/eval-viewer/generate_review.py}"
 # Enumerate the (skill, id) work-list
 # ---------------------------------------------------------------------------
 suites() {
-  if [ "$SKILL" = "all" ]; then echo "begin ship section factory vibe-diff cross-check spec-viewer preflight"; else echo "$SKILL"; fi
+  if [ "$SKILL" = "all" ]; then echo "begin land section factory vibe-diff cross-check spec-viewer preflight"; else echo "$SKILL"; fi
 }
 ids_for() { # ascending numeric ids present in a suite's case file (cheapest = first = sentinel)
   local s="$1"

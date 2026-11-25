@@ -1,14 +1,14 @@
 ---
 name: preflight
-description: Pre-ship acceptance gate for a finished change, run after /factory and before /ship. Reconciles every finding against the change's Non-Goals and decision ledger, runs the mechanical, runtime, and static review layers, and triages each finding into fix, reversal request, or tracked.
+description: Pre-PR acceptance gate for a finished change, run after /factory and before /land. Reconciles every finding against the change's Non-Goals and decision ledger, runs the mechanical, runtime, and static review layers, and triages each finding into fix, reversal request, or tracked.
 disable-model-invocation: true
 ---
 
-# /preflight: acceptance before shipping
+# /preflight: acceptance before landing
 
 This skill runs in the gap between "the sections are all executed" and "open
 the PR". `/factory` finishes when every `tasks.md` section is committed and
-`/opsx:verify` is green; `/ship` starts from a branch it assumes was already
+`/opsx:verify` is green; `/land` starts from a branch it assumes was already
 verified and already review-fixed. Nobody owned the space between them, and
 three failures kept escaping through it:
 
@@ -116,10 +116,10 @@ sessions and run them in parallel; nothing in either depends on the other.
 - **`/cross-check`**: the two-axis review, Standards (does the diff meet this
   repo's documented standards plus the smell baseline) and Spec (does it
   faithfully implement what was asked). It persists `review-verdict.json` at
-  the change directory, which is exactly what `/ship`'s reconciliation step
+  the change directory, which is exactly what `/land`'s reconciliation step
   reads back. Skipping it does not go unnoticed downstream: on an openspec
-  project, `/ship` stops on the missing `review-verdict.json` and asks the
-  user whether to ship unreviewed.
+  project, `/land` stops on the missing `review-verdict.json` and asks the
+  user whether to proceed unreviewed.
 
 **Fresh context is the whole point.** An in-loop review, run inside the
 session that wrote the code or partway through `/factory`, inherits the
@@ -167,7 +167,7 @@ and treat the layer as open until `diff-review.json` exists in the artifact
 directory Step 0 resolved. It usually will not by the time this run ends, and
 that is the expected shape of the hand-off, not a failure: the layer's line in
 Step 6's closing status reads `diff-review.json: pending` until the file is on
-disk, which is also the file `/ship` reconciles against later.
+disk, which is also the file `/land` reconciles against later.
 
 ## Step 5. Finding triage: three exits, every ruling written back
 
@@ -189,7 +189,7 @@ its source):
    "do not commit" in its spec buys: this session does, once it has accepted
    the returned diff, with `git commit --fixup <the commit the fix corrects>`.
    That keeps the correction attached to what it corrects, and leaves the
-   squash to `/ship`'s Step 5, which already expects to find fixups on the
+   squash to `/land`'s Step 5, which already expects to find fixups on the
    branch and fold them in.
 2. **Collides with a Non-Goal or an already-recorded decision**: this is a
    **reversal request**, and it goes to the user. Do not implement it, do not
@@ -252,17 +252,17 @@ A finding with no exit is not triaged. The step is done when every finding has
 one, and when `decisions.md` carries a line for every ruling that was not
 simply "fixed as specified".
 
-## Step 6. Hand off to /ship
+## Step 6. Hand off to /land
 
-**What this gate does not do is ship.** The fixes accepted in Step 5 are
-committed here, as fixups against what they correct, and that is where it
+**What this gate does not do is land the branch.** The fixes accepted in Step
+5 are committed here, as fixups against what they correct, and that is where it
 stops: preflight never pushes, never opens a PR, and never reorganizes the
 branch's history. Leaving a fix uncommitted is not the safer choice it looks
-like, because `/ship`'s scan and adversarial review both read
+like, because `/land`'s scan and adversarial review both read
 `<base>...HEAD`: work still sitting in the tree is invisible to both and never
 reaches the PR.
 
-State the handoff explicitly and stop: the branch is ready for `/ship`, which
+State the handoff explicitly and stop: the branch is ready for `/land`, which
 reconciles against `review-verdict.json` (plus the vibe-diff and verify
 artifacts) and runs its own adversarial review last. That review stays in
 place as deliberate redundancy: it reads the finished diff cold, with a
@@ -273,10 +273,10 @@ duplicate it here.
 Report, in the run summary: the verify case from Step 1, the runtime evidence
 from Step 2, one line per review layer with its finding count, and the triage
 table (finding, exit, ledger line). That summary is what the user reads before
-approving the ship.
+approving the hand-off to `/land`.
 
 Close it with the artifact status, three fixed lines in this order, one per
-thing `/ship`'s reconciliation goes looking for. Every line carries one of
+thing `/land`'s reconciliation goes looking for. Every line carries one of
 three labels, and the parenthetical is part of the label, not decoration:
 
 - `done (<evidence>)`: the artifact is on disk, named by the layer that wrote
@@ -305,7 +305,7 @@ substitute named in the parenthetical.
 
 Three lines every run, present or not. A `pending` or `not run` line is not
 this gate failing; it is the user's remaining list, and the alternative is
-that they discover the gap at the shipping gate instead of here.
+that they discover the gap at the `/land` gate instead of here.
 
 ## Promoting a decision to an ADR
 
@@ -355,16 +355,16 @@ emitting markup is the single most avoidable cost here.
 - "I will write up all the rulings at the end." The ledger is written when a
   ruling happens. A ledger reconstructed at close of change is a summary of
   what someone remembered, which is the failure it exists to prevent.
-- "/ship runs its own review, so I can skip cross-check." That review is the
-  last redundancy, not the supply. Without `review-verdict.json`, ship's
+- "/land runs its own review, so I can skip cross-check." That review is the
+  last redundancy, not the supply. Without `review-verdict.json`, `/land`'s
   reconciliation finds nothing to read and stops to ask the user whether to
-  ship unreviewed.
+  proceed unreviewed.
 - "I said in my reply that there was no test suite, so it is recorded." The
   reply dies with the session. An absent or unrunnable layer takes a
   `[caveat]` line in `decisions.md` like any other ruling.
 - "The fix is in, so I will push it and open the PR." Committing the accepted
-  fix is this gate's last act; pushing and opening the PR are `/ship`'s. A gate
-  that ships is no longer a gate.
+  fix is this gate's last act; pushing and opening the PR are `/land`'s. A gate
+  that pushes is no longer a gate.
 - "The user has not ruled yet, so there is nothing to write down." The handover
   is itself the event the ledger records: write `[reversal→pending]` when you
   put the request to them, and update that line when the answer comes.
