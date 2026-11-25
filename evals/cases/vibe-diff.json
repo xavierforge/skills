@@ -10,11 +10,11 @@
       "expected_output": "With neither an OpenSpec change nor a saved .review/<slug>/mini-spec.md, the hardened vibe-diff refuses to run rather than reviewing against nothing: it writes no review artifact, leaves the repo tree untouched, and points the user at the fix (run /begin to save a mini-spec, or open an OpenSpec change, then re-invoke).",
       "expectations": [
         {
-          "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than landing a review",
+          "text": "No vibe-diff artifact is written under .review/feat-add-logging/; the run refuses rather than writing a review",
           "check": {"type": "file_exists", "expect": false, "paths": [".review/feat-add-logging/diff.patch", ".review/feat-add-logging/diff-review.json", ".review/feat-add-logging/diff-review.html"]}
         },
         {
-          "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback landing)",
+          "text": "The repo tree is left untouched (no review artifact written anywhere, not even a fallback directory)",
           "check": {"type": "git_clean", "expect": true}
         },
         {

@@ -7,7 +7,7 @@
       "prompt": "/cross-check main  (sandbox: branch feat/parser; spec at docs/spec.md with an unimplemented 'reject duplicate keys' requirement; CODING_STANDARDS.md present; the diff carries duplicated parsing loops and a missing docstring)",
       "fixture": "cross-check/1",
       "arms": ["with_skill", "without_skill"],
-      "expected_output": "The two-axis review reports Standards and Spec under separate headings and persists review-verdict.json at .review/feat-parser/ (landing rule, no openspec) with layer cross-check and findings each carrying axis, title, severity, actioned; the duplicate-keys spec gap is caught on the spec axis.",
+      "expected_output": "The two-axis review reports Standards and Spec under separate headings and persists review-verdict.json at .review/feat-parser/ (artifact directory rule, no openspec) with layer cross-check and findings each carrying axis, title, severity, actioned; the duplicate-keys spec gap is caught on the spec axis.",
       "expectations": [
         {
           "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",

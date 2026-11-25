@@ -85,7 +85,7 @@ These are gate-time assertions that it happened, not where it happens.
 Each review layer in this setup leaves a machine-readable artifact on disk;
 this step reads them back so the PR record rests on files, never on a
 recollection that a review "passed". Resolve the artifact dir with the
-**landing rule** the neighbor skills write by: the active openspec
+**artifact directory rule** the neighbor skills write by: the active openspec
 change directory (Step 0a's spec location) if one exists, else
 `.review/<slug>/` at the repo root, where `<slug>` is the branch name with
 `/` replaced by `-` (`feat/hook-system` → `.review/feat-hook-system/`).
@@ -102,9 +102,9 @@ Check these three layers, in this order:
    4 actioned, since abc1234`.
 3. **verify**: `.review/<slug>/verify.md`, always at this fixed path
    regardless of which tier holds the JSON artifacts: `/verify` is a built-in
-   skill that cannot be taught the landing rule, so the convention is that
-   the verify session (or the user) drops its evidence there by hand. Summary
-   line: its verdict line or first heading.
+   skill that cannot be taught the artifact directory rule, so the convention
+   is that the verify session (or the user) drops its evidence there by hand.
+   Summary line: its verdict line or first heading.
 
 For every layer found, add its one-line summary to the derived-facts readback
 and carry the same line into the PR body (Step 6, Testing section); for every

@@ -65,7 +65,7 @@
       "prompt": "/land  (sandbox: branch feat/demo-gadget, no openspec/; only .review/feat-demo-gadget/diff-review.json exists on disk; execute only Step 0, then stop)",
       "fixture": "land/3",
       "arms": ["with_skill", "without_skill"],
-      "expected_output": "Step 0c resolves the landing rule to .review/feat-demo-gadget/, summarizes the vibe-diff artifact in one line, and explicitly lists the two absent layers as not run instead of omitting them; Step 0b may report BLOCKED for missing verification evidence but the three reconciliation lines still appear.",
+      "expected_output": "Step 0c resolves the artifact directory rule to .review/feat-demo-gadget/, summarizes the vibe-diff artifact in one line, and explicitly lists the two absent layers as not run instead of omitting them; Step 0b may report BLOCKED for missing verification evidence but the three reconciliation lines still appear.",
       "expectations": [
         {
           "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",

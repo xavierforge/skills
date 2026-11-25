@@ -47,17 +47,17 @@ the failure mode this precondition exists to catch before it happens again.
 
 ## Step 1. Gather the inputs
 
-- **Which change, and where artifacts land.** If the user named an
+- **Which change, and where artifacts are written.** If the user named an
   `openspec/changes/<name>/` directory, use it. Otherwise list
   `openspec/changes/` (excluding `archive/`): one active change, use it;
   several, list them and ask. The chosen change directory is the
   **artifact dir**, written `<artifact_dir>` below: `diff.patch`,
-  `diff-review.json`, and `diff-review.html` all land there, nowhere else.
+  `diff-review.json`, and `diff-review.html` are all written there, nowhere else.
   If there is no active change (or no `openspec/` at all), say so and fall
   back to `.review/<slug>/` at the repo root as the artifact dir, where
   `<slug>` is the branch name with `/` replaced by `-`
   (`feat/hook-system` → `.review/feat-hook-system/`); create it if missing.
-  This two-tier **landing rule** (active change dir, else `.review/<slug>/`)
+  This two-tier **artifact directory rule** (active change dir, else `.review/<slug>/`)
   is the same resolution `/land`'s reconciliation step and cross-check's
   verdict artifact use, so never invent a third location. `.review/` is local review scratch, not part
   of the shipped work: leave it uncommitted (suggest adding `.review/` to
@@ -118,7 +118,7 @@ silently.
 ## Step 3. Decide the judgment layer
 
 Now read the diff and the spec for real, and work out everything that will
-land in `<artifact_dir>/diff-review.json`: the overview, scope creep, intent
+go into `<artifact_dir>/diff-review.json`: the overview, scope creep, intent
 map, risks, hotspots with their hunk anchors, and the unverified list. This
 analysis is the whole reason the skill exists, and it stays in this session.
 Do not write the file yourself; Step 4 packages what you decided here into a

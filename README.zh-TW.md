@@ -9,7 +9,7 @@
 3. **多重審查**：`cross-check`、`vibe-diff`、`spec-viewer` 與 `preflight` 疊加多重審查閘門，並維護一份決策紀錄 (decision ledger)。
 4. **貢獻與合併** (`land`)：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
 
-以上流程是圍繞著 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 工作流長出來的，所以搭配它進行 SDD 時效果最好。但實際上也只有三個 skill 硬性要求 OpenSpec 的資料夾結構 (詳見下表)；其餘的在任何 repo 都能跑，如果找不到 spec 資料夾，就會自動退回使用 mini-spec 並在 `.review/` 落地，專案內的 `openspec-rules/` 資料夾有提供需要的範本。
+以上流程是圍繞著 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 工作流長出來的，所以搭配它進行 SDD 時效果最好。但實際上也只有三個 skill 硬性要求 OpenSpec 的資料夾結構 (詳見下表)；其餘的在任何 repo 都能跑，如果找不到 spec 資料夾，就會自動退回使用 mini-spec，並以 `.review/` 作為 artifact 目錄，專案內的 `openspec-rules/` 資料夾有提供需要的範本。
 
 另外請記得：這個 repo 是唯一的 source of truth，下面的安裝方式都是以 symlink 為主，所以要改設定就直接改這裡，絕對不要去動安裝出去的副本。
 

@@ -391,7 +391,7 @@ JSON
     ;;
   vibe-diff/1)  # vibe-diff refusal: no openspec anywhere and no saved mini-spec,
                 # a diff to review; the hardened skill must refuse (no spec source)
-                # rather than land any artifact under .review/<slug>/
+                # rather than write any artifact under .review/<slug>/
     g init -b main >/dev/null
     seed_project
     cat > "$TARGET/test.sh" <<'SH'
@@ -415,7 +415,7 @@ PY
     g commit -qam "feat(greetings): log each greeting"
     ;;
   cross-check/1)  # cross-check two-axis verdict: spec gap + standards breach
-                  # in the diff, no openspec, verdict lands at .review/<slug>/
+                  # in the diff, no openspec, verdict is written to .review/<slug>/
     g init -b main >/dev/null
     seed_project
     mkdir -p "$TARGET/docs"

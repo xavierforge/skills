@@ -90,10 +90,11 @@ skill's old name in their wording; read those as the same suite.
 ## `vibe-diff`
 
 Carved out of the former cross-skill `review-artifacts` suite so every suite
-names one skill.
+names one skill; its recorded results still use the old term "landing" for the
+artifact directory.
 
 - **review-artifacts iter-1** (Sonnet, n=1, baseline = the old `main` SKILL.md):
-  measured the pre-hardening fallback-landing contract, with_skill 4/4 vs
+  measured the pre-hardening fallback-directory contract, with_skill 4/4 vs
   old_skill 2/4. Eval-2 was then re-specified to the hardened refusal contract
   (commit `e8bf4fb`), which made a spec source a precondition to run.
 - **native iter-1** (machine subset): 1.00 (4/4) / 0.75 (3/4), Δ+0.25 under the
@@ -108,8 +109,8 @@ to `cross-check` after that round ran.
 - **review-artifacts iter-1** (Sonnet, n=1, as `spec-review`, baseline = no
   skill): with_skill 4/4 / without_skill 1/4. The baseline independently
   invented a machine-readable verdict but not the convention, so the skill's
-  value is the fixed two-axis landing rule and shape, not the reviewing ability
-  itself.
+  value is the fixed two-axis artifact directory rule and shape, not the
+  reviewing ability itself.
 - **native iter-1** (machine subset): 1.00 (4/4) / 0.25 (1/4), Δ+0.75 under the
   current native two-axis contract.
 
