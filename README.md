@@ -5,14 +5,14 @@
 This repo holds eight skills that walk one change from a framed spec all the
 way to a merged PR, in this order:
 
-1. **Prepare** — `begin`: sync the default branch to a clean base, then open
+1. **Prepare** (`begin`): sync the default branch to a clean base, then open
    a feature branch.
-2. **Implement** — `factory` drives the whole change forward, one section per
+2. **Implement**: `factory` drives the whole change forward, one section per
    round; `section` focuses on a single block, TDD per task, stopping after
    one commit.
-3. **Layered review** — `cross-check`, `vibe-diff`, `spec-viewer`, and
+3. **Layered review**: `cross-check`, `vibe-diff`, `spec-viewer`, and
    `preflight` stack the review gates and maintain a decision ledger.
-4. **Contribute** — `land`: reconcile, run the adversarial review, organize
+4. **Contribute** (`land`): reconcile, run the adversarial review, organize
    the commits, then write the PR body and open the PR.
 
 The flow grew around the [OpenSpec](https://github.com/Fission-AI/OpenSpec)
