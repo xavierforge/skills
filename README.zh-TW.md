@@ -4,10 +4,10 @@
 
 這組專案包含八個 skill，負責把一個變更 (change) 從擬定規格一路護送到合併 PR，完整順序如下：
 
-1. **準備** — `begin`：把預設分支同步到乾淨基準，再開出一條 feature branch。
-2. **實作推進** — `factory`：負責推進整個開發進度，每輪處理一個 section；`section` 則專注執行單一個區塊，逐 task 做 TDD，完成一個 commit 就停。
-3. **多重審查** — `cross-check`、`vibe-diff`、`spec-viewer` 與 `preflight`：疊加多重審查閘門，並維護一份決策紀錄 (decision ledger)。
-4. **貢獻與合併** — `land`：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
+1. **準備** (`begin`)：把預設分支同步到乾淨基準，再開出一條 feature branch。
+2. **實作推進**：`factory` 負責推進整個開發進度，每輪處理一個 section；`section` 則專注執行單一個區塊，逐 task 做 TDD，完成一個 commit 就停。
+3. **多重審查**：`cross-check`、`vibe-diff`、`spec-viewer` 與 `preflight` 疊加多重審查閘門，並維護一份決策紀錄 (decision ledger)。
+4. **貢獻與合併** (`land`)：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
 
 以上流程是圍繞著 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 工作流長出來的，所以搭配它進行 SDD 時效果最好。但實際上也只有三個 skill 硬性要求 OpenSpec 的資料夾結構 (詳見下表)；其餘的在任何 repo 都能跑，如果找不到 spec 資料夾，就會自動退回使用 mini-spec 並在 `.review/` 落地，專案內的 `openspec-rules/` 資料夾有提供需要的範本。
 
