@@ -232,7 +232,7 @@ the branch name with `/` replaced by `-`, the same slugging B1 uses for the
 worktree path (`feat/hook-system` → `.review/feat-hook-system/mini-spec.md`).
 This mirrors where `/vibe-diff` and `/land` already keep their own artifacts,
 so a later session finds all of a branch's review material in one place. Create
-the directory if it does not exist. Tell the user where it landed. This skill
+the directory if it does not exist. Tell the user where it was written. This skill
 only writes the file and reports the path; whether `.review/` is gitignored is
 each repo's own concern, not this skill's.
 

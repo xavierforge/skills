@@ -63,13 +63,13 @@ been triaged defeats the purpose, so do it first.
 
 **Without OpenSpec**: when the repo has no `openspec/changes/`, ask the user
 where the spec and its non-goals live rather than guessing, and fall back to
-`.review/<slug>/` at the repo root as the artifact directory (the landing rule
-the neighbor skills share, where `<slug>` is the branch name with `/` replaced
-by `-`); `decisions.md` lands there. Every step below still applies. If there
-is no statement anywhere of what this work deliberately does not do, say so
-plainly in the run summary: exit 2 of the triage cannot fire against a record
-that does not exist, and the user should know that before they read the
-findings.
+`.review/<slug>/` at the repo root as the artifact directory (the artifact
+directory rule the neighbor skills share, where `<slug>` is the branch name
+with `/` replaced by `-`); `decisions.md` is written there. Every step below
+still applies. If there is no statement anywhere of what this work
+deliberately does not do, say so plainly in the run summary: exit 2 of the
+triage cannot fire against a record that does not exist, and the user should
+know that before they read the findings.
 
 ## Step 1. Mechanical layer
 
@@ -350,7 +350,7 @@ emitting markup is the single most avoidable cost here.
 - "I reviewed this thoroughly while implementing it, so Step 3 is done." A
   review in the implementing session is the one kind that does not count.
 - "Only one finding is left, I will just note it in the PR body." Every
-  finding takes one of the three exits and the ruling lands in `decisions.md`;
+  finding takes one of the three exits and the ruling is written to `decisions.md`;
   the PR body is not the ledger.
 - "I will write up all the rulings at the end." The ledger is written when a
   ruling happens. A ledger reconstructed at close of change is a summary of

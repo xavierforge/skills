@@ -65,7 +65,7 @@ Finish with a single line giving each axis its finding count and its most seriou
 
 ### 6. Write the verdict artifact
 
-Persist the outcome so later tooling (notably `/land`'s reconciliation step) reads the verdict from disk instead of trusting a verbal claim. Resolve where it lands with the **landing rule** the neighbor skills share (vibe-diff writes its artifacts by the same resolution): the active openspec change directory (`openspec/changes/<name>/`, excluding `archive/`) when exactly one exists, otherwise `.review/<slug>/` at the repo root, where `<slug>` is the branch name with `/` turned into `-` (`feat/hook-system` becomes `.review/feat-hook-system/`). Create the directory when it is missing. Write `review-verdict.json` there:
+Persist the outcome so later tooling (notably `/land`'s reconciliation step) reads the verdict from disk instead of trusting a verbal claim. Resolve where it is written with the **artifact directory rule** the neighbor skills share (vibe-diff writes its artifacts by the same resolution): the active openspec change directory (`openspec/changes/<name>/`, excluding `archive/`) when exactly one exists, otherwise `.review/<slug>/` at the repo root, where `<slug>` is the branch name with `/` turned into `-` (`feat/hook-system` becomes `.review/feat-hook-system/`). Create the directory when it is missing. Write `review-verdict.json` there:
 
 ```json
 {
@@ -85,7 +85,7 @@ Persist the outcome so later tooling (notably `/land`'s reconciliation step) rea
 - `actioned` records whether the finding was fixed by the time the file is written: `false` at review time. A later session that fixes a finding flips the flag in place rather than deleting the entry, since the artifact is the record `/land` reconciles against.
 - An empty `findings` array is a valid verdict: it says the review ran and found nothing, which is exactly the fact worth having on disk.
 
-The step is done when `review-verdict.json` sits at the resolved landing spot and its `findings` match the two reports one to one: every reported finding has an entry, and no entry lacks a reported finding.
+The step is done when `review-verdict.json` sits at the resolved artifact directory and its `findings` match the two reports one to one: every reported finding has an entry, and no entry lacks a reported finding.
 
 ## Why two axes
 

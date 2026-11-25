@@ -18,8 +18,8 @@ way to a merged PR, in this order:
 The flow grew around the [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 workflow, so it works best doing SDD with it. In practice only three skills
 hard-require the OpenSpec directory layout (see the table); the rest run on
-any repo, automatically falling back to a mini-spec with a `.review/` landing
-when no spec directory is found, and the repo's
+any repo, automatically falling back to a mini-spec with a `.review/` artifact
+directory when no spec directory is found, and the repo's
 [`openspec-rules/`](openspec-rules/) directory ships the templates needed.
 
 One more thing to remember: this repo is the single source of truth. Every

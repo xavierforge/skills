@@ -59,7 +59,7 @@
           "check": {"type": "git_log_count", "range": [0, 2]}
         },
         {
-          "text": "decisions.md is created at the change directory (the honest absence record has a ledger to land in)",
+          "text": "decisions.md is created at the change directory (the honest absence record has a ledger to be written to)",
           "check": {"type": "file_exists", "expect": true, "path": "openspec/changes/add-slugify/decisions.md"}
         },
         {
