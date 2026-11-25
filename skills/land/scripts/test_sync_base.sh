@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Regression test for sync-base.sh's worktree-vs-divergence bug (2026-07-17
-# /ship incident): main and origin/main pointed at the identical commit, but
-# sync-base.sh aborted claiming divergence because main was checked out in
+# PR-landing incident): main and origin/main pointed at the identical commit,
+# but sync-base.sh aborted claiming divergence because main was checked out in
 # another worktree. The old logic (see sync-base.sh history) went straight to
 #   git fetch "$REMOTE" "${DEFAULT}:${DEFAULT}"
 # whenever HEAD was on another branch, and that ref-update refspec fails any

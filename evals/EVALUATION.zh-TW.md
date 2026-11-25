@@ -10,14 +10,14 @@
 
 這套驗證現在有兩個執行器 (executor)：Claude Code (`claude -p`，配上 `EVAL_MODEL=sonnet`) 以及 Codex (`codex exec`，配上 `EVAL_MODEL=gpt-5.6-terra` 並透過 `EVAL_EXECUTOR=codex` 啟用)。在這一輪測試中，我們讓兩個執行器把八個 suite 各跑了一遍 (每個 arm 跑一個 run)，而且 case 檔、harness、事後補判的 judge (同樣是用 `sonnet`) 都完全一致。
 
-要注意的是，Codex 那邊帶有派工 (dispatch) 斷言的四個 suite (`ship`、`section`、`factory`、`preflight`)，是在 `~/.codex/agents/` 已經裝好 [role roster](../agents/README.md) 的狀態下測的，這樣 collab 的 `spawn` 工具才有具名角色可以派發；另外四個沒有派工斷言的 suite 則不受 roster 影響。
+要注意的是，Codex 那邊帶有派工 (dispatch) 斷言的四個 suite (`land`、`section`、`factory`、`preflight`)，是在 `~/.codex/agents/` 已經裝好 [role roster](../agents/README.md) 的狀態下測的，這樣 collab 的 `spawn` 工具才有具名角色可以派發；另外四個沒有派工斷言的 suite 則不受 roster 影響。
 
 表上的數字是 full-assertion 總分 (機器自動判斷 + backfill 補判的 `llm_judged` 分數)，格式是 passed/total。各 suite 原始的給分細節都躺在 `results/<suite>/iteration-N/` 裡面，iteration 編號寫在下表 (Claude Code / Codex)。
 
 | Skill         | Iter (cc/cx) | Claude with | Claude w/o | Codex with | Codex w/o |
 | ------------- | ------------ | ----------- | ---------- | ---------- | --------- |
 | `begin`       | 9 / 8        | **11/11**   | 6/11       | **11/11**  | 8/11      |
-| `ship`        | 6 / 7        | 13/14       | 7/14       | 13/14      | 7/14      |
+| `land`        | 6 / 7        | 13/14       | 7/14       | 13/14      | 7/14      |
 | `section`     | 4 / 5        | **14/14**   | 10/14      | **14/14**  | 10/14     |
 | `factory`     | 4 / 5        | 18/22       | 6/22       | 11/22      | 8/22      |
 | `vibe-diff`   | 4 / 3        | **12/12**   | 2/12       | **12/12**  | 3/12      |
@@ -45,7 +45,7 @@
 按照這個標準，這裡的八個 suite 可以被分成三類：
 
 1. **Ritual-automation** (`begin`、`spec-viewer`)
-2. **Hybrid** (`ship`、`vibe-diff`)
+2. **Hybrid** (`land`、`vibe-diff`)
 3. **Judgment-structure** (`cross-check`、`factory`、`section`、`preflight`) — 只有這類才是看 Δ 為準。
 
 有時候某些測項雙邊都過了 (Δ 為零)，這是故意的，它們是拿來盯緊模型有沒有服從儀式、有沒有偷偷漂移的「哨兵」，不是廢柴測項。就算 baseline 變聰明導致 Δ 縮水，也不代表我們要狂加規則去考倒它；我們該做的是改用便宜模型去測，而不是硬加料直到 baseline 再次掛掉。
@@ -76,7 +76,7 @@
 | Suite                                     | 受測 skill    | 情境數 | 頁面                                                                                     |
 | ----------------------------------------- | ------------- | ------ | ---------------------------------------------------------------------------------------- |
 | [`begin`](./history.md#begin)             | `begin`       | 3      | dirty-tree 防護、被佔用的 lane 開新工作、乾淨的 maintainer 命名                          |
-| [`ship`](./history.md#ship)               | `ship`        | 3      | 停在預設分支、ready-to-ship 狀態、Step 0c 對帳                                           |
+| [`land`](./history.md#land)               | `land`        | 3      | 停在預設分支、ready-to-land 狀態、Step 0c 對帳                                           |
 | [`section`](./history.md#section)         | `section`     | 3      | 單 section happy path、兩個 active change、dispatch 註記                                 |
 | [`factory`](./history.md#factory)         | `factory`     | 4      | 完整三 section 迴圈、無 active change 時拒絕、plan-gate 重寫、平行 lane 交接             |
 | [`vibe-diff`](./history.md#vibe-diff)     | `vibe-diff`   | 2      | 無 spec 來源拒絕（hardened contract）、mini-spec happy path                              |
@@ -233,7 +233,7 @@ Iteration 是**每個 skill 各自編號**的（`results/<skill>/iteration-N/`�
 >
 > 1. `transcript.md`，誠實的敘述：你跑過的關鍵 git／測試指令與必要輸出、決策點；如果你停下來詢問或阻擋，逐字引述你會給使用者的問題或阻擋訊息。註明你刻意「沒做」什麼、為什麼。
 > 2. `result.md`：你最終要給使用者的回覆。
-> 3. （僅 ship）`PR_BODY.md`：你擬的 PR body（如果有）。
+> 3. （僅 land）`PR_BODY.md`：你擬的 PR body（如果有）。
 >
 > 把 git repo 留在最終狀態（不要清理或還原）。以 2-3 句話總結作答。
 

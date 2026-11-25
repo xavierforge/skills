@@ -1,0 +1,5 @@
+interface:
+  display_name: "Land"
+  short_description: "Turn a finished feature branch into a reviewed PR through deterministic pre-PR gates"
+policy:
+  allow_implicit_invocation: false

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Sync the default branch to a fresh, clean base. Shared by /begin (Phase A,
-# start-of-contribution) and /ship (Step 1, refresh-before-PR): both need the
+# start-of-contribution) and /land (Step 1, refresh-before-PR): both need the
 # canonical default branch fast-forwarded to its remote before work runs against
 # it, and both derive the same facts (mode, canonical remote, default branch) the
 # same way, so that logic lives here once instead of drifting between two skills.
 #
 # The begin skill reaches this file as a sibling
-# (<begin-skill-base>/../ship/scripts/sync-base.sh); the canonical copy lives
+# (<begin-skill-base>/../land/scripts/sync-base.sh); the canonical copy lives
 # here and only here.
 #
 # Usage: sync-base.sh
@@ -26,7 +26,7 @@
 #   - Fast-forwards the default branch to the canonical remote, IN PLACE without
 #     moving your current checkout when HEAD is on another branch. A sync is a
 #     base-refresh, not a branch change: switching the checkout out from under an
-#     occupied feature lane (/begin) or the feature branch being shipped (/ship)
+#     occupied feature lane (/begin) or the feature branch being landed (/land)
 #     is the surprise both callers depend on this script NOT causing. So it only
 #     `git switch`es when the default branch already is your current branch;
 #     otherwise it fast-forwards the default's ref without checking it out. In
@@ -90,7 +90,7 @@ git fetch "$REMOTE"
 
 # Fast-forward the default branch WITHOUT moving the current checkout. How
 # depends on where HEAD is, because the sync must never switch a checkout that
-# is hosting other work (an occupied lane, or /ship's feature branch):
+# is hosting other work (an occupied lane, or /land's feature branch):
 #   - Default IS the current branch: fast-forward it in place (--ff-only refuses
 #     a merge commit, so a non-fast-forward means divergence).
 #   - HEAD is on ANOTHER branch (or detached): update the default's ref straight
@@ -98,12 +98,12 @@ git fetch "$REMOTE"
 #     git rejects a non-ff refspec update (divergence) with a nonzero status
 #     rather than forcing it, so the divergence guarantee is identical.
 # Either path leaves the caller on exactly the branch it started on, so /begin's
-# lane guard still sees the occupied lane and /ship stays on its feature branch.
+# lane guard still sees the occupied lane and /land stays on its feature branch.
 CURRENT="$(git branch --show-current)"   # empty on a detached HEAD
 
 if [ "$CURRENT" = "$DEFAULT" ]; then
   git merge --ff-only "${REMOTE}/${DEFAULT}" \
-    || abort "'$DEFAULT' diverged from '${REMOTE}/${DEFAULT}' (fast-forward not possible). A stray commit likely landed on the default branch; sort it out before starting or shipping work. Nothing was forced."
+    || abort "'$DEFAULT' diverged from '${REMOTE}/${DEFAULT}' (fast-forward not possible). A stray commit likely landed on the default branch; sort it out before starting work or opening a PR. Nothing was forced."
 else
   # Whether the default branch is diverged is a question about refs
   # (git rev-parse "$DEFAULT" vs. "${REMOTE}/${DEFAULT}"), not about whether it
@@ -119,7 +119,7 @@ else
     : # Already fast-forwarded; nothing to do, regardless of who else has it checked out.
   else
     git fetch "$REMOTE" "${DEFAULT}:${DEFAULT}" \
-      || abort "'$DEFAULT' diverged from '${REMOTE}/${DEFAULT}' (fast-forward not possible), or it is checked out in another worktree. A stray commit likely landed on the default branch; sort it out before starting or shipping work. Nothing was forced, and your current checkout ('${CURRENT:-detached HEAD}') was not moved."
+      || abort "'$DEFAULT' diverged from '${REMOTE}/${DEFAULT}' (fast-forward not possible), or it is checked out in another worktree. A stray commit likely landed on the default branch; sort it out before starting work or opening a PR. Nothing was forced, and your current checkout ('${CURRENT:-detached HEAD}') was not moved."
   fi
 fi
 

@@ -1,16 +1,16 @@
 ---
-name: ship
-description: Cross-project workflow that turns a finished feature branch into a reviewed PR through deterministic shipping gates. Run manually at the end of the Verify & Ship phase.
+name: land
+description: Cross-project workflow that turns a finished feature branch into a reviewed PR through deterministic pre-PR gates. Run manually as /land at the end of the Verify & Land phase.
 disable-model-invocation: true
 ---
 
-# /ship: cross-project PR shipping workflow
+# /land: cross-project PR landing workflow
 
-This skill runs at the end of the Verify & Ship phase, after `/verify` has passed
+This skill runs at the end of the Verify & Land phase, after `/verify` has passed
 and cross-check findings are fixed. Its job is to make the boring parts of
-shipping deterministic, because basic mistakes (a leftover debug line, a dead
-parameter) damage reviewer trust far more than deep issues do. Every gate below
-exists to eliminate that class before a human reviewer ever sees the diff.
+landing a branch deterministic, because basic mistakes (a leftover debug line, a
+dead parameter) damage reviewer trust far more than deep issues do. Every gate
+below exists to eliminate that class before a human reviewer ever sees the diff.
 
 ## Step 0a. Derive the project facts
 
@@ -55,7 +55,7 @@ These are gate-time assertions that it happened, not where it happens.
   tracks, and an autonomous rewrite of it is precisely the kind of surprise this
   gate exists to prevent. Pointing at `/begin` keeps the decision (and the
   `git reset`) with the human who can see the whole picture.
-- `git status` must be clean or contain only the work being shipped.
+- `git status` must be clean or contain only the work being landed.
 - Confirm a verification pass and a review-fix pass already happened (in this
   setup, `/verify` and `/cross-check`). This is a hard
   precondition, not a courtesy check, so do not treat it as a question you may
@@ -74,16 +74,16 @@ These are gate-time assertions that it happened, not where it happens.
   script prints. On a repo whose default is
   `master` or `develop`, `main` would be wrong or absent. If it succeeds, the
   branch is fully merged;
-  stop and tell the user there is nothing to ship. If only some commits are
-  merged (a fixup landed on a shipped branch, the common case), you are in
+  stop and tell the user there is nothing to land. If only some commits are
+  merged (a fixup landed on a merged branch, the common case), you are in
   **trailing-commit mode**: everything below operates on the unmerged commits
   only (`git log <base>..HEAD`), not the branch's whole history. Skipping this
-  check is how an agent re-ships an entire already-merged feature.
+  check is how an agent re-submits an entire already-merged feature.
 
 ## Step 0c. Review reconciliation: read the artifacts, not the claims
 
 Each review layer in this setup leaves a machine-readable artifact on disk;
-this step reads them back so the shipping record rests on files, never on a
+this step reads them back so the PR record rests on files, never on a
 recollection that a review "passed". Resolve the artifact dir with the
 **landing rule** the neighbor skills write by: the active openspec
 change directory (Step 0a's spec location) if one exists, else
@@ -120,17 +120,17 @@ stop trusting.
 through the pipeline.** The mechanical test is the same active-change
 detection Step 0a already ran: exactly one entry under `openspec/changes/`,
 excluding `archive/`. When there is one, this branch belongs to the
-`/factory` → `/preflight` → `/ship` pipeline, where cross-check and vibe-diff
+`/factory` → `/preflight` → `/land` pipeline, where cross-check and vibe-diff
 are gates rather than options, so a missing `review-verdict.json` or
 `diff-review.json` does not mean the layer never applied, it means a gate was
 skipped. Stop and ask the user once, naming every missing layer in the same
-question: run them now, or ship without them. If they waive it, the ship
+question: run them now, or continue without them. If they waive it, the run
 continues, the `<layer>: not run` line stays in the readback, and the waiver
 goes into the PR body's Notes section (Step 6), so a reviewer reads what was
 skipped instead of inferring it from a line that is simply absent. Off the
 pipeline (no active openspec change, the `.review/<slug>/` tier), a missing
-artifact is just a layer this branch never used: report it, ship, and add no
-friction.
+artifact is just a layer this branch never used: report it, continue, and add
+no friction.
 
 ## Step 1. Refresh base and drift check
 
@@ -155,11 +155,11 @@ prints the mode, canonical remote, default branch, and sync result. Because you
 are on the feature branch here, the script fast-forwards the default **in place
 and leaves you on the feature branch** (it does not switch you to the default),
 so `<branch>` below and Step 2's `<base>...HEAD` keep resolving to the work you
-are shipping, with no manual switch-back. The `git fetch` it runs is a no-op if
+are landing, with no manual switch-back. The `git fetch` it runs is a no-op if
 Step 0b's already-merged check already fetched; re-running it is harmless. A
 failed fast-forward means the default branch diverged: the script aborts non-zero
 and forces nothing, so stop and report it rather than pushing past it just to
-ship.
+open the PR.
 
 Then check whether the feature branch is behind the freshly-synced base, using
 the `<default>` name the script just printed:
@@ -183,7 +183,7 @@ against the repo root, which usually has its own unrelated `scripts/`
 directory and will fail. Run it with the repo as cwd.
 
 The script diffs with a merge-base (`<base>...HEAD`), so a stale local base
-makes it re-scan work that already shipped. If the scan output looks like it
+makes it re-scan work that already merged. If the scan output looks like it
 covers commits you know are already merged, you skipped or mis-synced Step 1.
 
 The scan runs in two layers. A **universal core** always runs: leftover
@@ -192,7 +192,7 @@ any project and any owner. Then each derived **profile** sources
 `<skill-base>/scripts/profiles/<name>.sh` for language-specific patterns (the
 `rust` profile: leftover `dbg!`/`todo!`/`unimplemented!`, newly added
 `#[allow]`). A Markdown-only project passes no profile and still gets the
-core; when you ship a new language regularly, add a profile file rather than
+core; when you work in a new language regularly, add a profile file rather than
 eyeballing the diff. Keep each layer honest about what it is: the core carries
 only rules true for everyone, a profile only rules true for its whole
 language; personal style rules and one project's traumas belong in the global
@@ -217,7 +217,7 @@ the strongest review-grade model available, the tier the
 delegation policy reserves for final review, and state in your output which
 model you actually dispatched: a shallow review traced back to a weak reviewer
 is a debugging fact the user needs, not something to reconstruct from logs.
-Naming it once mid-run is not enough; it must survive into the final ship
+Naming it once mid-run is not enough; it must survive into the final run
 summary you report to the user (Step 7), as a fixed line naming the reviewer
 model, e.g. `adversarial review: sonnet`. A summary that omits it has lost the
 fact the moment this session ends. The subagent type is not a substitute for
@@ -258,18 +258,18 @@ this session:
 - **A real finding deliberately not actioned this time is recorded, not
   dropped.** When you judge a finding true but out of scope for this PR (a
   pre-existing issue the diff merely exposes, a cleanup that deserves its own
-  branch, a call too risky this close to shipping), record it in the PR body's
-  Notes section (Step 2's triage rule). That is the authoritative record: it is
+  branch, a call too risky this close to opening the PR), record it in the PR
+  body's Notes section (Step 2's triage rule). That is the authoritative record: it is
   versioned and travels with the PR, so the deferred truth does not evaporate
   when this branch merges. If the finding deserves tracking beyond this PR,
   offer to open a GitHub issue for it and open one only after the user confirms;
   never open an issue autonomously. Do not keep a separate committed backlog
   file for deferred findings.
 - **A finding that needs a code change is dispatched, not iterated here.** By
-  the time /ship runs, this session already carries the entire implementation
+  the time /land runs, this session already carries the entire implementation
   context, and iterating small review fixes inside it re-reads all of that per
-  edit: it is the single most expensive part of shipping. So package the fixes
-  and hand them off:
+  edit: it is the single most expensive part of landing a branch. So package
+  the fixes and hand them off:
   1. Turn each code finding into a self-contained spec: the finding, the exact
      file and the hunk it refers to (the relevant slice of
      `git diff <base>...HEAD`), the done-criteria, and an explicit "do not
@@ -289,7 +289,7 @@ this session:
      subagent commits; commit organization (Step 5) stays with the main
      session, which owns the branch's history. If a tier's role type is not
      installed (a bare environment with no `agents/` roster), the dispatch would
-     fail with the role not found; do not stall the ship. Send that bundle to a
+     fail with the role not found; do not stall the run. Send that bundle to a
      fresh general subagent instead, still passing no `model` or `effort`,
      prepending the tier's one-line contract (`too-te`: apply the graded fixes
      exactly as specced, taking on no scope beyond them; `sai-hu`: settle the
@@ -377,7 +377,7 @@ Build the PR command from the mode (contribution mode targets the upstream
 repo: `gh pr create -R <upstream> --base <default> --head <fork-owner>:<branch>`;
 maintainer mode is a plain `gh pr create --base <default>`). The upstream repo
 and fork owner come straight from the remote URLs. This step requires the
-GitHub CLI (`gh`), the only hard dependency in the begin/ship pair. Push the
+GitHub CLI (`gh`), the only hard dependency in the begin/land pair. Push the
 branch to origin first. Report the PR URL, and alongside it the fixed line
 naming the model that ran Step 4's adversarial review (e.g. `adversarial
 review: sonnet`), so the final summary carries which reviewer the diff went
@@ -403,8 +403,8 @@ draft text and let the user paste it.
     later post-merge session runs it, it is mechanical bookkeeping: dispatch
     it to a `too-te` subagent rather than spending the main session on
     it.
-- If shipping surfaced a lesson that will outlive this PR (a new convention,
-  a new gate), record it in memory or the relevant CLAUDE.md; otherwise
+- If landing this branch surfaced a lesson that will outlive this PR (a new
+  convention, a new gate), record it in memory or the relevant CLAUDE.md; otherwise
   record nothing.
 
 ## Generic conflict probing

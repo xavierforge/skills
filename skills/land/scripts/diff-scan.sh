@@ -16,7 +16,7 @@
 #     <name> sources scripts/profiles/<name>.sh, which adds its own `check`
 #     calls. The calling skill derives which profiles apply from the repo's
 #     markers (e.g. Cargo.toml means rust); a Markdown-only project passes
-#     none. To ship a new language regularly, add a profile file rather than
+#     none. To cover a new language regularly, add a profile file rather than
 #     eyeballing the diff.
 #
 # Advisory only. Exit code 0 always. Every hit needs an explicit decision:

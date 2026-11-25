@@ -12,7 +12,7 @@ way to a merged PR, in this order:
    one commit.
 3. **Layered review** — `cross-check`, `vibe-diff`, `spec-viewer`, and
    `preflight` stack the review gates and maintain a decision ledger.
-4. **Contribute** — `ship`: reconcile, run the adversarial review, organize
+4. **Contribute** — `land`: reconcile, run the adversarial review, organize
    the commits, then write the PR body and open the PR.
 
 The flow grew around the [OpenSpec](https://github.com/Fission-AI/OpenSpec)
@@ -54,15 +54,19 @@ installed copy.
 | [`begin`](skills/begin/)             | Sync the default branch first, then open a clean feature branch                       | none     | `/begin`                       |
 | [`factory`](skills/factory/)         | Drive the active change, one section per round, a fresh subagent every round          | required | `/factory`                     |
 | [`section`](skills/section/)         | Run one numbered `tasks.md` section: TDD per task, one commit at the end, then stop   | required | `/section N` (model-invocable) |
-| [`cross-check`](skills/cross-check/) | Standards axis + spec axis review of the diff; persists a verdict for `/ship`         | optional | `/cross-check`                 |
+| [`cross-check`](skills/cross-check/) | Standards axis + spec axis review of the diff; persists a verdict for `/land`         | optional | `/cross-check`                 |
 | [`vibe-diff`](skills/vibe-diff/)     | Self-contained diff-review page, read against the change's intent                     | optional | `/vibe-diff`                   |
 | [`spec-viewer`](skills/spec-viewer/) | One OpenSpec change rendered as a single handbook-style HTML page                     | required | `/spec-viewer`                 |
 | [`preflight`](skills/preflight/)     | Pre-contribution acceptance gate: reconcile, run the review layers, rule on findings  | optional | `/preflight`                   |
-| [`ship`](skills/ship/)               | Sync the base to the remote default branch's latest, quality gate, adversarial review, organize commits, write the PR body | optional | `/ship`                        |
+| [`land`](skills/land/)               | Sync the base to the remote default branch's latest, quality gate, adversarial review, organize commits, write the PR body | optional | `/land`                        |
 
 _(Note: **required** = nothing to act on without `openspec/changes/`;
 **optional** = uses it when present, takes the non-OpenSpec path when absent;
 **none** = fully decoupled.)_
+
+`land` was named `ship` until a Claude Code skill of the same name made the
+rename necessary; if you installed by symlink, re-run the install loop and
+delete the stale `ship` link from your skills directory.
 
 ## Installation
 
@@ -79,7 +83,7 @@ _(Note: **required** = nothing to act on without `openspec/changes/`;
 ### 0. OpenSpec (optional)
 
 Install [OpenSpec](https://github.com/Fission-AI/OpenSpec) first if you want
-the full pipeline, or skip it if you only need `begin`, `ship`, or the
+the full pipeline, or skip it if you only need `begin`, `land`, or the
 standalone review skills. Beyond that the project has no external
 dependencies: wherever a skill body mentions a neighbor command
 (`/opsx:verify`, `/code-review`, ...), a fallback is written in, so nothing
@@ -112,12 +116,12 @@ This is safe to re-run (idempotent); run it again after adding a skill. To
 install a single skill:
 `ln -sfn "$PWD/skills/<skill>" ~/.claude/skills/<skill>`.
 
-Tools needed: `git` always; `gh` only for ship's PR-creation step; the
+Tools needed: `git` always; `gh` only for land's PR-creation step; the
 viewer skills' scripts need `uv` or any `python3`.
 
 ### 2. Role agents (recommended)
 
-The skills that dispatch work (`factory`, `section`, `ship`) hand tasks to
+The skills that dispatch work (`factory`, `section`, `land`) hand tasks to
 three named roles rather than pinning specific models.
 
 Install the roster per [`agents/README.md`](agents/README.md) (both the
@@ -170,7 +174,7 @@ honestly:
   Codex to read, and `disable-model-invocation: true` is there so the
   manually invoked ritual skills stay off the always-loaded list (zero
   standing context).
-- **Model routing by role description**: `ship`, for example, asks for "the
+- **Model routing by role description**: `land`, for example, asks for "the
   strongest review-grade model available" instead of pinning a model id; the
   one deliberate pin in the whole suite is spec-viewer's `model: haiku` (the
   cheapest model that can run a script).

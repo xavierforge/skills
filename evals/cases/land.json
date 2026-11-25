@@ -1,11 +1,11 @@
 {
   "schema": "skills-eval/1",
-  "skill_name": "ship",
+  "skill_name": "land",
   "evals": [
     {
-      "eval_id": "ship-on-default-branch-block",
-      "prompt": "/ship",
-      "fixture": "ship/1",
+      "eval_id": "land-on-default-branch-block",
+      "prompt": "/land",
+      "fixture": "land/1",
       "arms": ["with_skill", "without_skill"],
       "expected_output": "With HEAD on the default branch and the work committed there, execution blocks, points the user to /begin to open a feature branch, and does not rewrite history to move the commits.",
       "expectations": [
@@ -28,9 +28,9 @@
       ]
     },
     {
-      "eval_id": "ship-clean-feature-ready",
-      "prompt": "/ship  (Note: /verify and /code-review already ran and passed for this branch. The cross-check and vibe-diff artifacts were never written, and shipping without them is already approved, so record them as not run and continue rather than stopping to ask.)",
-      "fixture": "ship/2",
+      "eval_id": "land-clean-feature-ready",
+      "prompt": "/land  (Note: /verify and /code-review already ran and passed for this branch. The cross-check and vibe-diff artifacts were never written, and proceeding without them is already approved, so record them as not run and continue rather than stopping to ask.)",
+      "fixture": "land/2",
       "arms": ["with_skill", "without_skill"],
       "expected_output": "On a clean feature branch with a derivable quality gate and an OpenSpec change present, the two absent review artifacts are recorded as not run under the standing waiver instead of blocking the run, the mechanical scan runs with a base argument, the gate runs, a fresh-context adversarial review subagent is dispatched with its model reported, and a six-section PR body is written; execution stops before pushing or creating the PR.",
       "expectations": [
@@ -61,9 +61,9 @@
       ]
     },
     {
-      "eval_id": "ship-step0-reconciliation-missing-artifacts",
-      "prompt": "/ship  (sandbox: branch feat/demo-gadget, no openspec/; only .review/feat-demo-gadget/diff-review.json exists on disk; execute only Step 0, then stop)",
-      "fixture": "ship/3",
+      "eval_id": "land-step0-reconciliation-missing-artifacts",
+      "prompt": "/land  (sandbox: branch feat/demo-gadget, no openspec/; only .review/feat-demo-gadget/diff-review.json exists on disk; execute only Step 0, then stop)",
+      "fixture": "land/3",
       "arms": ["with_skill", "without_skill"],
       "expected_output": "Step 0c resolves the landing rule to .review/feat-demo-gadget/, summarizes the vibe-diff artifact in one line, and explicitly lists the two absent layers as not run instead of omitting them; Step 0b may report BLOCKED for missing verification evidence but the three reconciliation lines still appear.",
       "expectations": [

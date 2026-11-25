@@ -307,7 +307,7 @@ MD
     init_origin trunk
     advance_origin trunk
     ;;
-  ship/1)
+  land/1)
     g init -b main >/dev/null
     seed_project
     g add -A; g commit -qm "chore: initial project"
@@ -320,7 +320,7 @@ def farewell(name):
 PY
     g commit -qam "feat(greetings): add farewell helper"
     ;;
-  ship/2)
+  land/2)
     g init -b main >/dev/null
     seed_project
     g add -A; g commit -qm "chore: initial project"
@@ -360,7 +360,7 @@ MD
 MD
     g add -A; g commit -qm "docs(openspec): record the json-export change"
     ;;
-  ship/3)  # ship Step 0c: branch with a diff and only a vibe-diff
+  land/3)  # land Step 0c: branch with a diff and only a vibe-diff
            # artifact on disk, no openspec, no cross-check/verify layers
     g init -b main >/dev/null
     seed_project
