@@ -173,18 +173,13 @@ conflict probing at the bottom) before rebasing.
 
 ## Step 2. Mechanical diff scan
 
-Run the scan script from this skill's base directory, never by a bare relative
-path: `<skill-base>/scripts/diff-scan.sh <base> <profiles...>`. The base
-ref is a required argument (a default would silently assume `main`) and must be
-the freshly-refreshed default branch from Step 1. Pass the profiles derived in
-Step 0a as the trailing arguments (e.g. `... diff-scan.sh <base> rust` on
-a Cargo project); pass none if none apply. A bare `scripts/...` resolves
-against the repo root, which usually has its own unrelated `scripts/`
-directory and will fail. Run it with the repo as cwd.
-
-The script diffs with a merge-base (`<base>...HEAD`), so a stale local base
-makes it re-scan work that already merged. If the scan output looks like it
-covers commits you know are already merged, you skipped or mis-synced Step 1.
+Run `<skill-base>/scripts/diff-scan.sh <base> <profiles...>` with the repo as
+cwd, never by a bare `scripts/...` path (that resolves against the repo root's
+own unrelated `scripts/`). The base ref is required (a default would silently
+assume `main`) and must be Step 1's freshly-refreshed default branch; the
+trailing profiles are Step 0a's (e.g. `rust` on a Cargo project), or none.
+The script diffs with a merge-base (`<base>...HEAD`), so output covering
+commits you know already merged means Step 1 was skipped or mis-synced.
 
 The scan runs in two layers. A **universal core** always runs: leftover
 TODO/debug markers and non-conventional commit subjects, rules that hold for
@@ -192,16 +187,19 @@ any project and any owner. Then each derived **profile** sources
 `<skill-base>/scripts/profiles/<name>.sh` for language-specific patterns (the
 `rust` profile: leftover `dbg!`/`todo!`/`unimplemented!`, newly added
 `#[allow]`). A Markdown-only project passes no profile and still gets the
-core; when you work in a new language regularly, add a profile file rather than
-eyeballing the diff. Keep each layer honest about what it is: the core carries
-only rules true for everyone, a profile only rules true for its whole
-language; personal style rules and one project's traumas belong in the global
-or project instructions that govern the writing, not in a shared scanner.
+core; for a language you use regularly, add a profile file rather than
+eyeballing the diff. The core carries only rules true for everyone, a profile
+only rules true for its whole language; personal style rules and one project's
+traumas belong in the instructions that govern the writing, not in a shared
+scanner.
 
-Triage every finding explicitly: fix it, or write the justification into the
-PR body's Notes section. Silently ignoring a hit defeats the gate's purpose.
-The patterns are loose on purpose; a false positive costs one glance, a false
-negative costs reviewer trust.
+Hits never fail the script (exit 0); triage every one explicitly: fix it, or
+write the justification into the PR body's Notes section. Silently ignoring a
+hit defeats the gate's purpose. The patterns are loose on purpose; a false
+positive costs one glance, a false negative costs reviewer trust. A non-zero
+exit (2, reason on stderr) means **the scan did not run**, never "clean": fix
+the cause (not a git repo, unresolvable base, an erroring profile) and rerun,
+because this gate has passed only when the scan actually ran.
 
 ## Step 3. Quality gate
 

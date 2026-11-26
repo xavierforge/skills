@@ -19,18 +19,34 @@
 #     none. To cover a new language regularly, add a profile file rather than
 #     eyeballing the diff.
 #
-# Advisory only. Exit code 0 always. Every hit needs an explicit decision:
-# fix it, or write the justification into the PR body's Notes section.
+# Hits are advisory: they never fail the script. Every hit needs an explicit
+# decision: fix it, or write the justification into the PR body's Notes section.
 # Patterns are deliberately loose; a false positive costs one glance,
 # a false negative costs reviewer trust.
+#
+# Exit codes: 0 means the scan ran (with or without hits). 2 means the scan
+# did NOT run (not a git repo, base ref unresolvable, a profile erroring), with
+# a one-line reason on stderr. A non-zero exit is never "clean".
 set -uo pipefail
 
+die() {
+  printf 'diff-scan: scan did not run: %s\n' "$1" >&2
+  exit 2
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE="${1:?usage: diff-scan.sh <base-ref> [profile ...]}"
-shift || true
+[ $# -ge 1 ] || die "usage: diff-scan.sh <base-ref> [profile ...]"
+BASE="$1"
+shift
 PROFILES=("$@")
 RANGE="${BASE}...HEAD"
 TOTAL=0
+
+git rev-parse --git-dir >/dev/null 2>&1 || die "not inside a git repository"
+git rev-parse --verify --quiet "${BASE}^{commit}" >/dev/null \
+  || die "base ref '${BASE}' does not resolve to a commit"
+git merge-base "$BASE" HEAD >/dev/null 2>&1 \
+  || die "no merge-base between '${BASE}' and HEAD"
 
 added_lines() {
   # Print "file: line" for every line added in the diff, restricted to a pathspec.
@@ -43,8 +59,9 @@ added_lines() {
 check() {
   local title="$1" pattern="$2"
   shift 2
-  local matches
-  matches=$(added_lines "$@" | grep -E "$pattern" || true)
+  local lines matches
+  lines=$(added_lines "$@") || die "git diff ${RANGE} failed"
+  matches=$(printf '%s\n' "$lines" | grep -E "$pattern" || true)
   printf '\n== %s ==\n' "$title"
   if [ -n "$matches" ]; then
     printf '%s\n' "$matches"
@@ -71,7 +88,7 @@ if [ "${#PROFILES[@]}" -gt 0 ]; then
     if [ -f "$profile_file" ]; then
       printf '\n--- profile: %s ---\n' "$profile"
       # shellcheck source=/dev/null
-      source "$profile_file"
+      source "$profile_file" || die "profile '${profile}' errored (${profile_file})"
     else
       printf '\n== profile: %s ==\nWARNING: no profile file at %s (skipped). Add one, or drop the profile argument.\n' \
         "$profile" "$profile_file"
@@ -82,8 +99,9 @@ fi
 # ---- Commit-level checks (language-agnostic, always run) -------------------
 
 printf '\n== Commit subjects: Conventional Commits shape ==\n'
-BAD_SUBJECTS=$(git log --format='%h %s' "${BASE}..HEAD" \
-  | grep -Ev '^[0-9a-f]+ (feat|fix|docs|test|refactor|chore|perf|build|ci)(\([a-z0-9_-]+\))?(!)?: ' || true)
+SUBJECTS=$(git log --format='%h %s' "${BASE}..HEAD") || die "git log ${BASE}..HEAD failed"
+BAD_SUBJECTS=$(printf '%s\n' "$SUBJECTS" \
+  | grep -Ev '^([0-9a-f]+ (feat|fix|docs|test|refactor|chore|perf|build|ci)(\([a-z0-9_-]+\))?(!)?: |$)' || true)
 if [ -n "$BAD_SUBJECTS" ]; then
   printf '%s\n' "$BAD_SUBJECTS"
   TOTAL=$((TOTAL + $(printf '%s\n' "$BAD_SUBJECTS" | wc -l | tr -d ' ')))
