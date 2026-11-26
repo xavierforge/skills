@@ -179,6 +179,12 @@ Case 檔（`cases/<suite>.json`）是每個 eval 的**正典、版本控制**的
 
 summary 把兩種制度並排呈現：`summary.pass_rate` 維持 machine subset；backfill 加上涵蓋機器加 grader 列的 `summary.total_pass_rate`，並把 `run_summary_total` 區塊折進 `benchmark.json`。
 
+#### 斷言寫錯時的重新評分
+
+如果 run 本身沒問題，錯的是斷言（regex 過時、check 指到錯的 source），就修 case 檔，然後拿錄下來的產出重新評分，不要重跑：先跑 `harness/regrade.py <suite> <iteration>`，再跑 `harness/backfill.py <suite> <iteration>` 重新 aggregate 和 harvest。regrade 不會呼叫任何模型。它拿保留下來的 workspace 把每一列機器判的結果重算一次；grader 判過的列只要 `text` 和 `rubric` 都沒變就沿用原裁決，rubric 改過的列則留成 `passed: null`，交給 backfill 補判。
+
+regrade 只要改到某個 run，就會在它的 `fingerprint.regrade` 清單追加一筆 `{harness_commit, checker_sha256, timestamp, changed}`，其中 `changed` 列出裁決有變動的每一列，所以 harvest 回來的分數如果跟第一次評分不同，一定查得到原因；什麼都沒變的 pass 不會動到檔案。只要動到 executor 收到的東西（prompt、fixture、skill），就不算 regrade，要開新的 iteration。
+
 ### Fingerprint 區塊
 
 每份 `grading.json` **必須**帶 `fingerprint`，讓結果能追溯到產生它的確切條件；由 `run_eval.sh` 的 normalize pass 蓋章：
@@ -257,6 +263,7 @@ evals/
   harness/run_eval.sh        一口氣跑完的薄 driver（build -> arms -> grade -> aggregate；EVAL_EXECUTOR 選 claude 或 codex）
   harness/check.py           唯一的通用 checker（機器判的唯一評分者；解讀 schema v1）
   harness/backfill.py        llm_judged 補充 grader（補判延後的列，加上 total_pass_rate）
+  harness/regrade.py         機器判的重新評分器（case 修正後重判已錄下的 run；不呼叫模型、不重跑）
   harness/codex_transcript.py  codex 產出重建器（stream + child session rollouts -> transcript.md/result.md）
   harness/snapshot.sh        run 後的 git 狀態記錄器（證據放 outputs/）
   results/<skill>/iteration-N/   grading.json + benchmark.json（只收小 JSON）

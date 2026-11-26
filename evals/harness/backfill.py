@@ -349,7 +349,11 @@ def backfill_run(gpath: Path, harness_commit: str) -> dict:
     rubric_sha = hashlib.sha256(json.dumps(llm_rows, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     g["summary"] = recompute_summary(exps)
     fp = g.setdefault("fingerprint", {})
-    fp["grader"] = {"model": MODEL, "rubric_sha256": rubric_sha, "harness_commit": harness_commit}
+    # Stamp the grader identity only when this pass judged something: a pass
+    # that found no null row (e.g. the re-aggregate after regrade.py) must not
+    # overwrite the record of who actually judged.
+    if rows or "grader" not in fp:
+        fp["grader"] = {"model": MODEL, "rubric_sha256": rubric_sha, "harness_commit": harness_commit}
     json.dump(g, open(gpath, "w"), indent=2)
     report["summary"] = g["summary"]
     return report

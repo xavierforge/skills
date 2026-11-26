@@ -334,6 +334,23 @@ The summary carries both regimes side by side: `summary.pass_rate` stays the
 machine subset; backfill adds `summary.total_pass_rate` over machine plus
 grader rows and folds a `run_summary_total` block into `benchmark.json`.
 
+#### Regrading when the assertion was wrong
+
+When a run was right and its assertion was wrong (a stale regex, a check
+pointed at the wrong source), fix the case file and regrade from the recorded
+outputs instead of re-running: `harness/regrade.py <suite> <iteration>`, then
+`harness/backfill.py <suite> <iteration>` to re-aggregate and re-harvest.
+Regrade calls no model. It recomputes every machine row against the retained
+workspace, keeps each grader verdict whose `text` and `rubric` are unchanged,
+and leaves a row with a changed rubric `passed: null` for backfill to judge.
+
+Every regrade that alters a run appends
+`{harness_commit, checker_sha256, timestamp, changed}` to that run's
+`fingerprint.regrade` list, where `changed` lists each row whose verdict
+moved, so a harvested score that differs from the first grading always says
+why; a pass that alters nothing leaves the file untouched. A change to what the executor is asked (the prompt,
+the fixture, the skill) is never a regrade: that needs a new iteration.
+
 ### The fingerprint block
 
 Every `grading.json` **must** carry a `fingerprint` so a result traces to
@@ -477,6 +494,7 @@ evals/
   harness/run_eval.sh        thin one-shot driver (build -> arms -> grade -> aggregate; EVAL_EXECUTOR selects claude or codex)
   harness/check.py           the one general checker (sole machine grader; interprets schema v1)
   harness/backfill.py        supplemental llm_judged grader (fills deferred rows, adds total_pass_rate)
+  harness/regrade.py         machine-row regrader (re-decides recorded runs after a case fix; no model, no re-run)
   harness/codex_transcript.py  codex outputs reconstructor (stream + child session rollouts -> transcript.md/result.md)
   harness/snapshot.sh        post-run git-state recorder (evidence in outputs/)
   results/<skill>/iteration-N/   grading.json + benchmark.json (small JSON only)
