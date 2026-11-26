@@ -47,9 +47,9 @@ Done when you have named the change, the artifact directory (or stated that none
 
 Read the durable record before the session, because the session's memory of what went wrong is the least reliable source here:
 
-1. `decisions.md` in the artifact directory: `[caveat]`, `[reversal→*]`, and `[included]` lines are rulings that cost a round.
+1. `decisions.md` in the artifact directory: `[caveat]`, `[reversal→*]`, and `[included]` lines are rulings that cost a round, and so is an `[assumed]` line the user later overturned, since that call had to be redone.
 2. `review-verdict.json` and `diff-review.json` there: every finding with `actioned: true` was a mistake that reached review.
-3. Preflight's closing status lines and `/land`'s reconciliation lines, found in the PR body's Testing and Notes sections (`gh pr view <n> --json body` when `gh` is available): `not run` and `pending` lines are skipped layers.
+3. Preflight's closing status lines, read from `preflight-status.md` in the artifact directory first, and `/land`'s reconciliation lines, found in the PR body's Testing and Notes sections (`gh pr view <n> --json body` when `gh` is available): `not run` and `pending` lines are skipped layers.
 4. The branch's corrective commits: `fixup!`/`squash!` subjects and review-driven fixes in the commit range. After `/land` autosquashes they are gone from the log, so also read the PR's review threads and `git reflog` for the branch when it still exists.
 5. The session, last: a tool output or exchange in this session that shows the mistake happening, quoted verbatim. A user saying a mistake happened is a pointer to go find its evidence, not the evidence itself.
 

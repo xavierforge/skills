@@ -49,7 +49,9 @@ there are several), then read:
    not do. Authoritative, and never edited by this run.
 2. **`decisions.md`**: the change's decision ledger, the post-start rulings
    (`[caveat]`, `[reversal→denied]` / `[reversal→accepted]`, `[included]`,
-   `[tracked]`), each with its date and source. If the file does not exist,
+   `[tracked]`, plus `[assumed]`, a call `/section` or `/factory` made without
+   the user and so a record for review rather than a ruling), each with its
+   date and source. If the file does not exist,
    say so plainly and create it at the first ruling Step 5 produces; do not
    reconstruct a ledger for rulings that were never recorded.
 3. **`docs/adr/`**, if the repo has one: decisions that outgrew a single
@@ -85,9 +87,14 @@ step 6, against the base branch), not by memory: if `preflight-status.md`
 diff and does not count. With no recorded id (the first preflight after
 factory close), the pass is of unknown age: say so in the line, and re-run
 only if `git status --porcelain -- <change_dir>` shows spec edits it cannot
-have seen.
+have seen. Whether it ran, and with what result, comes from the `> verify:`
+line `/factory` appends as the last line of `tasks.md`, not from this
+session's memory of a green close; that line carries no patch id, so on its
+own it is of unknown age as above. When it is absent, say which case you can
+tell: sections carrying `> round:` records mean factory stopped before verify,
+none mean the change ran outside factory.
 
-Record which case applied (`verify: green at factory close`, or
+Record which case applied (`verify: done (green at factory close)`, or
 `verify: re-run here because <reason>`); a gate whose evidence is "it probably
 ran" is the reason Step 0's ledger exists.
 
@@ -216,7 +223,9 @@ dated, tagged, with its source):
    behind; a run that waits for the answer before writing anything leaves no
    record at all. This is the exit that closes the first of the three holes,
    so treat "the reviewer was probably right" as the trap it is: the reviewer
-   did not see the decision.
+   did not see the decision. A finding that contradicts an `[assumed]` line
+   is not a reversal request, because the user never ruled on that call; triage
+   it on its merits like any other finding.
 3. **Out of spec** (real, but not this change's job): register it where the
    project tracks future work (its roadmap file, an issue) and keep it out of
    this PR. Open an issue only after the user confirms; never open one
@@ -284,7 +293,11 @@ duplicate it here.
 Report, in the run summary: the verify case from Step 1, the runtime evidence
 from Step 2, one line per review layer with its finding count, and the triage
 table (finding, exit, ledger line). That summary is what the user reads before
-approving the hand-off to `/land`.
+approving the hand-off to `/land`. List in it every `[assumed]` line the
+change's `decisions.md` carries, verbatim, for the user to confirm or overturn
+before `/land`: these calls were made without them, and this is their one
+human look. An overturned assumption becomes a finding and takes one of Step
+5's exits.
 
 Close it with the artifact status, three fixed lines in this order, one per
 thing `/land`'s reconciliation goes looking for. Every line carries one of

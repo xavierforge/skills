@@ -109,7 +109,10 @@ Check these three layers, in this order:
    regardless of which tier holds the JSON artifacts: `/verify` is a built-in
    skill that cannot be taught the artifact directory rule, so the convention
    is that the verify session (or the user) drops its evidence there by hand.
-   Summary line: its verdict line or first heading.
+   On an OpenSpec change, the `> verify:` line `/factory` appends as the last
+   line of its `tasks.md` also counts as this layer's artifact, since it is
+   factory's on-disk verify record. Summary line: its verdict line or first
+   heading (for the `tasks.md` record, its result and date).
 
 For every layer found, add its one-line summary to the derived-facts readback
 and carry the same line into the PR body (Step 6, Testing section); for every
@@ -416,8 +419,9 @@ draft text and let the user paste it.
     it to a `too-te` subagent rather than spending the main session on
     it.
 - If landing this branch surfaced a lesson that will outlive this PR (a new
-  convention, a new gate), record it in memory or the relevant CLAUDE.md; otherwise
-  record nothing.
+  convention, a new gate), remind the user that `/retro` (the user-invoked
+  learning loop that turns a repeated mistake into an enforcer) is where it
+  goes; remind, don't run it here. No lesson, no reminder.
 
 ## Generic conflict probing
 
