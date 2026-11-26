@@ -96,8 +96,8 @@ One axis can come back clean while the other fails:
 
 Reporting the axes separately keeps either one from masking the other.
 
-## Why this skill stays user-invoked
+## Why the trigger is this narrow
 
-`disable-model-invocation: true` keeps `cross-check` user-invoked only. The model once fired this skill on its own inside a goal loop and ran an invisible review pass nobody asked for; this flag closes that path mechanically.
+`cross-check` stays model-invocable on purpose: `/preflight` and `/land` call it by name as their review layer, which a `disable-model-invocation` flag would block. The narrow description is the guard instead. The model once fired this skill on its own inside a goal loop and ran an invisible review pass nobody asked for, so the description names its callers and leaves a bare "review this" request to `/code-review`.
 
 The two-axis split was inspired by Matt Pocock's `code-review` skill; this repo's version is its own and maintained here.

@@ -198,7 +198,7 @@ has no business in the session doing the judging.
 Package Step 3's decided content, verbatim, into a self-contained dispatch
 brief: the full JSON shape, every field's content, the hunk ids and
 requirement ids from Step 2's authoring contract, and the two commands below.
-Dispatch it to a subagent, `subagent_type: too-te`; if the harness has no
+Dispatch it to a subagent, `subagent_type: too-te` (the executor role for fully-specified work, defined in `agents/`); if the harness has no
 `too-te` role, fall back to `general-purpose` and say so explicitly in the
 prompt, naming a cheap, fast model rather than leaving the choice open. The
 worker does no analysis, invents no finding, and makes no judgment call: it

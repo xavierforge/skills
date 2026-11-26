@@ -219,12 +219,13 @@ model you actually dispatched: a shallow review traced back to a weak reviewer
 is a debugging fact the user needs, not something to reconstruct from logs.
 Naming it once mid-run is not enough; it must survive into the final run
 summary you report to the user (Step 7), as a fixed line naming the reviewer
-model, e.g. `adversarial review: sonnet`. A summary that omits it has lost the
+model, in the form `adversarial review: <model>`, where `<model>` is the name
+of the model that actually ran the review. A summary that omits it has lost the
 fact the moment this session ends. The subagent type is not a substitute for
 the model: `adversarial review: general-purpose` fills the slot with the wrong
 fact and loses the one this line exists to carry. When no roster is installed
 and the reviewer is therefore a plain general subagent, still name the model
-and append the type, `adversarial review: sonnet (general-purpose, no roster)`.
+and append the type, `adversarial review: <model> (general-purpose, no roster)`.
 The prompt contains only the diff, the spec, and a reviewer persona. Provide
 the diff as the literal output of `git diff <base>...HEAD` embedded in the
 prompt (small diffs) or as a file path the subagent reads (large ones). The
@@ -379,8 +380,7 @@ maintainer mode is a plain `gh pr create --base <default>`). The upstream repo
 and fork owner come straight from the remote URLs. This step requires the
 GitHub CLI (`gh`), the only hard dependency in the begin/land pair. Push the
 branch to origin first. Report the PR URL, and alongside it the fixed line
-naming the model that ran Step 4's adversarial review (e.g. `adversarial
-review: sonnet`), so the final summary carries which reviewer the diff went
+naming the model that ran Step 4's adversarial review (e.g. `adversarial review: <model>`), so the final summary carries which reviewer the diff went
 through. Do not post review-thread comments on the user's behalf;
 draft text and let the user paste it.
 

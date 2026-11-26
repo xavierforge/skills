@@ -145,8 +145,11 @@ Once every task in section `N` is done:
    in `tasks.md` as part of that same commit.** Never touch another section's
    tasks or checkboxes.
 5. **Refresh the review page**: if `<change>/review.html` exists, run
-   `python3 ~/.claude/skills/spec-viewer/scripts/generate.py <change>` (add
-   `--quiz <change>/review-quiz.json` when that file also exists). Zero-token,
-   no dispatch; a failure here does not block the section, just note it.
+   `uv run <skill-base>/../spec-viewer/scripts/generate.py <change>` (add
+   `--quiz <change>/review-quiz.json` when that file also exists).
+   `<skill-base>` is this skill's base directory, the path announced when the
+   skill is invoked; `spec-viewer` installs as its sibling, so build the
+   command from that announced path, never from an assumed install location.
+   Zero-token, no dispatch; a failure here does not block the section, just note it.
 6. **Stop.** Do not roll into section `N+1`. One `/section` invocation is one
    section; the user starts the next one in its own fresh session.

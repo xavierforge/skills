@@ -86,7 +86,7 @@ overwriting it.) The main session never writes quiz questions itself: all
 comprehension content comes from the dispatched worker, and all HTML, CSS,
 and JS for the Quiz tab come from `generate.py`, never from the worker.
 
-Dispatch with `subagent_type: too-te`. If the harness has no `too-te` role
+Dispatch with `subagent_type: too-te` (the executor role for fully-specified work, defined in `agents/`). If the harness has no `too-te` role
 installed, fall back to `subagent_type: general-purpose` with an explicit
 cheap `model` override; never dispatch a rosterless general subagent without
 naming a model.
@@ -219,10 +219,10 @@ or rewrite existing entries. Then re-run Step 2. Existing ids stay stable so
 a reader's in-progress localStorage state for already-answered questions is
 untouched; only the newly appended questions start unanswered.
 
-The default `model: haiku` / `effort: low` in the frontmatter is sized for
+The default `model` / `effort` pin in the frontmatter is sized for
 this skill's actual work: dispatch the quiz worker, spot-check its output,
 run the script, open the result, and, if asked, produce the gloss JSON. The
 question-writing work itself runs on the dispatched worker's own model
 (`too-te`'s default, or the named cheap fallback), off this frontmatter's
-budget. Only bump to `sonnet` if the main session's own spot-check judgment,
+budget. Only bump the pin one tier up if the main session's own spot-check judgment,
 or gloss quality, proves insufficient.

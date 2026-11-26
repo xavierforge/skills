@@ -116,9 +116,12 @@ absorbs retries). Then loop, strictly one round at a time:
    at a clean commit), tell the next attempt what the last one got wrong, and
    let step 1 pick the section up again.
 4. **Refresh the review page**: if `<change>/review.html` exists, run
-   `python3 ~/.claude/skills/spec-viewer/scripts/generate.py <change>` (add
-   `--quiz <change>/review-quiz.json` when that file also exists). Zero-token,
-   no dispatch; a failure here does not block the round, just note it.
+   `uv run <skill-base>/../spec-viewer/scripts/generate.py <change>` (add
+   `--quiz <change>/review-quiz.json` when that file also exists).
+   `<skill-base>` is this skill's base directory, the path announced when the
+   skill is invoked; `spec-viewer` installs as its sibling, so build the
+   command from that announced path, never from an assumed install location.
+   Zero-token, no dispatch; a failure here does not block the round, just note it.
 5. **Report the round** (Step 3's one-liner), then return to step 1.
 
 If the budget runs out with sections still incomplete, stop the factory and
