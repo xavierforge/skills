@@ -71,7 +71,7 @@
 
 ## How the evals work (底層怎麼跑)
 
-### 八個驗證 Suite
+### 九個驗證 Suite
 
 | Suite                                     | 受測 skill    | 情境數 | 頁面                                                                                     |
 | ----------------------------------------- | ------------- | ------ | ---------------------------------------------------------------------------------------- |
@@ -83,6 +83,7 @@
 | [`cross-check`](./history.md#cross-check) | `cross-check` | 1      | 雙軸（standards + spec）verdict 產物                                                     |
 | [`spec-viewer`](./history.md#spec-viewer) | `spec-viewer` | 2      | 渲染 change 頁面、產出 zh-TW gloss                                                       |
 | [`preflight`](./history.md#preflight)     | `preflight`   | 2      | 對照 Non-Goals 和 decision ledger 裁決三個 findings、缺席層誠實回報並在 ledger 留 caveat |
+| `retro`                                   | `retro`       | 3      | 尚未跑過：第一次出現只記帳、第二次出現提出 proposal 並停下等核准、沒證據的說法直接剔除 |
 
 每個 suite 最頂層的 `skill_name` 就代表它專心測哪個 skill。
 

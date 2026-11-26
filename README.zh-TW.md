@@ -2,12 +2,13 @@
 
 [English](README.md)
 
-這組專案包含八個 skill，負責把一個變更 (change) 從擬定規格一路護送到合併 PR，完整順序如下：
+這組專案包含九個 skill，負責把一個變更 (change) 從擬定規格一路護送到合併 PR，最後再把踩過的坑回饋進規則裡，完整順序如下：
 
 1. **準備** (`begin`)：把預設分支同步到乾淨基準，再開出一條 feature branch。
 2. **實作推進**：`factory` 負責推進整個開發進度，每輪處理一個 section；`section` 則專注執行單一個區塊，逐 task 做 TDD，完成一個 commit 就停。
 3. **多重審查**：`cross-check`、`vibe-diff`、`spec-viewer` 與 `preflight` 疊加多重審查閘門，並維護一份決策紀錄 (decision ledger)。
 4. **貢獻與合併** (`land`)：對帳、跑對抗式審查、整理 commit，最後寫好 PR body 開出 PR。
+5. **覆盤學習** (`retro`)：把每次犯的錯記進 lessons ledger，同一類錯誤第二次出現時，就提出撐得住它的最強 enforcer (優先用 script、check、test，prose 擺最後)，等使用者核准才動手。
 
 以上流程是圍繞著 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 工作流長出來的，所以搭配它進行 SDD 時效果最好。但實際上也只有三個 skill 硬性要求 OpenSpec 的資料夾結構 (詳見下表)；其餘的在任何 repo 都能跑，如果找不到 spec 資料夾，就會自動退回使用 mini-spec，並以 `.review/` 作為 artifact 目錄，專案內的 `openspec-rules/` 資料夾有提供需要的範本。
 
@@ -40,6 +41,7 @@
 | [`spec-viewer`](skills/spec-viewer/) | 把一個 OpenSpec change 渲染成單頁 handbook 式 HTML                       | 必要       | `/spec-viewer`        |
 | [`preflight`](skills/preflight/)     | 貢獻前的驗收閘門：對帳、跑各審查層、把 findings 逐一裁決                               | 可選       | `/preflight`          |
 | [`land`](skills/land/)               | 同步遠端預設分支的最新基準、執行品質閘門、對抗式審查、整理 commit、寫 PR body            | 可選       | `/land`               |
+| [`retro`](skills/retro/)             | 把錯誤記進 lessons ledger；同類錯誤重複出現時，經核准後把它變成 script、check 或 test | 可選       | `/retro`              |
 
 _(備註：**必要** = 沒 `openspec/changes/` 就無事可做；**可選** = 有就用，沒有就走非 OpenSpec 路徑；**不需要** = 完全解耦。)_
 
@@ -84,7 +86,7 @@ for s in skills/*/; do ln -sfn "$PWD/$s" ~/.claude/skills/"$(basename "$s")"; do
 
 ### 2. Role agents（推薦）
 
-會自動派工的 skill (`factory`、`section`、`land`) 是把任務發包給三個「具名角色」，而不是綁死特定模型。
+會自動派工的 skill (`factory`、`section`、`land`、`retro`) 是把任務發包給三個「具名角色」，而不是綁死特定模型。
 
 請照 [`agents/README.md`](agents/README.md) 的說明安裝 (Claude Code 和 Codex 版都有)。沒裝也不會壞，派工時會自動降級成帶著一句話契約的普通 subagent 繼續跑，並在回報裡註明降級；但裝了才能擁有真正的模型分級和明確的工具邊界。
 

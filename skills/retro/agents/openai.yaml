@@ -1,0 +1,5 @@
+interface:
+  display_name: "Retro"
+  short_description: "Turn a repeated mistake into an enforced check through a lessons ledger and an approval gate"
+policy:
+  allow_implicit_invocation: false

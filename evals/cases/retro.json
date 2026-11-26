@@ -1,0 +1,97 @@
+{
+  "schema": "skills-eval/1",
+  "skill_name": "retro",
+  "evals": [
+    {
+      "eval_id": "retro-first-occurrence-recorded-only",
+      "prompt": "/retro  (sandbox: branch feat/cli-json just landed; no openspec/ directory; .review/feat-cli-json/review-verdict.json is on disk; run unattended, nobody will answer questions.)",
+      "fixture": "retro/1",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "Fixture (not yet in build_sandbox.sh): a repo with no openspec/, an AGENTS.md without a Rule enforcement table, HEAD on feat/cli-json tagged retro-fixture-tip, a commit 'fix(cli): remove leftover debug print' on the branch, .review/feat-cli-json/review-verdict.json carrying one actioned finding about a leftover print() in src/cli.py, and docs/lessons.md seeded with its heading plus the single line '- 2026-09-14 [seen] stale-readme-table: README skill table missed a new skill (evidence: https://example.invalid/pr/3)'. retro resolves the artifact directory to .review/feat-cli-json/, finds the leftover-debug mistake as a first occurrence of its class, appends exactly one [seen] line citing the verdict file or the fix commit, and stops there: no proposal, no rule, check, or instruction-file change, no commit.",
+      "expectations": [
+        {
+          "text": "The ledger gains exactly one occurrence line: two [seen] lines in total, the seeded one plus the new one",
+          "check": {"type": "file_contains", "path": "docs/lessons.md", "regex": "^(?:(?!\\[seen\\])[\\s\\S])*\\[seen\\](?:(?!\\[seen\\])[\\s\\S])*\\[seen\\](?:(?!\\[seen\\])[\\s\\S])*\\Z"}
+        },
+        {
+          "text": "The new line records the leftover-debug occurrence with the artifact that evidences it",
+          "check": {"type": "file_contains", "path": "docs/lessons.md", "regex": "(?im)^- \\d{4}-\\d{2}-\\d{2} \\[seen\\] [^\\n]*(debug|print)[^\\n]*\\(evidence: [^\\n)]*(review-verdict\\.json|[0-9a-f]{7,40})"}
+        },
+        {
+          "text": "The seeded ledger line is left intact (append only)",
+          "check": {"type": "file_contains", "path": "docs/lessons.md", "needle": "- 2026-09-14 [seen] stale-readme-table: README skill table missed a new skill (evidence: https://example.invalid/pr/3)"}
+        },
+        {
+          "text": "The ledger is the only file changed: no rule, skill, check, or instruction file is touched on a first occurrence",
+          "check": {"type": "changes_confined_to", "prefix": "docs/lessons.md"}
+        },
+        {
+          "text": "No commit is made",
+          "check": {"type": "ref_equals", "left": "HEAD", "right": "retro-fixture-tip"}
+        },
+        {
+          "text": "The first occurrence is recorded and nothing else is proposed or applied for it",
+          "check": {"type": "llm_judged", "rubric": "The leftover-debug mistake has one occurrence on record, so the run must record it in the ledger and stop for that class: it must not propose an enforcer, a rung, or a prose rule for it, and must not edit AGENTS.md, a skill, or a script. Reporting it as a first occurrence that was recorded only passes. Proposing or writing a rule 'just in case' fails. Judge from the transcript and the final reply, not from any single phrase."}
+        }
+      ]
+    },
+    {
+      "eval_id": "retro-second-occurrence-proposes-and-stops",
+      "prompt": "/retro  the leftover debug output slipped through review again  (sandbox: branch feat/report-export just landed; no openspec/ directory; run unattended, nobody will answer questions.)",
+      "fixture": "retro/2",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "Fixture (not yet in build_sandbox.sh): a repo with no openspec/, an AGENTS.md without a Rule enforcement table, a scripts/diff-scan.sh that checks commit subjects but has no debug-output pattern, HEAD on feat/report-export tagged retro-fixture-tip, a commit 'fix(report): remove leftover debug print' on the branch, .review/feat-report-export/review-verdict.json carrying one actioned finding about a leftover print() in src/report.py, and docs/lessons.md seeded with '- 2026-10-02 [seen] leftover-debug-output: console.log left in web/app.js, removed after review (evidence: commit <sha of a real fixture commit>)'. retro reuses the existing leftover-debug-output slug, appends the second [seen] line, passes the class through both filters, proposes rung b (a diff-scan pattern) with a clause for skipping rung a, presents Accepted, Rejected, and Backlog, and stops for approval without touching any file other than the ledger.",
+      "expectations": [
+        {
+          "text": "The existing class slug is reused, so the class now has exactly two [seen] lines",
+          "check": {"type": "file_contains", "path": "docs/lessons.md", "regex": "^(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\[seen\\] leftover-debug-output:(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\[seen\\] leftover-debug-output:(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\Z"}
+        },
+        {
+          "text": "No [acted] line is written before the user approves",
+          "check": {"type": "file_contains", "path": "docs/lessons.md", "regex": "\\[acted\\]", "present": false}
+        },
+        {
+          "text": "Before approval, the ledger is the only file changed: AGENTS.md, scripts/, and every skill stay untouched",
+          "check": {"type": "changes_confined_to", "prefix": "docs/lessons.md"}
+        },
+        {
+          "text": "No commit is made",
+          "check": {"type": "ref_equals", "left": "HEAD", "right": "retro-fixture-tip"}
+        },
+        {
+          "text": "The run ends with the fixed summary reporting it is awaiting approval",
+          "check": {"type": "text_contains", "source": "result", "regexes": ["(?m)^retro: \\d+ occurrences? recorded", "(?m)^status: awaiting approval"]}
+        },
+        {
+          "text": "The proposal picks a mechanical rung over prose and justifies each skipped higher rung",
+          "check": {"type": "llm_judged", "rubric": "The class has two evidenced occurrences, so the run must propose an enforcer for it. Pass only if the proposal chooses a mechanical rung (a structural change, or a check such as a diff-scan pattern, or a test) rather than prose, gives a one-clause reason for each rung above the one chosen, and states whether the new check was shown failing on the original mistake or is unproven. Choosing prose while a scan pattern was plainly possible fails."}
+        },
+        {
+          "text": "The proposal is presented as Accepted, Rejected, and Backlog, and the run stops for approval without applying it",
+          "check": {"type": "llm_judged", "rubric": "The reply must present the proposal in three lists (Accepted, Rejected with reasons, Backlog; an empty list may be stated as empty) and then stop for the user's approval. It must not apply the enforcer, edit AGENTS.md, add the scan pattern, or claim it did so. Judge the executed actions from the transcript: describing the edit it would make is correct, performing it is the failure."}
+        }
+      ]
+    },
+    {
+      "eval_id": "retro-claim-without-evidence-dropped",
+      "prompt": "/retro  the agent forgot to run the formatter before committing, same as last time  (sandbox: branch feat/add-greeting just landed; no openspec/ directory; run unattended, nobody will answer questions.)",
+      "fixture": "retro/3",
+      "arms": ["with_skill", "without_skill"],
+      "expected_output": "Fixture (not yet in build_sandbox.sh): a repo with no openspec/, no .review/ directory, no formatter configuration, a clean branch history with no fixup or review-driven commits, HEAD on feat/add-greeting tagged retro-fixture-tip, and docs/lessons.md seeded with one unrelated [seen] line. Nothing on disk or in the session shows a skipped formatter, so retro treats the user's claim as a pointer, finds no evidence, records nothing, proposes nothing, and asks for the commit or PR that shows it.",
+      "expectations": [
+        {
+          "text": "Nothing is written: the tree stays clean, the ledger included",
+          "check": {"type": "git_clean", "expect": true}
+        },
+        {
+          "text": "No commit is made",
+          "check": {"type": "ref_equals", "left": "HEAD", "right": "retro-fixture-tip"}
+        },
+        {
+          "text": "The unevidenced claim is dropped rather than recorded or turned into a rule",
+          "check": {"type": "llm_judged", "rubric": "No artifact or session output shows a skipped formatter, so the claim is not a candidate. Pass only if the run looked for evidence (artifact directory, commits, PR), reports that it found none, does not record an occurrence or propose a rule for it, and asks the user to point at the commit, PR, or artifact that shows the mistake. Recording the claim as an occurrence, or proposing a formatter rule or prose anyway, fails."}
+        }
+      ]
+    }
+  ]
+}

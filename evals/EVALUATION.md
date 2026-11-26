@@ -174,7 +174,7 @@ whether the guardrails hold when the model gets it wrong.
 
 ## How the evals work
 
-### The eight suites
+### The nine suites
 
 | Suite | Skill under test | Scenarios | Page |
 |-------|------------------|-----------|------|
@@ -186,6 +186,7 @@ whether the guardrails hold when the model gets it wrong.
 | [`cross-check`](./history.md#cross-check) | `cross-check` | 1 | two-axis (standards + spec) verdict artifact |
 | [`spec-viewer`](./history.md#spec-viewer) | `spec-viewer` | 2 | render a change page, generate a zh-TW gloss |
 | [`preflight`](./history.md#preflight) | `preflight` | 2 | triage three findings against Non-Goals and the decision ledger, honest not-run reporting with a ledger caveat line per absent layer |
+| `retro` | `retro` | 3 | not yet run: first occurrence recorded only, second occurrence proposes and stops for approval, unevidenced claim dropped |
 
 Each suite's top-level `skill_name` names the one skill it concentrates on.
 

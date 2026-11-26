@@ -206,6 +206,50 @@ MD
 MD
 }
 
+# The retro suite's tracked lessons ledger, seeded with the given entry line.
+seed_lessons_ledger() {
+  mkdir -p "$TARGET/docs"
+  printf '# Lessons ledger\n\n%s\n' "$1" > "$TARGET/docs/lessons.md"
+}
+
+# A landed retro branch: a feature commit that leaves a debug print() in
+# src/<module>.py, the review-driven fix that removes it, and the committed
+# cross-check verdict recording that finding as actioned (committed so the
+# baseline tree is clean, as in land/3).
+seed_debug_print_branch() {
+  local branch="$1" module="$2" slug
+  slug="${branch//\//-}"
+  g switch -qc "$branch"
+  cat > "$TARGET/src/${module}.py" <<PY
+import json
+
+
+def render(record):
+    print("DEBUG render", record)
+    return json.dumps(record, sort_keys=True)
+PY
+  g add -A; g commit -qm "feat(${module}): add json rendering"
+  cat > "$TARGET/src/${module}.py" <<'PY'
+import json
+
+
+def render(record):
+    return json.dumps(record, sort_keys=True)
+PY
+  g commit -qam "fix(${module}): remove leftover debug print"
+  mkdir -p "$TARGET/.review/${slug}"
+  cat > "$TARGET/.review/${slug}/review-verdict.json" <<JSON
+{
+  "layer": "cross-check",
+  "fixed_point": "main",
+  "findings": [
+    {"axis": "standards", "title": "leftover debug print() in src/${module}.py render()", "severity": "hard", "actioned": true}
+  ]
+}
+JSON
+  g add -A; g commit -qm "chore(review): record cross-check verdict for ${branch}"
+}
+
 case "${SKILL}/${ID}" in
   factory/1)  # one active change, three loop-ready sections, mixed dispatch roles
     g init -qb main
@@ -648,6 +692,67 @@ MD
 MD
     g add -A; g commit -qm "chore: scaffold greetings project and add-helpers change"
     g switch -qc feat/add-helpers
+    ;;
+  retro/1)  # retro first occurrence: a landed branch whose cross-check verdict
+            # shows a leftover debug print fixed after review, no openspec, and a
+            # lessons ledger holding one unrelated class. retro must append exactly
+            # one [seen] line and touch nothing else; the tag pins "no commit".
+    g init -qb main
+    seed_project
+    seed_lessons_ledger "- 2026-09-14 [seen] stale-readme-table: README skill table missed a new skill (evidence: https://example.invalid/pr/3)"
+    g add -A; g commit -qm "chore: initial project"
+    init_origin main
+    seed_debug_print_branch feat/cli-json cli
+    g tag retro-fixture-tip
+    ;;
+  retro/2)  # retro second occurrence: the ledger already holds one evidenced
+            # leftover-debug-output line (pointing at a real fix commit on main),
+            # and the landed branch repeats the mistake. retro must reuse the slug,
+            # append the second [seen] line, propose an enforcer, and stop for
+            # approval without touching AGENTS.md or scripts/.
+    g init -qb main
+    seed_project
+    mkdir -p "$TARGET/scripts"
+    cat > "$TARGET/scripts/diff-scan.sh" <<'SH'
+#!/usr/bin/env bash
+# Pre-PR scan: every commit subject since the base must be a Conventional Commit.
+set -euo pipefail
+base="${1:?base ref}"
+bad=$(git log --format=%s "$base"..HEAD | grep -Ev '^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\([a-z0-9-]+\))?: ' || true)
+if [ -n "$bad" ]; then echo "non-conventional subjects:"; echo "$bad"; exit 1; fi
+echo "diff-scan: clean"
+SH
+    chmod +x "$TARGET/scripts/diff-scan.sh"
+    g add -A; g commit -qm "chore: initial project"
+    # The earlier occurrence: a console.log that review caught on a past change.
+    mkdir -p "$TARGET/web"
+    printf 'export function boot() {\n  console.log("boot debug");\n  return true;\n}\n' > "$TARGET/web/app.js"
+    g add -A; g commit -qm "feat(web): add app bootstrap"
+    printf 'export function boot() {\n  return true;\n}\n' > "$TARGET/web/app.js"
+    g commit -qam "fix(web): drop leftover console.log"
+    seed_lessons_ledger "- 2026-10-02 [seen] leftover-debug-output: console.log left in web/app.js, removed after review (evidence: commit $(g rev-parse --short=7 HEAD))"
+    g add -A; g commit -qm "docs(lessons): record the leftover console.log"
+    init_origin main
+    seed_debug_print_branch feat/report-export report
+    g tag retro-fixture-tip
+    ;;
+  retro/3)  # retro unevidenced claim: the user says the formatter was skipped
+            # again, but there is no .review/, no formatter config, and no fixup
+            # or review-driven commit. retro must record nothing (clean tree).
+    g init -qb main
+    seed_project
+    seed_lessons_ledger "- 2026-09-14 [seen] stale-readme-table: README skill table missed a new skill (evidence: https://example.invalid/pr/3)"
+    g add -A; g commit -qm "chore: initial project"
+    init_origin main
+    g switch -qc feat/add-greeting
+    cat >> "$TARGET/src/greetings.py" <<'PY'
+
+
+def greet_formal(name):
+    return f"Good day, {name}."
+PY
+    g commit -qam "feat(greetings): add formal greeting"
+    g tag retro-fixture-tip
     ;;
   *)
     echo "unknown skill/eval: ${SKILL}/${ID}" >&2; exit 2 ;;

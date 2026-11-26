@@ -2,8 +2,9 @@
 
 [繁體中文](README.zh-TW.md)
 
-This repo holds eight skills that walk one change from a framed spec all the
-way to a merged PR, in this order:
+This repo holds nine skills that walk one change from a framed spec all the
+way to a merged PR, then feed what went wrong back into the rules, in this
+order:
 
 1. **Prepare** (`begin`): sync the default branch to a clean base, then open
    a feature branch.
@@ -14,6 +15,9 @@ way to a merged PR, in this order:
    `preflight` stack the review gates and maintain a decision ledger.
 4. **Contribute** (`land`): reconcile, run the adversarial review, organize
    the commits, then write the PR body and open the PR.
+5. **Learn** (`retro`): log each mistake in a lessons ledger, and once a
+   class of mistake recurs, propose the strongest enforcer that can hold it
+   (a script, a check, a test, prose last) for the user to approve.
 
 The flow grew around the [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 workflow, so it works best doing SDD with it. In practice only three skills
@@ -59,6 +63,7 @@ installed copy.
 | [`spec-viewer`](skills/spec-viewer/) | One OpenSpec change rendered as a single handbook-style HTML page                     | required | `/spec-viewer`                 |
 | [`preflight`](skills/preflight/)     | Pre-contribution acceptance gate: reconcile, run the review layers, rule on findings  | optional | `/preflight`                   |
 | [`land`](skills/land/)               | Sync the base to the remote default branch's latest, quality gate, adversarial review, organize commits, write the PR body | optional | `/land`                        |
+| [`retro`](skills/retro/)             | Record mistakes in a lessons ledger; turn a recurring class into a script, check, or test after approval | optional | `/retro`                       |
 
 _(Note: **required** = nothing to act on without `openspec/changes/`;
 **optional** = uses it when present, takes the non-OpenSpec path when absent;
@@ -121,8 +126,8 @@ viewer skills' scripts need `uv` or any `python3`.
 
 ### 2. Role agents (recommended)
 
-The skills that dispatch work (`factory`, `section`, `land`) hand tasks to
-three named roles rather than pinning specific models.
+The skills that dispatch work (`factory`, `section`, `land`, `retro`) hand
+tasks to three named roles rather than pinning specific models.
 
 Install the roster per [`agents/README.md`](agents/README.md) (both the
 Claude Code and Codex renderings are there). Nothing breaks without it:
