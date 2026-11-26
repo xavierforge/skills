@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grill"
+  short_description: "Interview the user about a change until a confirmed, testable brief becomes its spec"
+policy:
+  allow_implicit_invocation: true

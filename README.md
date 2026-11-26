@@ -2,20 +2,23 @@
 
 [繁體中文](README.zh-TW.md)
 
-This repo holds nine skills that walk one change from a framed spec all the
+This repo holds ten skills that walk one change from a framed spec all the
 way to a merged PR, then feed what went wrong back into the rules, in this
 order:
 
-1. **Prepare** (`begin`): sync the default branch to a clean base, then open
+1. **Define** (`grill`): interview the idea round by round until it is pinned
+   down, then confirm a short brief with testable requirements, which `begin`
+   saves as the change's spec.
+2. **Prepare** (`begin`): sync the default branch to a clean base, then open
    a feature branch.
-2. **Implement**: `factory` drives the whole change forward, one section per
+3. **Implement**: `factory` drives the whole change forward, one section per
    round; `section` focuses on a single block, TDD per task, stopping after
    one commit.
-3. **Layered review**: `cross-check`, `vibe-diff`, `spec-viewer`, and
+4. **Layered review**: `cross-check`, `vibe-diff`, `spec-viewer`, and
    `preflight` stack the review gates and maintain a decision ledger.
-4. **Contribute** (`land`): reconcile, run the adversarial review, organize
+5. **Contribute** (`land`): reconcile, run the adversarial review, organize
    the commits, then write the PR body and open the PR.
-5. **Learn** (`retro`): log each mistake in a lessons ledger, and once a
+6. **Learn** (`retro`): log each mistake in a lessons ledger, and once a
    class of mistake recurs, propose the strongest enforcer that can hold it
    (a script, a check, a test, prose last) for the user to approve.
 
@@ -55,6 +58,7 @@ installed copy.
 
 | Skill                                | What it does                                                                          | OpenSpec | Invoke                         |
 | ------------------------------------ | ------------------------------------------------------------------------------------- | -------- | ------------------------------ |
+| [`grill`](skills/grill/)             | Interview until the change is pinned down; ends in a confirmed brief that `/begin` saves as the spec | none     | `/grill` (model-invocable)     |
 | [`begin`](skills/begin/)             | Sync the default branch first, then open a clean feature branch                       | none     | `/begin`                       |
 | [`factory`](skills/factory/)         | Drive the active change, one section per round, a fresh subagent every round          | required | `/factory`                     |
 | [`section`](skills/section/)         | Run one numbered `tasks.md` section: TDD per task, one commit at the end, then stop   | required | `/section N` (model-invocable) |
@@ -126,8 +130,8 @@ viewer skills' scripts need `uv` or any `python3`.
 
 ### 2. Role agents (recommended)
 
-The skills that dispatch work (`factory`, `section`, `land`, `retro`) hand
-tasks to three named roles rather than pinning specific models.
+The skills that dispatch work (`grill`, `factory`, `section`, `land`, `retro`)
+hand tasks to three named roles rather than pinning specific models.
 
 Install the roster per [`agents/README.md`](agents/README.md) (both the
 Claude Code and Codex renderings are there). Nothing breaks without it:
