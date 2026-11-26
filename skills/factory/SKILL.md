@@ -84,7 +84,16 @@ with no memory, so the plan must carry everything:
    the command to run, the observable outcome). "Implement X" with no check
    gets its check written in.
 
-If every section passes, say so and enter the loop. Otherwise rewrite
+The gate ends by outputting exactly one line, before the first round is
+dispatched:
+
+    plan gate: <N> sections | session-sized: <ok | fixed> | independent: <ok | fixed> | verifiable: <ok | fixed> | next: <round 1 | approval | stop>
+
+A gate that prints nothing cannot be told apart from a gate that was skipped,
+and a verdict written after the rounds says nothing about the order they ran
+in. `fixed` marks a property the rewrite below had to repair.
+
+If every section passes, enter the loop. Otherwise rewrite
 `tasks.md` in place (split, merge, reorder, add checks) and commit it on its
 own (`docs(openspec): make <change> tasks loop-ready`) so round commits stay
 one-section-one-commit. Interactive: first show the user the diff (`git diff`
@@ -95,8 +104,9 @@ subject and what changed, commit both together, and enter the loop. A plan
 that cannot be made loop-ready without a scope decision is not a reversible
 fork: stop, write up what is undecided, and end the run.
 
-Done when: every section passes all three properties, and any rewrite has
-been committed (approved first, when interactive).
+Done when: every section passes all three properties, any rewrite has been
+committed (approved first, when interactive), and the gate line is out ahead
+of round 1's dispatch.
 
 ## Step 2. Rounds: one section in, one commit out
 
