@@ -77,11 +77,15 @@ Run the project's full test suite to green, no substitutions and no subset.
 
 Then confirm `/opsx:verify` already ran at the close of `/factory` and passed.
 That is normally the case, and re-running it here would just spend a review
-pass to reprint a known result. Re-run it only when one of two things is true:
-it never ran (the factory stopped early, the change was executed by hand), or
-the spec artifacts changed after it ran. Check the second mechanically: if any
-file under the change directory is newer than the verify pass, the pass was
-against an older spec and does not count.
+pass to reprint a known result. Re-run it only when it never ran (the factory
+stopped early, the change was executed by hand), or when the diff changed
+after it ran. Check the second by **patch id** (the command in `/cross-check`
+step 6, against the base branch), not by memory: if `preflight-status.md`
+(Step 6) records a `verify:` line, a different id means the pass saw another
+diff and does not count. With no recorded id (the first preflight after
+factory close), the pass is of unknown age: say so in the line, and re-run
+only if `git status --porcelain -- <change_dir>` shows spec edits it cannot
+have seen.
 
 Record which case applied (`verify: green at factory close`, or
 `verify: re-run here because <reason>`); a gate whose evidence is "it probably
@@ -119,7 +123,10 @@ sessions and run them in parallel; nothing in either depends on the other.
   the change directory, which is exactly what `/land`'s reconciliation step
   reads back. Skipping it does not go unnoticed downstream: on an openspec
   project, `/land` stops on the missing `review-verdict.json` and asks the
-  user whether to proceed unreviewed.
+  user whether to proceed unreviewed. A verdict already on disk counts only
+  if its `patch_id` matches the recomputed one (its own `fixed_point`); a
+  different id is stale, so rerun the layer; no `patch_id` means unknown age,
+  said in the run summary, and the verdict is used as before.
 
 **Fresh context is the whole point.** An in-loop review, run inside the
 session that wrote the code or partway through `/factory`, inherits the
@@ -171,10 +178,14 @@ disk, which is also the file `/land` reconciles against later.
 
 ## Step 5. Finding triage: three exits, every ruling written back
 
-Collect every finding from Steps 1 to 4 into one list. Each finding takes
-exactly one of three exits, and each exit writes a line to `decisions.md` (the
-format is the change's decision ledger contract: one line, dated, tagged, with
-its source):
+Collect every finding from Steps 1 to 4 into one list, ordered by its rung on
+`/cross-check`'s evidence ladder: proven findings first, then every finding
+marked unproven as one batch, which never blocks the hand-off by default (a
+claim nobody reproduced has not earned a stop); a finding with no `evidence`
+field (an older verdict) is triaged by its `severity` as before. Each finding
+takes exactly one of three exits, and each exit writes a line to
+`decisions.md` (the format is the change's decision ledger contract: one line,
+dated, tagged, with its source):
 
 1. **In-spec defect** (the finding names something this change was supposed to
    get right and did not): dispatch a fix. Package it as a self-contained spec
@@ -289,10 +300,15 @@ three labels, and the parenthetical is part of the label, not decoration:
   words: one vocabulary, said once to the user reading now and once to
   whoever opens the change directory later.
 
+Each line ends with `@ <patch id>`, the id it was observed at (`@ none` on an
+empty diff), and the block is written to `preflight-status.md` in the artifact
+directory, overwriting the last run's, so the next run judges staleness by
+comparing ids instead of trusting the chat:
+
 ```text
-verify: done (green at factory close)
-review-verdict.json: not run (caveat: cross-check unavailable in this harness)
-diff-review.json: pending (user runs /vibe-diff in a fresh session)
+verify: done (green at factory close) @ a3770d655e49b15b7f250ccd27970add1bed258b
+review-verdict.json: not run (caveat: cross-check unavailable in this harness) @ a3770d655e49b15b7f250ccd27970add1bed258b
+diff-review.json: pending (user runs /vibe-diff in a fresh session) @ a3770d655e49b15b7f250ccd27970add1bed258b
 ```
 
 **A layer whose invocation failed is not `done`, and neither is one you stood

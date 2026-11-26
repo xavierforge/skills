@@ -96,10 +96,15 @@ Check these three layers, in this order:
    status plus the gist of the overview (or the risk count), e.g.
    `vibe-diff: tests pass (cargo test, 14), 2 risks, 1 unverified claim`.
 2. **cross-check**: `<artifact_dir>/review-verdict.json`, the two-axis
-   verdict: `layer`, `fixed_point`, and `findings[]` each carrying `axis`,
-   `title`, `severity`, `actioned`. Summary line: findings per axis and how
-   many were actioned, e.g. `cross-check: 5 findings (standards 3, spec 2),
-   4 actioned, since abc1234`.
+   verdict (field contract in `/cross-check` step 6). Recompute the patch id
+   with the command defined there, against the artifact's own `fixed_point`:
+   equal means the verdict covers this diff even after a rebase or a
+   message-only amend; different means **stale**, handled below exactly like a
+   missing verdict; no `patch_id` (an older artifact) means unknown age, said
+   in the line, and the verdict is read as before. Summary line: findings per
+   axis, actioned and unproven counts, patch state, e.g. `cross-check: 5
+   findings (standards 3, spec 2), 4 actioned, 1 unproven, since abc1234,
+   patch current`.
 3. **verify**: `.review/<slug>/verify.md`, always at this fixed path
    regardless of which tier holds the JSON artifacts: `/verify` is a built-in
    skill that cannot be taught the artifact directory rule, so the convention
@@ -111,26 +116,26 @@ and carry the same line into the PR body (Step 6, Testing section); for every
 layer whose artifact is missing, the line is `<layer>: not run`. The step is
 complete only when the readback carries exactly three layer lines, one per
 layer, found or not: an absent layer stated plainly is honest, a silently
-omitted one reads as "probably fine". A present artifact doubles as the
-concrete evidence Step 0b's verification precondition asks for; a verbal "the
-review passed" with nothing on disk is exactly the claim this step exists to
-stop trusting.
+omitted one reads as "probably fine". A present, non-stale artifact doubles as
+the concrete evidence Step 0b's verification precondition asks for; a verbal
+"the review passed" with nothing on disk is exactly the claim this step exists
+to stop trusting.
 
 **A missing artifact blocks nothing on its own, unless this branch came
 through the pipeline.** The mechanical test is the same active-change
 detection Step 0a already ran: exactly one entry under `openspec/changes/`,
 excluding `archive/`. When there is one, this branch belongs to the
 `/factory` → `/preflight` → `/land` pipeline, where cross-check and vibe-diff
-are gates rather than options, so a missing `review-verdict.json` or
-`diff-review.json` does not mean the layer never applied, it means a gate was
-skipped. Stop and ask the user once, naming every missing layer in the same
-question: run them now, or continue without them. If they waive it, the run
+are gates rather than options, so a missing (or stale) `review-verdict.json`
+or `diff-review.json` does not mean the layer never applied, it means a gate
+was skipped. Stop and ask the user once, naming every missing or stale layer
+in the same question: run them now, or continue without them. If they waive it, the run
 continues, the `<layer>: not run` line stays in the readback, and the waiver
 goes into the PR body's Notes section (Step 6), so a reviewer reads what was
 skipped instead of inferring it from a line that is simply absent. Off the
 pipeline (no active openspec change, the `.review/<slug>/` tier), a missing
-artifact is just a layer this branch never used: report it, continue, and add
-no friction.
+artifact is just a layer this branch never used, and a stale one is reported
+as stale: report it, continue, and add no friction.
 
 ## Step 1. Refresh base and drift check
 
@@ -224,13 +229,20 @@ the model: `adversarial review: general-purpose` fills the slot with the wrong
 fact and loses the one this line exists to carry. When no roster is installed
 and the reviewer is therefore a plain general subagent, still name the model
 and append the type, `adversarial review: <model> (general-purpose, no roster)`.
-The prompt contains only the diff, the spec, and a reviewer persona. Provide
-the diff as the literal output of `git diff <base>...HEAD` embedded in the
-prompt (small diffs) or as a file path the subagent reads (large ones). The
+The prompt contains only the diff, the spec, `/cross-check`'s evidence
+ladder, and a reviewer persona: never the author's summary or commit-message
+justifications, because a reviewer handed the author's conclusion inherits it.
+Provide the diff as the literal output of `git diff <base>...HEAD` embedded in
+the prompt (small diffs) or as a file path the subagent reads (large ones). The
 spec location comes from Step 0a. This is a narrow-scope review; spec
 compliance and general code quality were already covered by the earlier
 cross-check pass. It looks only for: portability, security, API and naming
 clarity, and any design point a reviewer would ask "why" about.
+
+Each finding comes back with its ladder rung. A portability or security defect
+is `hard` only with a rerunnable command: rerun it here, and demote a finding
+whose command does not show the failure, or that has none, exactly as the
+ladder says. Report how many findings were demoted and why in a clause.
 
 Persona, contribution mode:
 
@@ -238,13 +250,15 @@ Persona, contribution mode:
 > outside contributor. You have not seen any of the development conversation.
 > Find: portability problems, security problems, API and naming clarity
 > problems, and any design point you would ask "why" about in review. Hold it
-> to a maintainer's standard; do not go easy on it.
+> to a maintainer's standard; do not go easy on it. Give each finding its
+> evidence rung, and for a portability or security defect the exact command
+> that shows it with the output you saw. No findings is a valid review.
 
 Maintainer mode: same axes, persona becomes an incoming external contributor
 reading the codebase for the first time.
 
 Why fresh context: a reviewer who watched the implementation inherits its
-blind spots. In practice this pass catches what both the earlier review and
+blind spots; in practice this pass catches what both the earlier review and
 the human reviewer miss.
 
 Each finding resolves one of two ways, and neither is hand-fixed inline in
