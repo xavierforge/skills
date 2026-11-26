@@ -11,7 +11,7 @@
       "expectations": [
         {
           "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
-          "check": {"type": "llm_judged", "rubric": "Before any round runs, the plan gate must be evaluated against all three loop-readiness properties (named sections, ticked-checkbox contract, section-scoped checks). This is a process assertion read from the transcript."}
+          "check": {"type": "llm_judged", "rubric": "Before any round is dispatched, the plan gate must be visibly evaluated against all three loop-readiness properties (session-sized, independent, verifiable): the transcript shows that verdict ahead of the first round's dispatch, not only in a report written after the rounds. This is a process assertion read from the transcript."}
         },
         {
           "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
