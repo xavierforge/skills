@@ -172,6 +172,19 @@ run_arm() { # <run_dir> <suite> <numeric_id> <arm> <sut> <task_prompt>
   mkdir -p "$OUT"
   bash "$BUILD" "$suite" "$idn" "$SB" >/dev/null
 
+  # Precondition: every tool the fixture's quality gate invokes must exist on
+  # this machine. A skill-following run blocks at a gate it cannot run, and
+  # that block reads as a regression in the scores (observed 2026-11-26: a
+  # machine without pytest turned section/1 and land/2 red for both arms).
+  if [ -f "$SB/Makefile" ]; then
+    local gate_tool
+    for gate_tool in $(awk '/^\t/ {print $1}' "$SB/Makefile" | sort -u); do
+      gate_tool="${gate_tool#@}"
+      command -v "$gate_tool" >/dev/null 2>&1 \
+        || die "fixture $suite/$idn gates on '$gate_tool', which is not on PATH; install it first (a missing gate tool invalidates the run)."
+    done
+  fi
+
   # Compose the executor prompt: ground rules + sandbox/outputs paths + task,
   # and (with_skill only) the explicit SKILL.md path. The skill is NEVER
   # auto-installed: safe mode strips ambient auto-load, so the with_skill arm

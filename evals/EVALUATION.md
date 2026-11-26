@@ -462,6 +462,10 @@ heading above and the quote format below are load-bearing:
   subagent (observed twice).
 - If a load-bearing assumption breaks, **stop and report** rather than
   inventing a workaround on the spot.
+- Before any arm runs, the driver checks that every tool the fixture's quality
+  gate invokes is on `PATH` and aborts if one is missing: a skill-following run
+  blocks at a gate it cannot run, and that block reads as a regression in the
+  scores.
 
 ### Target layout
 

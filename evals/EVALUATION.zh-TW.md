@@ -244,6 +244,7 @@ Iteration 是**每個 skill 各自編號**的（`results/<skill>/iteration-N/`�
 - **嚴格 serial**，最便宜的情境先跑當哨兵。遇到任何 `401`／`429`／限流或用量上限訊號，**立刻停**并回報；不重試、不擴散。唯一例外是 provider 的 **capacity** 錯誤：暫時性、不產生可評分的輸出，可以拉開間距重試。
 - 巢狀的 executor 呼叫（`claude -p` 或 `codex exec`）永遠在**主執行迴圈**裡跑，絕不放進 subagent 的 prompt：安全分類器會擋 subagent 裡的 `--dangerously-skip-permissions`（實際觀察過兩次）。
 - 承重假設一旦破掉，**停下來回報**，不要當場自行發明 workaround。
+- 每個 arm 開跑前，driver 會先確認 fixture 的 quality gate 用到的工具都在 `PATH` 上，缺任何一個就直接 abort：照 skill 走的 run 會卡在跑不了的 gate 上，分數看起來就像 regression。
 
 ### 目標結構
 
