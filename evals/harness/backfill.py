@@ -335,7 +335,7 @@ def backfill_run(gpath: Path, harness_commit: str) -> dict:
     rows = [e for e in exps if e.get("check_type") == "llm_judged" and e.get("passed") is None]
     report = {"grading": str(gpath), "rows": []}
     for e in rows:
-        note(f"judge: {run_dir.parent.parent.name}/{run_dir.parent.name} — {e['text'][:60]}")
+        note(f"judge: {run_dir.parent.parent.name}/{run_dir.parent.name}: {e['text'][:60]}")
         verdict = judge_row(e["text"], e.get("rubric", ""), run_dir)
         e["passed"] = verdict["passed"]
         e["evidence"] = verdict["evidence"]
