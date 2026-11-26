@@ -225,7 +225,7 @@ def evaluate(chk, sb, run):
 
     if t == "changes_confined_to":
         prefix = chk["prefix"]
-        porcelain = git_out(sb, "status", "--porcelain")
+        porcelain = git(sb, "status", "--porcelain")[1]
         stray = []
         for line in porcelain.splitlines():
             if not line.strip():
