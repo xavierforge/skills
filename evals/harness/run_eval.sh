@@ -169,6 +169,11 @@ GROUND_RULES="$(ground_rules)"
 run_arm() { # <run_dir> <suite> <numeric_id> <arm> <sut> <task_prompt>
   local RUN="$1" suite="$2" idn="$3" arm="$4" sut="$5" task="$6"
   local SB="$RUN/sandbox" OUT="$RUN/outputs"
+  # A rerun reuses the same run-N dir, so start the outputs folder empty: an
+  # executor that finds a prior run's reports there has to decide what to do
+  # with them, which is behavior the eval never asked for (observed 2026-11-26:
+  # land/2 moved the stale reports into outputs/previous/ before writing).
+  rm -rf "$OUT"
   mkdir -p "$OUT"
   bash "$BUILD" "$suite" "$idn" "$SB" >/dev/null
 
