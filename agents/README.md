@@ -67,6 +67,14 @@ routing in a global CLAUDE.md or AGENTS.md. Write one line in a script,
   actually summons a role; just naming a task or subagent after a role does
   nothing.
 
+Whoever dispatches, `too-te` and `sai-hu` work the same way on the worker
+side: they never ask a person and never wait for a reply, since a leaf has no
+one to answer it. They finish, or end the run with a report, stopping only for
+a failing check or an irreversible action the brief did not authorize. Every
+final message ends with an `Assumptions` heading (or `none`), which the
+dispatcher records; in this repo's pipeline those become `[assumed]` lines in
+the change's `decisions.md`.
+
 ## Known platform differences (Codex degraded mode)
 
 No sugarcoating here: Codex's config cannot yet reach full parity with Claude

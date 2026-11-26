@@ -20,6 +20,28 @@ is that loop with the contract built in: invoking `/factory` replaces handing
 a skill named `goal` would shadow the built-in command, the same collision
 lesson `code-review` already taught.
 
+## Unattended mode and the reversibility test
+
+**The reversibility test.** A stop-and-ask is warranted only when the next
+action is irreversible or outward-facing (push, PR, merge, deleting user work,
+any force operation), or the plan is undecidable in a way that changes scope.
+Anything else is a reversible fork: decide it, do it, and record it.
+
+**Unattended mode** needs an explicit signal, never silence: the request
+waives the questions in words ("unattended", "don't ask, I'm away", "run until
+done without me"), or the harness states that the run is non-interactive or
+has no way to ask a person. Describing the job ("run the change to
+completion") is not that signal. Without one, every question below is asked
+as written, the plan gate's wait included.
+
+Unattended, a question that passes the test (a dirty tree, a scope-changing
+plan gap, a stuck section) ends the run, written up; one that fails it is
+decided and recorded as an `[assumed]` line in `decisions.md` (form:
+`/section` Step 4): of several active changes, run the one the branch name or
+the only unfinished `tasks.md` marks; a parallel group takes `continue`; a
+plan rewrite follows Step 1. The run ends with a **decided without you** list
+(the `[assumed]` lines it added), so the user reviews every choice at once.
+
 ## Step 0. Precondition: exactly one active change
 
 Two repo guards come before anything else, because the loop will commit
@@ -63,14 +85,18 @@ with no memory, so the plan must carry everything:
    gets its check written in.
 
 If every section passes, say so and enter the loop. Otherwise rewrite
-`tasks.md` in place (split, merge, reorder, add checks), show the user the
-diff (`git diff` of `tasks.md`), and wait for their approval; the loop runs
-only over a plan the user has seen. Commit the approved rewrite on its own
-(`docs(openspec): make <change> tasks loop-ready`) so round commits stay
-one-section-one-commit.
+`tasks.md` in place (split, merge, reorder, add checks) and commit it on its
+own (`docs(openspec): make <change> tasks loop-ready`) so round commits stay
+one-section-one-commit. Interactive: first show the user the diff (`git diff`
+of `tasks.md`) and wait for their approval; the loop runs only over a plan the
+user has seen. Unattended: a rewrite is a reviewable commit the user can
+revert, so waiting buys nothing; add an `[assumed]` line naming that commit's
+subject and what changed, commit both together, and enter the loop. A plan
+that cannot be made loop-ready without a scope decision is not a reversible
+fork: stop, write up what is undecided, and end the run.
 
 Done when: every section passes all three properties, and any rewrite has
-been approved and committed.
+been committed (approved first, when interactive).
 
 ## Step 2. Rounds: one section in, one commit out
 
@@ -89,13 +115,15 @@ absorbs retries). Then loop, strictly one round at a time:
    Claude Code this maps to the Agent tool's `subagent_type`), passing no
    `model` and no `effort` parameter. Hand it a complete brief: the change
    name, the section number, the section contract to read and follow
-   (`<skill-base>/../section/SKILL.md`), and the two factory overrides:
+   (`<skill-base>/../section/SKILL.md`), the role and marker for its round
+   record, any foreman ruling it must write to `decisions.md` (an escalation,
+   an unattended pick), and the two factory overrides:
    - **Inline only**: execute every task inside this subagent, treating any
      dispatch annotation as `main`. It is a leaf agent; the factory already
      read the annotation to pick this subagent's role, and already provided
      the fresh delegated session the annotation asked for.
-   - **Report back**: return the commit subject, the gate result, and any
-     failures recorded as pre-existing.
+   - **Report back**: return the commit subject, the gate result, any
+     failures recorded as pre-existing, and the `Assumptions` heading.
    (`/section`'s fresh-session precondition is satisfied by construction: the
    subagent is exactly that.)
 
@@ -114,7 +142,10 @@ absorbs retries). Then loop, strictly one round at a time:
    <start>`, which discards the round's partial commits and debris, and is
    safe because Step 0 guaranteed a clean tree and every earlier round ended
    at a clean commit), tell the next attempt what the last one got wrong, and
-   let step 1 pick the section up again.
+   let step 1 pick the section up again. A landed commit missing its round
+   record, or a `decisions.md` line for an item under `Assumptions`, is not a
+   failed round: stage the line and fold it in with `git commit --amend
+   --no-edit` (bookkeeping on a local commit, not the section's work).
 4. **Refresh the review page**: if `<change>/review.html` exists, run
    `uv run <skill-base>/../spec-viewer/scripts/generate.py <change>` (add
    `--quiz <change>/review-quiz.json` when that file also exists).
@@ -132,9 +163,9 @@ what happens to a section the loop could not land.
 CRITICAL finding (each fix is its own conventional commit) and re-run, up to
 three verify-fix cycles; a CRITICAL that survives the third cycle gets the
 stuck-section treatment, stop and report it rather than looping. If
-`/opsx:verify` does not exist in this
-environment, record `verify: unavailable` in the ledger and say so plainly;
-an unavailable gate is reported, never simulated.
+`/opsx:verify` does not exist in this environment, the result is
+`unavailable`: say so plainly; an unavailable gate is reported, never
+simulated. Either way, write the result as Step 3's verify record.
 
 Done when: every section's boxes are ticked and verify has run (or its
 absence is recorded), or the round budget is exhausted and the stuck section
@@ -182,7 +213,8 @@ briefs always are, carrying:
 - the teardown: leave the branch for the foreman to bring in, remove the
   worktree, and report the branch name with each section's commit subject.
 
-Then state both exits plainly and wait for the user:
+Then state both exits plainly and wait for the user (unattended, take
+`continue` and record it; a misannotated group does the same):
 
 - **Open the lanes**: the user runs the prompts in their own sessions and
   reports each lane done. The foreman proceeds only once every lane has
@@ -276,8 +308,8 @@ wrong, and it calls for a different move:
   are not required before acting, and the two-judgment-failure rule is not what
   this is.
 - Either **narrow the section** (split it in `tasks.md` so each part fits the
-  budget, with the user's approval, as in Step 1) or **dispatch `sai-hu`** for
-  it, which carries no turn cap.
+  budget, gated and committed as a Step 1 rewrite) or **dispatch `sai-hu`**
+  for it, which carries no turn cap.
 - Record `turn budget` in the round's report line, so the ledger keeps this
   apart from `escalated after two judgment failures`.
 
@@ -319,7 +351,18 @@ duration, and result; a row for verify with its outcome (clean, CRITICALs
 fixed and committed, or unavailable); and a closing `total` row summing the
 wall time, so the ledger's last line is always the total. The
 ledger is written from the repo (commits, `tasks.md`), so it stays true even
-when a round's narration was optimistic.
+when a round's narration was optimistic. An unattended run then adds its
+decided without you list.
+
+**The durable record is `tasks.md` and `decisions.md`, not chat.** Each landed
+section carries its round record (`/section` Step 5 writes it into the
+section's commit). After verify, append `> verify: <clean | CRITICALs fixed:
+<hashes> | unavailable> | <MM-DD>` as the last line of `tasks.md` and fold it
+into the run's last commit (`git commit --amend --no-edit`), or commit it on
+its own (`docs(openspec): record <change> verify result`) if that commit is
+already on a remote. A foreman ruling rides the commit carrying its effect
+(the plan-gate commit, or the round's brief). A new session resumes from these
+alone: a ticked section with a round record is finished, never re-run.
 
 ## Red flags: STOP, you are running the factory wrong
 
@@ -345,5 +388,8 @@ when a round's narration was optimistic.
   stops in the same place. Narrow it or hand it to `sai-hu`.
 - "There's no active change, but the goal is obvious from the repo." Step 0
   refuses; propose a change first.
-- "My tasks.md rewrite is clearly fine, no need to wait for approval." The
-  diff waits for the user; the loop runs only over a seen plan.
+- "My tasks.md rewrite is clearly fine, no need to wait for approval." In an
+  interactive session the diff waits for the user; only an explicit unattended
+  signal turns the wait into a committed, ledgered rewrite.
+- "The user has gone quiet, so this run is unattended now." Silence is never
+  the signal; ask as written.

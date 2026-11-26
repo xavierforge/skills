@@ -58,19 +58,22 @@ rules:
     - |
       **Decision ledger (`decisions.md`, one per change directory)**
       Every change directory carries a `decisions.md` beside `tasks.md`, recording the rulings made AFTER execution started. It is written in English, like every other artifact in the change.
+      - Writers: the file stays open for execution-time lines. /section and /factory append a line whenever implementation diverges from the plan (an assumption, a caveat, a task done differently than written, a tier escalation, an unattended ruling), inside the section's own commit; /preflight appends its triage rulings.
       - Scope: only post-start rulings. `design.md`'s Non-Goals and its decision reconciliation list are the pre-start record and stay authoritative; never copy them here, and never retro-edit `design.md` to absorb a later ruling.
       - Format: one decision per line, `- <MM-DD> [<tag>] <the ruling, in one sentence> (source: <where it came from>)`. The source is concrete: a tasks.md section number, a review finding number, a commit hash, or the person who called it.
-      - Tags, four of them:
+      - Tags, five of them:
         - `[caveat]` a limitation discovered while implementing, plus how the change lives with it.
         - `[reversal→pending]` / `[reversal→denied]` / `[reversal→accepted]` a later proposal to overturn a settled decision, and its outcome: `pending` while it sits with the user, the other two once they have ruled. A reversal is a user's call, never an implementer's or a reviewer's. Write the line when the request is raised and update that same line in place when the ruling lands, so one ruling stays one line.
         - `[included]` work not in the original scope, judged a necessary extension of it, and folded into this change.
         - `[tracked]` work judged out of scope and registered somewhere durable (roadmap, issue) instead of being done here.
+        - `[assumed]` a call made during execution without the user (a gap filled, a task done differently than written, a tier escalation, an unattended ruling). It is a record for review, not a settled decision: the user can still overturn it, and a later finding against it is triaged on its merits rather than as a reversal.
       - Examples:
         - `- 07-24 [caveat] compare cannot tell deliberate from accidental pack drift (no build identity yet); ruling: always warn, matrix owns the controlled-variable call (source: section 9)`
         - `- 07-24 [reversal→denied] review flagged loop-history as CONFIRMED, but design.md lists it as a Non-Goal; stays out (source: finding #4)`
         - `- 07-25 [reversal→pending] review asks for a to_json helper, which design.md rules out as a Non-Goal; put to the user, awaiting their ruling (source: finding #2)`
         - `- 07-24 [included] stream-error hardening judged a necessary extension of history replay; folded into this change (source: commit 96f3a09)`
         - `- 07-24 [tracked] fingerprint NUL collision is out of scope; logged to ROADMAP (source: finding #2)`
+        - `- 07-26 [assumed] unattended plan gate split section 3 into 3 and 4 to fit the turn budget (source: commit docs(openspec): make add-hooks tasks loop-ready)`
       - Discipline: write each line when the ruling happens, never in a batch at the end. A ruling reconstructed from memory at close of change is the failure this file exists to prevent.
       - Filing: the file lives in the change directory and is archived with it, so it needs no separate handling. In a repo whose `openspec/` is untracked via `.git/info/exclude`, it inherits that and stays local, which is the intended behavior and requires no special case.
   design:

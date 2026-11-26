@@ -44,6 +44,8 @@ _(補充：Codex 的工具清單是動態生成的，沒放檔案前你連 role 
 - **Claude Code**：會走 Agent tool 的 subagent 機制。
 - **Codex**：會透過 spawn 工具的 `agent_type` 參數載入對應指令，並套用 TOML 裡訂下的 model 和 reasoning effort。注意，在 Codex 中只有透過正確的參數 (`agent_type`) 才能真的叫出角色；如果只是把 task 或 subagent 隨便命名成角色的名字，是沒有用的。
 
+不管是誰派工，`too-te` 和 `sai-hu` 在 worker 這端的規矩都一樣：絕不問人、也絕不等回覆，因為 leaf agent 根本沒人可以回答它。它要嘛做完，要嘛帶著回報結束這一輪，只有遇到過不了的檢查，或是 brief 沒授權的不可逆動作時才會停下來。每份最終回報的結尾都有一個 `Assumptions` 標題 (沒有就寫 `none`)，由派工的那一方負責記下來；在這個專案的 pipeline 裡，這些會變成該 change 的 `decisions.md` 裡的 `[assumed]` 紀錄。
+
 ## 平台間的已知差異 (Codex 版降級狀況)
 
 我不打算粉飾太平，目前 Codex 的設定檔還沒辦法做到跟 Claude Code 完全對等：

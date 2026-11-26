@@ -15,6 +15,12 @@ section: one section in, one commit out, then stop.
 invocation omits `N`, ask which section rather than picking one; running the
 wrong section is the failure this whole skill exists to avoid.
 
+In unattended mode, each question below meets the reversibility test (both
+defined in `<skill-base>/../factory/SKILL.md`): a missing `N` or an
+undecidable change ends the run, written up; a reversible fork is decided and
+recorded per Step 4 (several changes, one marked active by the branch name:
+run it; a delegate-only role menu: take `sai-hu`, which cannot under-tier).
+
 ## Precondition: you must set this up; the skill cannot
 
 Before invoking, you must already be in a **fresh session sized for execution
@@ -88,7 +94,8 @@ decides what happens next:
 
 - **Started on `too-te`**: retry it, telling the next attempt what the last one
   got wrong. If a second attempt fails the same way, escalate the section to
-  `sai-hu` and say so in your report.
+  `sai-hu` (its brief carries the escalation's ledger line) and say so in
+  your report.
 - **Started on `sai-hu`**: there is no tier above it, so there is nothing to
   escalate to. After two failed attempts, **stop and report to the user**: the
   section, both failure reasons, and the fact that its starting tier was
@@ -109,6 +116,14 @@ decides what happens next:
 - Run **only the tests relevant to this section** while working. No full quality
   gate mid-section, no per-task commits, no per-task check-ins with the user.
   Work the whole section through, then gate and commit once at the end.
+- **Divergence from the plan goes in `decisions.md`**, placed by the artifact
+  directory rule (the change directory, else `.review/<slug>/`),
+  written when it happens, one line each in the ledger's form `- <MM-DD>
+  [<tag>] <one sentence> (source: section <N>)`: `[assumed]` for a call made
+  without the user (a gap filled, a task done differently than written, a tier
+  escalation, an unattended ruling); `[caveat]`, `[included]`, `[tracked]` as
+  the ledger contract defines them. A ruling handed over in the brief is
+  written the same way; a plan followed as written needs no line.
 
 ### Red flags: STOP, you are misreading the plan
 
@@ -141,8 +156,11 @@ Once every task in section `N` is done:
    then record each in your reply, **commit anyway**, and note they should get
    their own scoped branch later.
 4. Make **exactly one commit** for the whole section, in Conventional Commits
-   format (`type(scope): imperative subject`). **Tick this section's checkboxes
-   in `tasks.md` as part of that same commit.** Never touch another section's
+   format (`type(scope): imperative subject`). **In that same commit, tick
+   this section's checkboxes, add its `decisions.md` lines, and end the
+   section with its round record**, `> round: <role>[, <marker>] | gate:
+   <command>, <green | green except pre-existing: <names>> | <MM-DD>` (the
+   commit adding it is the round's commit). Never touch another section's
    tasks or checkboxes.
 5. **Refresh the review page**: if `<change>/review.html` exists, run
    `uv run <skill-base>/../spec-viewer/scripts/generate.py <change>` (add

@@ -29,9 +29,9 @@ reconciliation on `design`), never on a phase name like `verify` or `propose`.
 Each change directory carries a `decisions.md` beside `tasks.md`, holding the
 rulings made **after execution started**, one per line, tagged `[caveat]`,
 `[reversal→pending]` / `[reversal→denied]` / `[reversal→accepted]`,
-`[included]`, or `[tracked]`, each line carrying its date and its source. It
-is a repo artifact, so it is written in English like the proposal, the
-design, and the commit messages.
+`[included]`, `[tracked]`, or `[assumed]`, each line carrying its date and its
+source. It is a repo artifact, so it is written in English like the
+proposal, the design, and the commit messages.
 
 The split with `design.md` is the point: `design.md`'s Non-Goals and its
 reconciliation list are the **pre-start** record and stay authoritative, so the
@@ -39,9 +39,12 @@ ledger never copies them and a later ruling never gets retro-edited into the
 design. What the ledger closes is the gap after that: a caveat found
 mid-implementation, a review finding refused because the design already ruled
 it out, a scope call made under pressure: facts that used to live only in a
-session log and were gone by the next review. `/preflight` reads Non-Goals and
-this ledger together as its reconciliation baseline, and writes every triage
-ruling back into it.
+session log and were gone by the next review. The file stays open through
+execution: `/section` and `/factory` append a line whenever implementation
+diverges from the plan, inside the section's own commit, so a call made
+without the user (`[assumed]`) reaches review as a record, not as chat.
+`/preflight` reads Non-Goals and this ledger together as its reconciliation
+baseline, and writes every triage ruling back into it.
 
 The ledger is hosted on `tasks` rather than `design` because execution is the
 phase that produces it, the same reason the verification-evidence rule sits
