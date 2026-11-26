@@ -4,7 +4,7 @@
     "skill_path": "<path/to/skill>",
     "executor_model": "<model-name>",
     "analyzer_model": "<model-name>",
-    "timestamp": "2026-11-26T14:52:28Z",
+    "timestamp": "2026-11-26T16:32:04Z",
     "evals_run": [
       1,
       2,
@@ -62,9 +62,9 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.75,
-        "passed": 3,
-        "failed": 1,
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
         "tokens": 0,
@@ -94,8 +94,8 @@
         },
         {
           "text": "The model used for the review subagent is reported to the user",
-          "passed": false,
-          "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+          "passed": true,
+          "evidence": "[result] all present: /(?i)\\b(opus|sonnet|haiku|fable|mythos|claude-[a-z0-9-]+)\\b/",
           "check_type": "text_contains"
         },
         {
@@ -243,7 +243,7 @@
         {
           "text": "The model used for the review subagent is reported to the user",
           "passed": false,
-          "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+          "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|fable|mythos|claude-[a-z0-9-]+)\\\\b'",
           "check_type": "text_contains"
         },
         {
@@ -313,9 +313,9 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9167,
-        "stddev": 0.1443,
-        "min": 0.75,
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
         "max": 1.0
       },
       "time_seconds": {
@@ -352,7 +352,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.67",
+      "pass_rate": "+0.75",
       "time_seconds": "+0.0",
       "tokens": "+0"
     }
@@ -361,9 +361,9 @@
   "run_summary_total": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9444,
-        "stddev": 0.0962,
-        "min": 0.8333,
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
         "max": 1.0
       }
     },
@@ -376,7 +376,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.58"
+      "pass_rate": "+0.64"
     }
   }
 }

@@ -22,8 +22,8 @@
     },
     {
       "text": "The model used for the review subagent is reported to the user",
-      "passed": false,
-      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+      "passed": true,
+      "evidence": "[result] all present: /(?i)\\b(opus|sonnet|haiku|fable|mythos|claude-[a-z0-9-]+)\\b/",
       "check_type": "text_contains"
     },
     {
@@ -42,16 +42,16 @@
     }
   ],
   "summary": {
-    "passed": 3,
-    "failed": 1,
+    "passed": 4,
+    "failed": 0,
     "total": 4,
-    "pass_rate": 0.75,
+    "pass_rate": 1.0,
     "assertions_total": 6,
     "undecided": 0,
-    "total_passed": 5,
-    "total_failed": 1,
+    "total_passed": 6,
+    "total_failed": 0,
     "total_decided": 6,
-    "total_pass_rate": 0.8333,
+    "total_pass_rate": 1.0,
     "grader_decided": 2
   },
   "fingerprint": {
@@ -74,6 +74,20 @@
       "model": "sonnet",
       "rubric_sha256": "04990ca13e1aafcbfd1d1bd7e3faaf7de5b00d686b8283192e4e8ba862224e05",
       "harness_commit": "b4bff71"
-    }
+    },
+    "regrade": [
+      {
+        "harness_commit": "e961e05",
+        "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+        "timestamp": "2026-11-26T16:32:04Z",
+        "changed": [
+          {
+            "text": "The model used for the review subagent is reported to the user",
+            "from": false,
+            "to": true
+          }
+        ]
+      }
+    ]
   }
 }

@@ -23,7 +23,7 @@
     {
       "text": "The model used for the review subagent is reported to the user",
       "passed": false,
-      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|fable|mythos|claude-[a-z0-9-]+)\\\\b'",
       "check_type": "text_contains"
     },
     {
@@ -74,6 +74,14 @@
       "model": "sonnet",
       "rubric_sha256": "04990ca13e1aafcbfd1d1bd7e3faaf7de5b00d686b8283192e4e8ba862224e05",
       "harness_commit": "b4bff71"
-    }
+    },
+    "regrade": [
+      {
+        "harness_commit": "e961e05",
+        "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+        "timestamp": "2026-11-26T16:32:04Z",
+        "changed": []
+      }
+    ]
   }
 }
