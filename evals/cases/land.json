@@ -48,7 +48,7 @@
         },
         {
           "text": "The model used for the review subagent is reported to the user",
-          "check": {"type": "text_contains", "source": "result", "regex": "(?i)\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\b"}
+          "check": {"type": "text_contains", "source": "result", "regex": "(?i)\\b(opus|sonnet|haiku|fable|mythos|claude-[a-z0-9-]+)\\b"}
         },
         {
           "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
