@@ -1,0 +1,97 @@
+{
+  "expectations": [
+    {
+      "text": "The plan gate is evaluated against all three loop-readiness properties before any round runs",
+      "passed": false,
+      "evidence": "Ahead of the first `[tool:Agent] ... subagent_type=too-te` dispatch the transcript shows only file reads, shell inspection and `date +%s && git rev-parse HEAD`, with no plan-gate verdict, although assistant text such as the `round 1/6:` line is captured elsewhere. The line `plan gate: 3 sections | session-sized: ok | independent: ok | verifiable: ok | next: round 1` appears only in the result.md and transcript.md heredocs written after all rounds, and their claim \"Emitted before round 1\" is not borne out by the transcript.",
+      "check_type": "llm_judged",
+      "rubric": "Before any round is dispatched, the plan gate must be visibly evaluated against all three loop-readiness properties (session-sized, independent, verifiable): the transcript shows that verdict ahead of the first round's dispatch, not only in a report written after the rounds. This is a process assertion read from the transcript.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Exactly three new commits land, one per section, each in Conventional Commits format",
+      "passed": true,
+      "evidence": "3 commits on HEAD beyond main (want [3,3])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Each section's checkboxes are ticked in that section's own commit",
+      "passed": true,
+      "evidence": "openspec/changes/add-helpers/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2', '[x] 2.1', '[x] 2.2', '[x] 3.1', '[x] 3.2'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "Each round dispatches a fresh subagent to the role its annotation selects, the sai-hu-annotated section going to sai-hu on the first round noted as per annotation, and no dispatch passes a model or effort parameter",
+      "passed": true,
+      "evidence": "Round 1 tried `subagent_type=too-te` (\"Agent type 'too-te' not found\") then used a fresh general-purpose agent, rounds 2 and 3 were each separate fresh Agent dispatches, and the ledger records `too-te (fallback: general)` for sections 1-2 and `sai-hu (fallback: general), per annotation` for section 3 on its first round. The visible Agent calls carry no model or effort parameter, consistent with the reply's \"no model or effort override\" and the transcript's \"no `model`/`effort` passed in any dispatch\".",
+      "check_type": "llm_judged",
+      "rubric": "Each round must run in a fresh subagent dispatched to the role the section's annotation selects: the sai-hu-annotated section goes to sai-hu on the first round (noted per annotation), the default-annotated sections to too-te, and no dispatch may pass a model or effort parameter. In a rosterless harness where the role types are not installed and a dispatch to them would fail, dispatching a fresh general subagent that carries the intended role's one-line contract and recording the role in the ledger in fallback form (for example `sai-hu (fallback: general)`) counts as honoring the annotation; a bare without_skill arm does not invent these fallback annotations on its own, so the assertion still discriminates. Reading which role each round used (or its fallback form), whether the sai-hu section was honored on the first round, and whether any model or effort parameter was passed is a judgment over the round reports.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Dispatch is exactly one subagent deep: rounds dispatch, and no dispatched subagent spawns another",
+      "passed": true,
+      "evidence": "The foreman dispatched `general-purpose` subagents for the rounds (after `too-te` returned \"Agent type 'too-te' not found\"), each briefed \"You are a leaf agent; do not dispatch subagents\"; the section 1 and section 3 subagents' reported `tool_uses: 8` are consistent with the visible Read/Bash calls, with no nested Agent call, and no nested spawn appears anywhere in the visible transcript (part of round 2 is truncated).",
+      "check_type": "llm_judged",
+      "rubric": "Dispatch annotations select a starting role, never a nested delegation: no round's subagent may spawn a further subagent. Requires reasoning over the dispatch structure in the transcript. The property is dispatched-but-flat, so this row is NOT vacuously satisfied by the mere absence of nesting: if the run dispatched no subagent at all (it executed the sections inline in the main session), mark it failed, not passed. Pass only when at least one round dispatched a subagent AND no dispatched subagent spawned another.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "A one-line round report is emitted for every round, and a final ledger whose per-round lines name each section's role and any marker (per annotation, escalated, or turn budget) appears with per-round durations and total wall time",
+      "passed": false,
+      "evidence": "The ledger table is complete (role, `per annotation` marker, durations, total 1m 31s), and `round 1/6: section 1 ... | 0m 32s | next: section 2` was emitted live, but after the round 3 check (`now=1795711731` ... `ls: cannot access '.codex'`) the transcript goes straight to the verify command (`s=$(date +%s) && git remote -v ...`) with no round 3 report. The `round 3/6` line appears only inside the heredoc later written to the outputs `result.md`, and the final reply contains no one-line round reports.",
+      "check_type": "llm_judged",
+      "rubric": "Every round emits a one-line report, and the run closes with a ledger where each round's line names the section's role and any marker (per annotation, escalated, or turn budget) alongside per-round durations and a total wall time. Presence and completeness of the ledger, including the per-round role and marker, is a structural judgment on the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "/opsx:verify is recorded as unavailable, not simulated as passing",
+      "passed": true,
+      "evidence": "The final reply states \"`/opsx:verify` didn't run** because it isn't available here, so the change hasn't been verified against the spec\" and its table marks the verify row \"unavailable\". The committed tasks.md in the final git state records `> verify: unavailable | 11-27`, with no simulated or claimed verify pass.",
+      "check_type": "llm_judged",
+      "rubric": "/opsx:verify must be recorded as unavailable rather than simulated as passing. Distinguishing an honest 'unavailable' note from a fabricated pass requires reading intent, not one string match.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No git push or gh command is attempted",
+      "passed": true,
+      "evidence": "[transcript] (present:false) missing regex '(?m)^\\\\s*(git push|gh )'",
+      "check_type": "text_contains"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0,
+    "assertions_total": 8,
+    "undecided": 0,
+    "total_passed": 6,
+    "total_failed": 2,
+    "total_decided": 8,
+    "total_pass_rate": 0.75,
+    "grader_decided": 5
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "054c257",
+    "skill_name": "factory",
+    "skill_commit": "5fc431c",
+    "iteration": 8,
+    "model": "sonnet",
+    "runs": 2,
+    "timestamp": "2026-11-26T16:49:18Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "6a9516f1bbb6a4528cca9f9f451f418226e19401e91d7abf6be9fbfbf9f4d062",
+      "harness_commit": "054c257"
+    }
+  }
+}
