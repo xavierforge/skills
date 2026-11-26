@@ -1,0 +1,53 @@
+{
+  "expectations": [
+    {
+      "text": "review-verdict.json exists under .review/feat-parser/ with layer cross-check",
+      "passed": false,
+      "evidence": ".review/feat-parser/review-verdict.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "findings[] entries each carry axis/title/severity/actioned, axis in standards|spec",
+      "passed": false,
+      "evidence": ".review/feat-parser/review-verdict.json: file missing",
+      "check_type": "json_check"
+    },
+    {
+      "text": "Standards and Spec presented under separate headings",
+      "passed": true,
+      "evidence": "[any] all present: /(?im)^#+.*\\bstandards\\b/, /(?im)^#+.*\\bspec\\b/",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "unimplemented spec requirement (reject duplicate keys) caught",
+      "passed": true,
+      "evidence": "[any] all present: /(?i)duplicate key/",
+      "check_type": "text_contains"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5,
+    "assertions_total": 4,
+    "undecided": 0
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "cross-check",
+    "skill_commit": "455cc22",
+    "iteration": 5,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:41:17Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "Execution blocks on the default branch and never actually pushes or opens a PR",
+      "passed": true,
+      "evidence": "The reply states \"`/land` is **BLOCKED** at Step 0b: you're on `main`\", and the transcript's tool calls are only reads, a `git fetch`, read-only git checks and writing output files, with no `git push` or `gh pr create` executed (the \"git push\" text is git's status hint). Final git state shows `origin/main` still at 2139192 and `main` \"ahead 1\" at 6c91817, confirming nothing was pushed.",
+      "check_type": "llm_judged",
+      "rubric": "The run must block on the default branch and never execute a push or gh pr create. Judge the executed action from the transcript, not a substring: git's own boilerplate hint (use \"git push\" to publish your local commits) leaks into the reconstructed transcript, and a correct blocking reply may name the very commands it is declining to run (I will not run git push; run /begin first). Both are correct-blocking behavior, not a push. Pass only if the run blocked on the default branch and no actual push / PR-create tool call ran; fail if it pushed, opened a PR, or never blocked at all.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The user is pointed to /begin to open a proper feature branch",
+      "passed": true,
+      "evidence": "[result] all present: '/begin'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "No git history is rewritten (no reset, no moving commits off the default branch)",
+      "passed": true,
+      "evidence": "1 local branches ['main'] (want [1,1])",
+      "check_type": "branch_count"
+    },
+    {
+      "text": "The default branch is left untouched",
+      "passed": true,
+      "evidence": "HEAD branch 'main' vs 'main'",
+      "check_type": "head_branch"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "land",
+    "skill_commit": "0127cdd",
+    "iteration": 8,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:33:04Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "064ce6ecf66b018ccd6f35af4a8e7479dc14ad42b257905ec4b3ee3f0038376c",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

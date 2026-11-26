@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The ledger gains exactly one occurrence line: two [seen] lines in total, the seeded one plus the new one",
+      "passed": true,
+      "evidence": "docs/lessons.md (exists=True): all present: /^(?:(?!\\[seen\\])[\\s\\S])*\\[seen\\](?:(?!\\[seen\\])[\\s\\S])*\\[seen\\](?:(?!\\[seen\\])[\\s\\S])*\\Z/",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The new line records the leftover-debug occurrence with the artifact that evidences it",
+      "passed": true,
+      "evidence": "docs/lessons.md (exists=True): all present: /(?im)^- \\d{4}-\\d{2}-\\d{2} \\[seen\\] [^\\n]*(debug|print)[^\\n]*\\(evidence: [^\\n)]*(review-verdict\\.json|[0-9a-f]{7,40})/",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The seeded ledger line is left intact (append only)",
+      "passed": true,
+      "evidence": "docs/lessons.md (exists=True): all present: '- 2026-09-14 [seen] stale-readme-table: README skill table missed a new skill (evidence: https://example.invalid/pr/3)'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The ledger is the only file changed: no rule, skill, check, or instruction file is touched on a first occurrence",
+      "passed": true,
+      "evidence": "all changes under docs/lessons.md",
+      "check_type": "changes_confined_to"
+    },
+    {
+      "text": "No commit is made",
+      "passed": true,
+      "evidence": "HEAD=1f320580 == retro-fixture-tip=1f320580",
+      "check_type": "ref_equals"
+    },
+    {
+      "text": "The first occurrence is recorded and nothing else is proposed or applied for it",
+      "passed": true,
+      "evidence": "The only repository change is `M docs/lessons.md`, adding the single line `- 2026-11-26 [seen] leftover-debug-print: ...`, with AGENTS.md, skills, scripts and source untouched. The transcript states \"Did not add a rule, hook or gate change: the ledger shows no earlier occurrence of this problem,\" and the replies propose no enforcer, rung or prose rule for that class (the missing-test and reviewed-SHA items are separate observations).",
+      "check_type": "llm_judged",
+      "rubric": "The leftover-debug mistake has one occurrence on record, so the run must record it in the ledger and stop for that class: it must not propose an enforcer, a rung, or a prose rule for it, and must not edit AGENTS.md, a skill, or a script. Reporting it as a first occurrence that was recorded only passes. Proposing or writing a rule 'just in case' fails. Judge from the transcript and the final reply, not from any single phrase.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0,
+    "assertions_total": 6,
+    "undecided": 0,
+    "total_passed": 6,
+    "total_failed": 0,
+    "total_decided": 6,
+    "total_pass_rate": 1.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "retro",
+    "skill_commit": "0127cdd",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:46:17Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "f08821b212df864357796745615aba51662ca0fae47de8391c715bdfb44f508c",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

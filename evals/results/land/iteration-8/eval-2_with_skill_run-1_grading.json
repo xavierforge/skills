@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "diff-scan.sh is run with an explicit base ref argument",
+      "passed": true,
+      "evidence": "[transcript] all present: /diff-scan\\.sh[^\\n]*\\b(main|origin/|HEAD[~^]|[0-9a-f]{7,})/",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The derived quality gate command is run, not a bare compile",
+      "passed": true,
+      "evidence": "[transcript] all present: 'make check'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A fresh-context adversarial review subagent is dispatched",
+      "passed": true,
+      "evidence": "The transcript records \"[tool:Agent] description=Adversarial pre-PR review, subagent_type=general-purpose, model=fable, run_in_background=False\", a non-fork (fresh-context) dispatch prompted as \"an incoming external contributor... You have not seen any of the development conversation\" and told to \"Hold it to a maintainer's standard; do not go easy on it.\" Its hand-back (\"four portability findings, four API/design findings\") confirms it ran.",
+      "check_type": "llm_judged",
+      "rubric": "A fresh-context subagent must be dispatched to run an adversarial review of the diff. 'Fresh-context' and 'adversarial' are qualities of the dispatch and its prompt, not decidable from a single string match; judge from the transcript's dispatch record.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The model used for the review subagent is reported to the user",
+      "passed": false,
+      "evidence": "[result] missing regex '(?i)\\\\b(opus|sonnet|haiku|claude-[a-z0-9-]+)\\\\b'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "A PR body is written with the six sections Summary, Motivation, Design decisions, Testing, Reviewing, Notes",
+      "passed": true,
+      "evidence": "[pr_body] all present: 'Summary', 'Motivation', 'Design decisions', 'Testing', 'Reviewing', 'Notes'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "Execution stops before git push or gh pr create",
+      "passed": true,
+      "evidence": "The transcript shows no `git push` or `gh pr create` being executed (only `git ls-remote`, add, fixup commit and rebase), `git rev-parse @{u}` returned \"no upstream configured for branch 'feat/json-export'\", and final git state has origin/main still at bf8d57e. The run reports \"I haven't pushed it or opened a PR\" and lists `git push -u origin feat/json-export` and `gh pr create --base main ...` as commands it would run.",
+      "check_type": "llm_judged",
+      "rubric": "The run must stop before actually pushing or creating the PR, reporting the command it WOULD run. Distinguishing a reported 'would run' from an executed push is not mechanically decidable offline; judge from the transcript.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75,
+    "assertions_total": 6,
+    "undecided": 0,
+    "total_passed": 5,
+    "total_failed": 1,
+    "total_decided": 6,
+    "total_pass_rate": 0.8333,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "land",
+    "skill_commit": "0127cdd",
+    "iteration": 8,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:38:32Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "04990ca13e1aafcbfd1d1bd7e3faaf7de5b00d686b8283192e4e8ba862224e05",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

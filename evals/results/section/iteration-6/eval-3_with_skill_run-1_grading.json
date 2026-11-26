@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "The dispatch annotation on the section is read and honored",
+      "passed": true,
+      "evidence": "[transcript] all present: 'sai-hu'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The section is handed to the named agent role as a complete spec",
+      "passed": true,
+      "evidence": "The transcript shows an Agent call with `subagent_type=sai-hu` that failed (\"Agent type 'sai-hu' not found\"), then a fresh `general-purpose` dispatch carrying the contract \"own the local design decisions the section's goal and constraints leave open\" with Goal, exact task list, Section 2 out of scope and \"Done criteria\" (test-first, `make check`, one commit with ticked checkboxes, clean tree). The role is annotated `sai-hu (fallback: general)` in both the final reply and the committed round record.",
+      "check_type": "llm_judged",
+      "rubric": "The section must be handed off as a self-contained spec (goal, scope, done-criteria), not reasoned out inline: to the sai-hu role when it is installed, or, in a rosterless harness where that role type is not installed and the dispatch would fail, to a fresh general subagent carrying the sai-hu one-line contract with the report noting the role in fallback form (`sai-hu (fallback: general)`). Either way the handoff must be a complete spec rather than inline reasoning, and a bare without_skill arm produces neither a role dispatch nor a fallback annotation, so the assertion still discriminates. Completeness of the handed-off spec is a quality judgment on the dispatch prompt.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The result is still one Conventional Commits commit with checkboxes ticked",
+      "passed": true,
+      "evidence": "1 commits on HEAD beyond main (want [1,1])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Execution stops after the one section",
+      "passed": true,
+      "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+      "check_type": "file_contains"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "section",
+    "skill_commit": "34ebf61",
+    "iteration": 6,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:44:06Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "0cf8a68b7fe6facab74adf9b699ed87305561a05a21a5182803a3b2697381ae9",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

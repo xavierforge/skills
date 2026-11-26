@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops and asks the user which change to operate on",
+      "passed": true,
+      "evidence": "The final reply says \"I haven't started: there are two active changes\" and asks \"**Which one should I run, `add-farewell` or `refactor-hello`?**\"; git state shows a clean status with only the initial commit 12d0577 and all active tasks still unchecked, so execution stopped there.",
+      "check_type": "llm_judged",
+      "rubric": "With two active changes present the run must stop and ask which one to operate on. 'Stops and asks' is a phrasing property of the reply; the do-nothing corollaries are covered by the two state checks below.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No source or spec files are modified",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "No commit is created",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "Change directories under archive/ are excluded from the ambiguity",
+      "passed": true,
+      "evidence": "The final reply says \"there are two active changes\", tables only `add-farewell` and `refactor-hello`, and asks \"Which one should I run, `add-farewell` or `refactor-hello`?\"; the archived `2026-01-add-punctuation` change is never offered as a candidate.",
+      "check_type": "llm_judged",
+      "rubric": "The ask must name the two active changes and not treat the archived change under archive/ as a candidate. Requires reading which changes the reply enumerates.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "section",
+    "skill_commit": "34ebf61",
+    "iteration": 6,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:42:54Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "51fe3d5b8f82e54fb01f2b2fe81c714412dac0899f4e7c46505e35b754276024",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "A failing test is written before the implementation for each task in the section",
+      "passed": true,
+      "evidence": "Only section 1 was in scope, and the transcript shows `test_farewell` added and observed failing before implementation (first an ImportError, then after an empty `pass` stub `AssertionError: assert None == 'Goodbye, Ada!'`, `1 failed, 1 passed`), with the real `return f\"Goodbye, {name}!\"` written only afterwards, followed by `make check` showing `3 passed`.",
+      "check_type": "llm_judged",
+      "rubric": "Red-before-green ordering per task: a failing test must be authored and observed to fail before its implementation. Ordering is a process property read from the transcript, not decidable from final state.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "Exactly one commit is created for the whole section",
+      "passed": true,
+      "evidence": "1 commits on HEAD beyond main (want [1,1])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The commit subject follows Conventional Commits (type(scope): imperative)",
+      "passed": true,
+      "evidence": "head subject 'feat(greetings): add farewell helper' vs /^(feat|fix|docs|test|refactor|chore|perf|build|ci)(\\([^)]+\\))?: .+/",
+      "check_type": "commit_subject"
+    },
+    {
+      "text": "The tasks.md checkboxes for this section are ticked and included in that same commit",
+      "passed": true,
+      "evidence": "openspec/changes/add-farewell/tasks.md (exists=True): all present: '[x] 1.1', '[x] 1.2'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "No task from any other numbered section is implemented",
+      "passed": true,
+      "evidence": "src/greetings.py (exists=True): (present:false) missing needle 'greet_all'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "The full quality gate (`make check`, which covers tests beyond this section's own) is run once after all the section's tasks, not per task; the Red phase is confirmed with only the section-relevant test rather than the whole-suite gate",
+      "passed": true,
+      "evidence": "Red was confirmed with only `pytest -q tests/test_greetings.py` (\"1 failed, 1 passed\" on `AssertionError: assert None == 'Goodbye, Ada!'`), and `make check` ran just once, after both section 1 tasks were implemented (`pytest -q tests/test_greetings.py && make check` \u2192 \"3 passed\", \"gate exit: 0\"), followed by the single commit `abffe90`.",
+      "check_type": "llm_judged",
+      "rubric": "The whole-suite gate (`make check`) must run once after the section's tasks, while the per-task Red confirmation uses only the section-relevant test. This is an ordering/granularity property of the run, read from the transcript.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "assertions_total": 6,
+    "undecided": 0,
+    "total_passed": 6,
+    "total_failed": 0,
+    "total_decided": 6,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "section",
+    "skill_commit": "34ebf61",
+    "iteration": 6,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:41:54Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "c073463ecc9093bc638d05adb1ac161d3edff5d673cbda483e2f745f790d5f8b",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "expectations": [
+    {
+      "text": "Nothing is written: the tree stays clean, the ledger included",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "No commit is made",
+      "passed": true,
+      "evidence": "HEAD=391fcb97 == retro-fixture-tip=391fcb97",
+      "check_type": "ref_equals"
+    },
+    {
+      "text": "The unevidenced claim is dropped rather than recorded or turned into a rule",
+      "passed": true,
+      "evidence": "The run searched for an artifact directory, commits/reflog, formatter config and the ledger, reporting \"I recorded nothing and propose nothing, because I found no artifact showing the formatter was skipped\" (PR marked \"not checked (offline)\"), with \"Accepted: none\" and \"0 occurrences recorded\", and asked the user to rerun with \"a commit SHA, PR URL, review verdict file or quoted session output\". The final git state shows an empty `status --porcelain` and only the original commits, so no ledger entry, rule or prose was added.",
+      "check_type": "llm_judged",
+      "rubric": "No artifact or session output shows a skipped formatter, so the claim is not a candidate. Pass only if the run looked for evidence (artifact directory, commits, PR), reports that it found none, does not record an occurrence or propose a rule for it, and asks the user to point at the commit, PR, or artifact that shows the mistake. Recording the claim as an occurrence, or proposing a formatter rule or prose anyway, fails.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 3,
+    "total_failed": 0,
+    "total_decided": 3,
+    "total_pass_rate": 1.0,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "retro",
+    "skill_commit": "0127cdd",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:49:29Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "e742e54d1f56eaee1c761878949245003781e49fe4aef03a7b5e459ccf7bc975",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "expectations": [
+    {
+      "text": "Nothing is written: the tree stays clean, the ledger included",
+      "passed": false,
+      "evidence": "tree dirty (expect clean); 1 entries",
+      "check_type": "git_clean"
+    },
+    {
+      "text": "No commit is made",
+      "passed": true,
+      "evidence": "HEAD=90f196fe == retro-fixture-tip=90f196fe",
+      "check_type": "ref_equals"
+    },
+    {
+      "text": "The unevidenced claim is dropped rather than recorded or turned into a rule",
+      "passed": false,
+      "evidence": "The run appended `2026-11-26 [seen] formatter-skipped-before-commit: agent committed without running the formatter ... (evidence: user report; commit 90f196f)` to docs/lessons.md (git state: `M docs/lessons.md`) and proposed a `make format` target, a format check, an AGENTS.md rule and a hook. It admitted \"I have no session log showing why the agent skipped it\" and never asked the user to point to a commit, PR or artifact showing the mistake.",
+      "check_type": "llm_judged",
+      "rubric": "No artifact or session output shows a skipped formatter, so the claim is not a candidate. Pass only if the run looked for evidence (artifact directory, commits, PR), reports that it found none, does not record an occurrence or propose a rule for it, and asks the user to point at the commit, PR, or artifact that shows the mistake. Recording the claim as an occurrence, or proposing a formatter rule or prose anyway, fails.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5,
+    "assertions_total": 3,
+    "undecided": 0,
+    "total_passed": 1,
+    "total_failed": 2,
+    "total_decided": 3,
+    "total_pass_rate": 0.3333,
+    "grader_decided": 1
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "b4bff71",
+    "skill_name": "retro",
+    "skill_commit": "0127cdd",
+    "iteration": 1,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:50:12Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "e742e54d1f56eaee1c761878949245003781e49fe4aef03a7b5e459ccf7bc975",
+      "harness_commit": "b4bff71"
+    }
+  }
+}

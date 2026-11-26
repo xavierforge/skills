@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Execution stops with a refusal instead of inventing work from the repo",
+      "passed": true,
+      "evidence": "0 commits on HEAD beyond main (want [0,0])",
+      "check_type": "git_log_count"
+    },
+    {
+      "text": "The refusal states the skill serves OpenSpec projects only and that no active change exists",
+      "passed": true,
+      "evidence": "The reply states \"there's no active change under `openspec/changes/`\" and \"no `openspec/` directory\", pointing to Step 0's refusal; the skill's OpenSpec-only scope appears in the delivered result.md (\"this skill only serves OpenSpec projects, and this repo has no active change under `openspec/changes/`\"), though the final chat reply conveys it only implicitly. Git state confirms \"active change dirs (excluding archive) (none)\" and a clean tree.",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must state that the skill serves OpenSpec projects only and that no active change exists under openspec/changes/. Content of the refusal is judged from the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The refusal points at proposing a change first as the way in",
+      "passed": true,
+      "evidence": "The final reply refuses (\"`/factory` didn't run... there's no active change under `openspec/changes/`\") and gives the way in: \"To use it, propose a change first, or do the work in ordinary sessions without the factory.\"",
+      "check_type": "llm_judged",
+      "rubric": "The refusal must point the user at proposing a change first as the way in. A content judgment on the reply, not a single fixed string.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "No commits, branch changes, or file modifications are made",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "0127cdd",
+    "skill_name": "factory",
+    "skill_commit": "34ebf61",
+    "iteration": 6,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T14:18:45Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "3bbdab51dec7894a8f73d8363bb9c9249da6f2d18be3ce7ad8c9aed1cf651940",
+      "harness_commit": "0127cdd"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "readback contains all three review-layer lines (vibe-diff, cross-check, verify)",
+      "passed": true,
+      "evidence": "[any] all present: 'vibe-diff', 'cross-check', 'verify'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "missing layers explicitly reported as not run (cross-check, verify)",
+      "passed": true,
+      "evidence": "The final reply states \"The three review lines are `vibe-diff: ...`, `cross-check: not run` and `verify: not run`\", and result.md's review reconciliation section lists \"`cross-check: not run`\" and \"`verify: not run`\" explicitly; git state shows only the vibe-diff artifact under `.review/`, so both layers are indeed absent.",
+      "check_type": "llm_judged",
+      "rubric": "The two absent layers (cross-check, verify) must be explicitly named as not run, rather than silently omitted. Distinguishing 'named as not run' from 'omitted' requires reading the readback.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "vibe-diff artifact found in .review/feat-demo-gadget/ and test status summarized",
+      "passed": true,
+      "evidence": "The artifact was located at `.review/feat-demo-gadget/diff-review.json`, and the final reply reports it in one line, `vibe-diff: tests pass (bash test.sh, 3), adds a demo gadget helper, 0 findings`, which matches the file's test_status; the reply also names the \"vibe-diff artifact\" and flags that its test claim cannot be reproduced.",
+      "check_type": "llm_judged",
+      "rubric": "The present diff-review.json must be found under .review/feat-demo-gadget/ and its test status summarized in one line. Summarization is a content judgment on the reply.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "stops after Step 0 without modifying the repo",
+      "passed": true,
+      "evidence": "tree clean (expect clean)",
+      "check_type": "git_clean"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0,
+    "assertions_total": 4,
+    "undecided": 0,
+    "total_passed": 4,
+    "total_failed": 0,
+    "total_decided": 4,
+    "total_pass_rate": 1.0,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "0127cdd",
+    "skill_name": "land",
+    "skill_commit": "0127cdd",
+    "iteration": 8,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-26T13:52:37Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "dbbd388ac3df906bbd142e1814dfba4801218c8331a6277e57163dd80dff813d",
+      "harness_commit": "b4bff71"
+    }
+  }
+}
