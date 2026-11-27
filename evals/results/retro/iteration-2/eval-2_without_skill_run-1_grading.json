@@ -1,0 +1,85 @@
+{
+  "expectations": [
+    {
+      "text": "The existing class slug is reused, so the class now has exactly two [seen] lines",
+      "passed": false,
+      "evidence": "docs/lessons.md (exists=True): missing regex '^(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\[seen\\\\] leftover-debug-output:(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\[seen\\\\] leftover-debug-output:(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\Z'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "No [acted] line is written before the user approves",
+      "passed": true,
+      "evidence": "docs/lessons.md (exists=True): (present:false) missing regex '\\\\[acted\\\\]'",
+      "check_type": "file_contains"
+    },
+    {
+      "text": "Before approval, the ledger is the only file changed: AGENTS.md, scripts/, and every skill stay untouched",
+      "passed": false,
+      "evidence": "stray: scripts/diff-scan.sh",
+      "check_type": "changes_confined_to"
+    },
+    {
+      "text": "No commit is made",
+      "passed": true,
+      "evidence": "HEAD=c122593a == retro-fixture-tip=c122593a",
+      "check_type": "ref_equals"
+    },
+    {
+      "text": "The run ends with the fixed summary reporting it is awaiting approval",
+      "passed": false,
+      "evidence": "[result] missing regex '(?m)^retro: \\\\d+ occurrences? recorded'; regex '(?m)^status: awaiting approval'",
+      "check_type": "text_contains"
+    },
+    {
+      "text": "The proposal picks a mechanical rung over prose and justifies each skipped higher rung",
+      "passed": false,
+      "evidence": "The run did pick a mechanical check in `scripts/diff-scan.sh` and showed that it \"flags both original leaks when replayed at `17e5ad2` and `b49bee9`\", but neither the reply nor the transcript gives any reason for skipping a higher rung such as a structural change. The only rationale is \"I replaced 'remember it' with a mechanical check\", and the CI/pre-push and AGENTS.md discussion concerns how to run the scan, not why higher rungs were rejected.",
+      "check_type": "llm_judged",
+      "rubric": "The class has two evidenced occurrences, so the run must propose an enforcer for it. Pass only if the proposal chooses a mechanical rung (a structural change, or a check such as a diff-scan pattern, or a test) rather than prose, gives a one-clause reason for each rung above the one chosen, and states whether the new check was shown failing on the original mistake or is unproven. Choosing prose while a scan pattern was plainly possible fails.",
+      "verdict_source": "grader"
+    },
+    {
+      "text": "The proposal is presented as Accepted, Rejected, and Backlog, and the run stops for approval without applying it",
+      "passed": false,
+      "evidence": "The reply has no Accepted, Rejected, or Backlog lists, using headings such as \"What I changed (uncommitted...)\" and \"Decision for you\" instead. The run also did not stop for approval before applying the change: the transcript shows it wrote a new debug-output check into scripts/diff-scan.sh and appended a `[recurred]` entry to docs/lessons.md (git status: \" M docs/lessons.md\", \" M scripts/diff-scan.sh\"), asking only afterwards about AGENTS.md/CI.",
+      "check_type": "llm_judged",
+      "rubric": "The reply must present the proposal in three lists (Accepted, Rejected with reasons, Backlog; an empty list may be stated as empty) and then stop for the user's approval. It must not apply the enforcer, edit AGENTS.md, add the scan pattern, or claim it did so. Judge the executed actions from the transcript: describing the edit it would make is correct, performing it is the failure.",
+      "verdict_source": "grader"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 3,
+    "total": 5,
+    "pass_rate": 0.4,
+    "assertions_total": 7,
+    "undecided": 0,
+    "total_passed": 2,
+    "total_failed": 5,
+    "total_decided": 7,
+    "total_pass_rate": 0.2857,
+    "grader_decided": 2
+  },
+  "fingerprint": {
+    "checker_sha256": "330339ae5a5139e56b43a25c0ca57cfe109ffaa1a3c1169f9e83db55630a894e",
+    "harness_commit": "46c53d6",
+    "skill_name": "retro",
+    "skill_commit": "0127cdd",
+    "iteration": 2,
+    "model": "sonnet",
+    "runs": 1,
+    "timestamp": "2026-11-27T01:26:55Z",
+    "environment": "local",
+    "execution": {
+      "arm_rc": 0,
+      "stderr_scan": "clean",
+      "stderr_bytes": 0,
+      "model": "sonnet"
+    },
+    "grader": {
+      "model": "sonnet",
+      "rubric_sha256": "e7bf9343996cbb03410c8b3a15a9992cadfd57afa0051c7cf1f649091087e1e0",
+      "harness_commit": "46c53d6"
+    }
+  }
+}

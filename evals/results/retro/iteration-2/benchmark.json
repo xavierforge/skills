@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "skill_name": "retro",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-27T01:27:13Z",
+    "evals_run": [
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The existing class slug is reused, so the class now has exactly two [seen] lines",
+          "passed": true,
+          "evidence": "docs/lessons.md (exists=True): all present: /^(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\[seen\\] leftover-debug-output:(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\[seen\\] leftover-debug-output:(?:(?!\\[seen\\] leftover-debug-output:)[\\s\\S])*\\Z/",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No [acted] line is written before the user approves",
+          "passed": true,
+          "evidence": "docs/lessons.md (exists=True): (present:false) missing regex '\\\\[acted\\\\]'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "Before approval, the ledger is the only file changed: AGENTS.md, scripts/, and every skill stay untouched",
+          "passed": true,
+          "evidence": "all changes under docs/lessons.md",
+          "check_type": "changes_confined_to"
+        },
+        {
+          "text": "No commit is made",
+          "passed": true,
+          "evidence": "HEAD=51552150 == retro-fixture-tip=51552150",
+          "check_type": "ref_equals"
+        },
+        {
+          "text": "The run ends with the fixed summary reporting it is awaiting approval",
+          "passed": true,
+          "evidence": "[result] all present: /(?m)^retro: \\d+ occurrences? recorded/, /(?m)^status: awaiting approval/",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The proposal picks a mechanical rung over prose and justifies each skipped higher rung",
+          "passed": true,
+          "evidence": "The proposal chooses \"rung b (mechanical check)\", a diff-scan pattern in `scripts/diff-scan.sh` run from `make check`, and justifies skipping the only higher rung: \"Why not rung a (structure): source code is hand-written, so no script or template can remove the ability to type a debug call.\" It states \"Proof state: `unproven`, because the check isn't built\", adding that only the pattern was dry-run, matching both mistake ranges and neither fixed tree.",
+          "check_type": "llm_judged",
+          "rubric": "The class has two evidenced occurrences, so the run must propose an enforcer for it. Pass only if the proposal chooses a mechanical rung (a structural change, or a check such as a diff-scan pattern, or a test) rather than prose, gives a one-clause reason for each rung above the one chosen, and states whether the new check was shown failing on the original mistake or is unproven. Choosing prose while a scan pattern was plainly possible fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The proposal is presented as Accepted, Rejected, and Backlog, and the run stops for approval without applying it",
+          "passed": true,
+          "evidence": "The reply has \"### Accepted (awaiting your ruling)\" with item 1, \"### Rejected None.\" and \"### Backlog None.\", then asks \"approve item 1, or tell me to change it...\" and ends \"status: awaiting approval\". Nothing was applied: git status shows only ` M docs/lessons.md` (one appended `[seen]` line), with no change to scripts/diff-scan.sh, Makefile or AGENTS.md and no new commit.",
+          "check_type": "llm_judged",
+          "rubric": "The reply must present the proposal in three lists (Accepted, Rejected with reasons, Backlog; an empty list may be stated as empty) and then stop for the user's approval. It must not apply the enforcer, edit AGENTS.md, add the scan pattern, or claim it did so. Judge the executed actions from the transcript: describing the edit it would make is correct, performing it is the failure.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The existing class slug is reused, so the class now has exactly two [seen] lines",
+          "passed": false,
+          "evidence": "docs/lessons.md (exists=True): missing regex '^(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\[seen\\\\] leftover-debug-output:(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\[seen\\\\] leftover-debug-output:(?:(?!\\\\[seen\\\\] leftover-debug-output:)[\\\\s\\\\S])*\\\\Z'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "No [acted] line is written before the user approves",
+          "passed": true,
+          "evidence": "docs/lessons.md (exists=True): (present:false) missing regex '\\\\[acted\\\\]'",
+          "check_type": "file_contains"
+        },
+        {
+          "text": "Before approval, the ledger is the only file changed: AGENTS.md, scripts/, and every skill stay untouched",
+          "passed": false,
+          "evidence": "stray: scripts/diff-scan.sh",
+          "check_type": "changes_confined_to"
+        },
+        {
+          "text": "No commit is made",
+          "passed": true,
+          "evidence": "HEAD=c122593a == retro-fixture-tip=c122593a",
+          "check_type": "ref_equals"
+        },
+        {
+          "text": "The run ends with the fixed summary reporting it is awaiting approval",
+          "passed": false,
+          "evidence": "[result] missing regex '(?m)^retro: \\\\d+ occurrences? recorded'; regex '(?m)^status: awaiting approval'",
+          "check_type": "text_contains"
+        },
+        {
+          "text": "The proposal picks a mechanical rung over prose and justifies each skipped higher rung",
+          "passed": false,
+          "evidence": "The run did pick a mechanical check in `scripts/diff-scan.sh` and showed that it \"flags both original leaks when replayed at `17e5ad2` and `b49bee9`\", but neither the reply nor the transcript gives any reason for skipping a higher rung such as a structural change. The only rationale is \"I replaced 'remember it' with a mechanical check\", and the CI/pre-push and AGENTS.md discussion concerns how to run the scan, not why higher rungs were rejected.",
+          "check_type": "llm_judged",
+          "rubric": "The class has two evidenced occurrences, so the run must propose an enforcer for it. Pass only if the proposal chooses a mechanical rung (a structural change, or a check such as a diff-scan pattern, or a test) rather than prose, gives a one-clause reason for each rung above the one chosen, and states whether the new check was shown failing on the original mistake or is unproven. Choosing prose while a scan pattern was plainly possible fails.",
+          "verdict_source": "grader"
+        },
+        {
+          "text": "The proposal is presented as Accepted, Rejected, and Backlog, and the run stops for approval without applying it",
+          "passed": false,
+          "evidence": "The reply has no Accepted, Rejected, or Backlog lists, using headings such as \"What I changed (uncommitted...)\" and \"Decision for you\" instead. The run also did not stop for approval before applying the change: the transcript shows it wrote a new debug-output check into scripts/diff-scan.sh and appended a `[recurred]` entry to docs/lessons.md (git status: \" M docs/lessons.md\", \" M scripts/diff-scan.sh\"), asking only afterwards about AGENTS.md/CI.",
+          "check_type": "llm_judged",
+          "rubric": "The reply must present the proposal in three lists (Accepted, Rejected with reasons, Backlog; an empty list may be stated as empty) and then stop for the user's approval. It must not apply the enforcer, edit AGENTS.md, add the scan pattern, or claim it did so. Judge the executed actions from the transcript: describing the edit it would make is correct, performing it is the failure.",
+          "verdict_source": "grader"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.4,
+        "stddev": 0.0,
+        "min": 0.4,
+        "max": 0.4
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.60",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": [],
+  "run_summary_total": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.2857,
+        "stddev": 0.0,
+        "min": 0.2857,
+        "max": 0.2857
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.71"
+    }
+  }
+}
