@@ -138,7 +138,7 @@ EXPECTATION:
 RUBRIC (how to judge this expectation):
 {rubric}
 
---- FINAL REPLY (result.md) ---
+--- FINAL REPLY (result.md: the reply the run wrote for the user; when a separator line follows it, the text after that line is the run's closing chat message) ---
 {result}
 
 --- TRANSCRIPT (transcript.md; may be truncated) ---

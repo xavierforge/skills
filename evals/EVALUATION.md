@@ -134,8 +134,10 @@ of `claude -p`, with all the discipline unchanged:
   can see it. Both arms of one executor see the same environment, so
   within-executor Δ is unaffected; keep it in mind when comparing rounds
   across a roster install.
-- **The same evidence contract**: `result.md` and `transcript.md` are rebuilt
-  unconditionally from `codex.stream.json`, the run's authoritative record.
+- **The same evidence contract**: `transcript.md` is rebuilt unconditionally
+  from `codex.stream.json`, the run's authoritative record, and `result.md`
+  keeps what the executor wrote with the closing reply appended (see the
+  check-type vocabulary below).
 - **Limit signals and capacity overload are handled differently**: a
   `401`/`429`/quota signal stops the whole batch, no forced retry (same as
   the Claude side). The one exception is the provider reporting "model is at
@@ -266,6 +268,18 @@ The checker resolves paths as follows: `file_*`, `json_check`, and
 operates on the **run's own output artifacts** (`result.md`, `transcript.md`,
 `PR_BODY.md`) selected by `source`. `git_log_count`'s default `base` is the
 fixture's initial commit.
+
+What the two rebuilt artifacts hold, for either executor: `transcript.md` is
+always reconstructed from the run's stream (assistant text, tool calls,
+truncated tool results), replacing any narration the executor wrote, because
+what a run did outranks what it says it did. `result.md` is the executor's
+own file, followed by its closing chat reply under a harness separator line
+(`harness/result_md.py`); a run that wrote no file gets the closing reply
+alone. The ground rules ask for the full user-facing reply in the file and a
+2-3 sentence chat summary, so the file is where a ledger or a fixed summary
+block lives. Until 2026-11-27 the harness replaced the file with the closing
+reply, so `source: result` rows and "final reply" rubrics from earlier
+iterations were graded on that summary alone and are not strictly comparable.
 
 **Git / filesystem state (sandbox after the run):**
 
@@ -496,6 +510,7 @@ evals/
   harness/backfill.py        supplemental llm_judged grader (fills deferred rows, adds total_pass_rate)
   harness/regrade.py         machine-row regrader (re-decides recorded runs after a case fix; no model, no re-run)
   harness/codex_transcript.py  codex outputs reconstructor (stream + child session rollouts -> transcript.md/result.md)
+  harness/result_md.py       result.md writer shared by both executors (executor's own file + closing reply)
   harness/snapshot.sh        post-run git-state recorder (evidence in outputs/)
   results/<skill>/iteration-N/   grading.json + benchmark.json (small JSON only)
   history.md                  condensed development trail per suite

@@ -349,20 +349,21 @@ PY
     fi
     # The executor is asked to write result.md / transcript.md, but a run that
     # stops to ask/block often ends on a reply without writing them (observed on
-    # begin/1: correct dirty-tree refusal, no files). That starves every
-    # text_contains / pr_body / transcript check even though the behavior was
-    # right. claude.stream.json is THIS run's authoritative record, so both
-    # artifacts are (re)built from it UNCONDITIONALLY: the final result event ->
-    # result.md, the ordered assistant text + tool calls (+ truncated tool
-    # results) -> transcript.md. Unconditional is load-bearing: a rerun reuses the
-    # same run-N dir, so an "if not exists" guard would keep a PRIOR run's stale
-    # transcript.md/result.md and let a backfill judge score the wrong evidence
-    # (observed: factory eval-1 rerun kept its 08:21 pre-fallback files while the
-    # fresh stream landed at 10:03). Rewriting every time is the idempotent fix:
-    # the pair always matches the stream sitting next to it. If the stream carried
-    # no final result event, drop any stale result.md so the warning below fires.
-    OUT="$OUT" JSON_LOG="$json_log" python3 - <<'PY'
-import json,os
+    # begin/1: correct dirty-tree refusal, no files). claude.stream.json is THIS
+    # run's authoritative record, so both artifacts are settled from it here:
+    # - transcript.md is rebuilt UNCONDITIONALLY from the ordered assistant text
+    #   + tool calls (+ truncated tool results), replacing any narration the
+    #   executor wrote: what it did outranks what it says it did.
+    # - result.md keeps what the executor wrote and gains the stream's closing
+    #   reply under a separator (result_md.py). The ground rules ask for the
+    #   full user-facing reply in the file and a 2-3 sentence chat summary, so
+    #   replacing the file with the summary graded a pointer to the reply
+    #   instead of the reply. Keeping the executor's file is safe because the
+    #   outputs folder is emptied at arm start: nothing stale can sit there.
+    OUT="$OUT" JSON_LOG="$json_log" HARNESS_DIR="$HARNESS_DIR" python3 - <<'PY'
+import json,os,sys
+sys.path.insert(0,os.environ["HARNESS_DIR"])
+from result_md import write_result
 out=os.environ["OUT"]; stream=os.environ["JSON_LOG"]
 events=[]
 try:
@@ -373,15 +374,11 @@ try:
             except Exception: pass
 except OSError:
     events=[]
-rmd=os.path.join(out,"result.md")
 final=None
 for e in events:
     if e.get("type")=="result" and isinstance(e.get("result"),str):
         final=e["result"]
-if final is not None:
-    open(rmd,"w",encoding="utf-8").write(final)
-elif os.path.exists(rmd):
-    os.remove(rmd)
+write_result(out,final)
 tmd=os.path.join(out,"transcript.md")
 parts=["# transcript (reconstructed from claude.stream.json)\n"]
 for e in events:
@@ -412,7 +409,7 @@ for e in events:
                 if txt: parts.append("```\n"+txt[:2400]+"\n```\n")
 open(tmd,"w",encoding="utf-8").write("\n".join(parts))
 PY
-    [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (stream had no final result event)"
+    [ -f "$OUT/result.md" ] || note "warning: $suite/$idn $arm produced no result.md (no executor-written file and no final result event)"
     note "ran $suite/$idn $arm (rc=0, stderr $scan)"
   fi
 

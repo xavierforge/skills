@@ -56,7 +56,7 @@
 
 - **嚴禁用 API Key，只能用 Vendor 訂閱**：Claude 驗證器強制 `ANTHROPIC_API_KEY` 等環境變數必須清空；Codex 也一樣，要求把 `OPENAI_API_KEY` 清空，乖乖走 ChatGPT 登入。跑 Codex 模式還得明確指定 `EVAL_MODEL`。
 - **乾淨的沙盒啟動 (Hermetic 啟動)**：指令是 `codex exec --ignore-user-config --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox --json` (對標 Claude 的安全模式)。有個大坑要注意：`--ignore-user-config` **擋不住** `~/.codex/agents/`！只要你裝了 role roster，Codex arm 就是看得到它。因為同一個執行器的兩個 arm 看到的環境一致，所以內部的 Δ 不受影響；但如果你要比較安裝 roster 前後的輪次，一定要把這點放心上。
-- **證據收集一視同仁**：`result.md` 跟 `transcript.md` 一律從 `codex.stream.json` (也就是權威紀錄) 無條件重建出來。
+- **證據收集一視同仁**：`transcript.md` 一律從 `codex.stream.json` (也就是權威紀錄) 無條件重建；`result.md` 保留 executor 自己寫的內容，再把結尾回覆附加在後面（見下方的 Check 類型詞彙表）。
 - **流量限制與系統滿載 (capacity) 的處理差異**：遇到 `401`/`429`/quota 這種限流訊號，就是整批停損煞車，絕不硬擠重試 (跟 Claude 端一樣)。唯一的例外是 provider 回報「伺服器滿載 (model is at capacity)」：這種中途死掉、沒吐出任何輸出的短暫故障，允許拉開間距重試，因為失敗的回合沒留下東西，不可能靠重試灌水。
 - **派工證據只存在 session rollout，不在 stream 裡**：collab `spawn` 工具只能叫出 `~/.codex/agents/` 裡有的 agent。但 Codex 在回報 json 時，只會給一個沒接收者的 `wait` 標籤；子 agent 到底做了什麼，全躺在 `$CODEX_HOME/sessions` 底下的 rollout 檔案裡 (靠 `parent_thread_id` 來對)。我們會用 `harness/codex_transcript.py` 去收割這些 rollout，把它們塞進 transcript 的 `[dispatch]` 紀錄裡，judge 就是看這段來給分。
 
@@ -131,6 +131,8 @@ Case 檔（`cases/<suite>.json`）是每個 eval 的**正典、版本控制**的
 #### Check 類型詞彙表
 
 路徑解析規則：`file_*`、`json_check`、`changes_confined_to` 作用在 **sandbox 的 git tree**；`text_contains` 作用在**該 run 自己的產出**（`result.md`、`transcript.md`、`PR_BODY.md`，由 `source` 選擇）。`git_log_count` 的預設 `base` 是 fixture 的初始 commit。
+
+兩個重建產物的內容，兩種 executor 都一樣：`transcript.md` 永遠從該 run 的 stream 重建（assistant 文字、tool call、截斷後的 tool result），executor 自己寫的敘述會被取代，因為實際做了什麼比它自稱做了什麼更可信。`result.md` 則是 executor 自己寫的檔案，後面接一行 harness 的分隔線，再接它在對話裡的結尾回覆（`harness/result_md.py`）；沒寫檔的 run 就只有結尾回覆。ground rules 要求把完整的使用者回覆寫進檔案、對話結尾只給 2 到 3 句摘要，所以 ledger 或固定格式的摘要區塊會出現在檔案裡。2026-11-27 以前 harness 會直接用結尾回覆蓋掉這個檔案，因此更早的 iteration 裡，`source: result` 的列和 rubric 提到「final reply」的列都只看得到那段摘要，跟之後的分數不能嚴格對比。
 
 **Git／檔案系統狀態（run 之後的 sandbox）：**
 
@@ -265,6 +267,7 @@ evals/
   harness/backfill.py        llm_judged 補充 grader（補判延後的列，加上 total_pass_rate）
   harness/regrade.py         機器判的重新評分器（case 修正後重判已錄下的 run；不呼叫模型、不重跑）
   harness/codex_transcript.py  codex 產出重建器（stream + child session rollouts -> transcript.md/result.md）
+  harness/result_md.py       兩種 executor 共用的 result.md 寫入器（executor 自己的檔案 + 結尾回覆）
   harness/snapshot.sh        run 後的 git 狀態記錄器（證據放 outputs/）
   results/<skill>/iteration-N/   grading.json + benchmark.json（只收小 JSON）
   history.md                  各 suite 的濃縮發展軌跡

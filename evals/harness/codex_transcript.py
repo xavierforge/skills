@@ -21,6 +21,9 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from result_md import write_result  # noqa: E402
+
 CAP_OUTPUT = 2400   # command output excerpt
 CAP_FIELD = 1200    # tool inputs, prompts, child excerpts
 
@@ -101,11 +104,9 @@ def main(run):
     if final is None and os.path.exists(lastp):
         t = open(lastp, encoding="utf-8", errors="replace").read().strip()
         final = t or None
-    rmd = os.path.join(out, "result.md")
-    if final is not None:
-        open(rmd, "w", encoding="utf-8").write(final)
-    elif os.path.exists(rmd):
-        os.remove(rmd)
+    # Keep the executor's own result.md and append the closing reply (see
+    # result_md.py for why replacing it lost the real user-facing reply).
+    write_result(out, final)
 
     parts = ["# transcript (reconstructed from codex.stream.json + session rollouts)\n"]
     for it in items:
